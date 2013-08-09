@@ -1,0 +1,12 @@
+.classpath
+.project
+.settings/
+target/
+.idea/
+*.class
+*.jar
+*.iml
+bin/
+*.properties
+aerogear-unified-push-server/*
+/test-classes
