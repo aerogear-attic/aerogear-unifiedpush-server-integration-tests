@@ -11,7 +11,7 @@ Each Test defines the three core aspects needed for the execution of an [Arquill
 - deployment — the process of dispatching an artifact to a container
 - archive — a packaged assembly of code, configuration and resources
 
-The container's configuration resides in the [Arquillian XML](https://github.com/tolis-e/aerogear-unifiedpush-server-integration-tests/blob/master//src/test/resources/arquillian.xml) configuration file while the deployment and the archive are defined in the [Deployments](https://github.com/tolis-e/aerogear-unifiedpush-server-integration-tests/blob/master/src/test/groovy/org/jboss/aerogear/connectivity/common/Deployments.groovy) file.
+The container's configuration resides in the [Arquillian XML](https://github.com/aerogear/aerogear-unifiedpush-server-integration-tests/blob/master//src/test/resources/arquillian.xml) configuration file while the deployment and the archive are defined in the [Deployments](https://github.com/aerogear/aerogear-unifiedpush-server-integration-tests/blob/master/src/test/groovy/org/jboss/aerogear/connectivity/common/Deployments.groovy) file.
 
 The test case is dispatched to the container's environment through coordination with ShrinkWrap, which is used to declaratively define a custom archive that encapsulates the test class and its dependent resources. Arquillian packages the ShrinkWrap defined archive at runtime and deploys it to the target container. It then negotiates the execution of the test methods and captures the test results using remote communication with the server. Finally, Arquillian undeploys the test archive.
 
