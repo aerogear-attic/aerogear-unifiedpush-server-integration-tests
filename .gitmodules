@@ -1,3 +1,0 @@
-[submodule "aerogear-unified-push-server"]
-	path = aerogear-unified-push-server
-	url = git://github.com/aerogear/aerogear-unified-push-server.git

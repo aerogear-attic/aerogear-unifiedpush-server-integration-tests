@@ -18,8 +18,7 @@ The test case is dispatched to the container's environment through coordination 
 ## Execution
 Before executing the integration tests, you have to get the latest aerogear-unified-push-server source. Navigate to the project's root folder and execute:
 
-    git submodule update --init --recursive
-    git submodule foreach "git pull origin master && git checkout master"
+    git clone https://github.com/aerogear/aerogear-unified-push-server.git
 
 The integration tests execution is done through Maven. Navigate to the project's root  folder and execute:
 

@@ -2,8 +2,9 @@ language: java
 jdk:
   - openjdk7
 before_install:
-  - git submodule update --init --recursive
-  - git submodule foreach "git pull origin master && git checkout master"
+  #- git submodule update --init --recursive
+  #- git submodule foreach "git pull origin master && git checkout master"
+  - git clone https://github.com/aerogear/aerogear-unified-push-server.git
 install: true
 script:
   - mvn test
