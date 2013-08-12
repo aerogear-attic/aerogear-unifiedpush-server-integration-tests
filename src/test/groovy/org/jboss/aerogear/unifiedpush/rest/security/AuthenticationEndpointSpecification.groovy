@@ -48,7 +48,7 @@ class AuthenticationEndpointSpecification extends Specification {
         def response = login(AuthenticationUtils.ADMIN_LOGIN_NAME, AuthenticationUtils.ADMIN_PASSWORD)
         authCookies = response.getCookies()
 
-        then: "Response code 401 is returned"
+        then: "Response code 403 is returned"
         response != null && response.statusCode() == Status.FORBIDDEN.getStatusCode()
 
         and: "Cookies exist"
@@ -87,7 +87,7 @@ class AuthenticationEndpointSpecification extends Specification {
         def response = login(AuthenticationUtils.ADMIN_LOGIN_NAME, AuthenticationUtils.NEWPASSWORD)
         authCookies = response.getCookies()
 
-        then: "Response code OK is returned"
+        then: "Response code 200 is returned"
         response != null && response.statusCode() == Status.OK.getStatusCode()
 
         and: "Cookies exist"
