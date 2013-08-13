@@ -16,8 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.common
 
+import java.util.Map
+
 import groovy.json.JsonBuilder
 
+import org.jboss.aerogear.unifiedpush.model.AndroidVariant
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant
 
 import com.jayway.restassured.RestAssured
@@ -25,14 +28,13 @@ import com.jayway.restassured.RestAssured
 class SimplePushVariantUtils {
 
     def createSimplePushVariant(String name, String description, String variantID, String secret,
-            String developer, String pushNetworkURL) {
+            String developer) {
         SimplePushVariant variant = new SimplePushVariant()
         variant.setName(name)
         variant.setDescription(description)
         variant.setVariantID(variantID)
         variant.setSecret(secret)
         variant.setDeveloper(developer)
-        variant.setPushNetworkURL(pushNetworkURL)
         return variant
     }
 
@@ -48,8 +50,26 @@ class SimplePushVariantUtils {
                 .body( json {
                     name variant.getName()
                     description variant.getDescription()
-                    pushNetworkURL variant.getPushNetworkURL()
                 }).post("${root}rest/applications/${pushAppId}/simplePush")
+
+        return response
+    }
+
+    def updateSimplePushVariant(String pushAppId, SimplePushVariant variant, Map<String, ?> cookies,
+            String variantId) {
+
+        assert root !=null
+
+        JsonBuilder json = new JsonBuilder()
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .body( json {
+                    name variant.getName()
+                    description variant.getDescription()
+                })
+                .put("${root}rest/applications/${pushAppId}/simplePush/${variantId}")
 
         return response
     }

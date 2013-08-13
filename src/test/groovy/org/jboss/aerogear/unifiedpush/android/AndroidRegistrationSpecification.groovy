@@ -50,6 +50,12 @@ class AndroidRegistrationSpecification extends Specification {
 
     def private final static String ANDROID_VARIANT_DESC = "awesome variant__1"
 
+    def private final static String UPDATED_ANDROID_VARIANT_GOOGLE_KEY = "UPD_IDDASDASDSAQ__1"
+
+    def private final static String UPDATED_ANDROID_VARIANT_NAME = "UPD_AndroidVariant__1"
+
+    def private final static String UPDATED_ANDROID_VARIANT_DESC = "UPD_awesome variant__1"
+
     def private final static String PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
     def private final static String PUSH_APPLICATION_DESC = "awesome app__1"
@@ -198,7 +204,7 @@ class AndroidRegistrationSpecification extends Specification {
 
         given: "An installation for an Android device"
         InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -215,7 +221,7 @@ class AndroidRegistrationSpecification extends Specification {
 
         given: "An installation for an Android device"
         InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_2, ANDROID_DEVICE_TYPE_2,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -232,7 +238,7 @@ class AndroidRegistrationSpecification extends Specification {
 
         given: "An installation for an Android device"
         InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -273,5 +279,43 @@ class AndroidRegistrationSpecification extends Specification {
 
         and: "The registered device tokens should contain the 3 registered Android tokens"
         deviceTokens.contains(ANDROID_DEVICE_TOKEN) && deviceTokens.contains(ANDROID_DEVICE_TOKEN_2) && deviceTokens.contains(ANDROID_DEVICE_TOKEN_3)
+    }
+
+    @RunAsClient
+    def "Update an Android Variant"() {
+        given: "An Android Variant"
+        AndroidVariant variant = createAndroidVariant(UPDATED_ANDROID_VARIANT_NAME, UPDATED_ANDROID_VARIANT_DESC,
+                null, null, null, UPDATED_ANDROID_VARIANT_GOOGLE_KEY)
+
+        when: "Android Variant is updated"
+        def response = updateAndroidVariant(pushApplicationId, variant, authCookies, androidVariantId)
+
+        then: "Push Application id and Android Variant Id are not empty"
+        pushApplicationId != null && androidVariantId != null
+
+        and: "Response status code is 204"
+        response != null && response.statusCode() == Status.NO_CONTENT.getStatusCode()
+    }
+
+    def "Verify that update was done"() {
+
+        when: "Getting the Android variants"
+        def List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants()
+        def androidVariant = androidVariants != null ? androidVariants.get(0) : null
+
+        then: "Injections have been done"
+        androidVariantService != null
+
+        and: "An Android variant exists"
+        androidVariants != null && androidVariants.size() == 1 && androidVariant != null
+
+        and: "The Android variant has the expected name"
+        UPDATED_ANDROID_VARIANT_NAME.equals(androidVariant.getName())
+
+        and: "The Android variant has the expected desc"
+        UPDATED_ANDROID_VARIANT_DESC.equals(androidVariant.getDescription())
+
+        and: "The Android variant has the expected Google Key"
+        UPDATED_ANDROID_VARIANT_GOOGLE_KEY.equals(androidVariant.getGoogleKey())
     }
 }

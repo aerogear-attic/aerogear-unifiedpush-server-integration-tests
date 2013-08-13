@@ -102,9 +102,9 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
     def private final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:8081/endpoint/"
-
     def private final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
+
+    def private final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
 
     def private final static String SIMPLE_PUSH_DEVICE_TYPE = "web"
 
@@ -240,7 +240,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
     def "Register a Simple Push Variant"() {
         given: "A SimplePush Variant"
         SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
-                null, null, null, SIMPLE_PUSH_VARIANT_NETWORK_URL)
+                null, null, null)
 
         when: "Simple Push Variant is registered"
         def response = registerSimplePushVariant(pushApplicationId, variant, authCookies)
@@ -292,7 +292,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
         given: "An installation for an iOS device"
         InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null)
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
@@ -309,7 +309,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
         given: "An installation for an iOS device"
         InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null)
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
@@ -326,7 +326,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
         given: "An installation for an Android device"
         InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -343,7 +343,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
         given: "An installation for an Android device"
         InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_2, ANDROID_DEVICE_TYPE_2,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -360,7 +360,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
         given: "An installation for an Android device"
         InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -377,7 +377,7 @@ class IosSelectiveSendFilteredByAliasSpecification extends Specification {
 
         given: "An installation for a Simple Push device"
         InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
-                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY)
+                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_NETWORK_URL)
 
         when: "Installation is registered"
         def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)

@@ -92,7 +92,7 @@ class RegisterVariantsSpecification extends Specification {
                 .cookies(authCookies)
                 .body(json {
                     name "ddd simple push variant"
-                    pushNetworkURL "http://localhost:7777/endpoint/"
+                    description "ddd desc"
                 })
 
         when: "SimplePush variant is registered"
@@ -110,6 +110,9 @@ class RegisterVariantsSpecification extends Specification {
 
         and: "Mobile Variant name is returned"
         body.get("name") == "ddd simple push variant"
+
+        and: "Mobile Variant description is returned"
+        body.get("description") == "ddd desc"
     }
 
     //    curl -v -b cookies.txt -c cookies.txt
@@ -172,7 +175,4 @@ class RegisterVariantsSpecification extends Specification {
         body.get("secret") != null
     }
 
-
-
 }
-

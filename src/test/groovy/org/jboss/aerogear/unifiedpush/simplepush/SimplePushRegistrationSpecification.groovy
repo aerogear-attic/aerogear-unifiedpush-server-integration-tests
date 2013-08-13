@@ -56,7 +56,9 @@ class SimplePushRegistrationSpecification extends Specification {
 
     def private final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:8081/endpoint/"
+    def private final static String UPDATED_SIMPLE_PUSH_VARIANT_NAME = "UPD_SimplePushVariant__1"
+
+    def private final static String UPDATED_SIMPLE_PUSH_VARIANT_DESC = "UPD_awesome variant__1"
 
     def private final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
 
@@ -69,7 +71,9 @@ class SimplePushRegistrationSpecification extends Specification {
     def private final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
 
     def private final static String SIMPLE_PUSH_VERSION = "version=15"
-
+    
+    def private final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/"
+    
     def private final static URL root = new URL("http://localhost:8080/ag-push/")
 
     @Deployment(testable=true)
@@ -135,7 +139,7 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Register a Simple Push Variant"() {
         given: "A SimplePush Variant"
         SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
-                null, null, null, SIMPLE_PUSH_VARIANT_NETWORK_URL)
+                null, null, null)
 
         when: "Simple Push Variant is registered"
         def response = registerSimplePushVariant(pushApplicationId, variant, authCookies)
@@ -160,7 +164,7 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Register a Simple Push Variant - Bad Case - Missing auth cookies"() {
         given: "A SimplePush Variant"
         SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
-                null, null, null, null)
+                null, null, null)
 
         when: "Simple Push Variant is registered"
         def response = registerSimplePushVariant(pushApplicationId, variant, new HashMap<String, ?>())
@@ -173,28 +177,11 @@ class SimplePushRegistrationSpecification extends Specification {
     }
 
     @RunAsClient
-    def "Register a Simple Push Variant - Bad Case - Missing network url"() {
-        given: "A SimplePush Variant"
-        SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
-                null, null, null, null)
-
-        when: "Simple Push Variant is registered"
-        def response = registerSimplePushVariant(pushApplicationId, variant, authCookies)
-        def body = response.body().jsonPath()
-
-        then: "Push Application id is not null"
-        pushApplicationId != null
-
-        and: "Response status code is 400"
-        response != null && response.statusCode() == Status.BAD_REQUEST.getStatusCode()
-    }
-
-    @RunAsClient
     def "Register an installation for a Simple Push device"() {
 
         given: "An installation for a Simple Push device"
         InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
-                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY)
+                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_NETWORK_URL)
 
         when: "Installation is registered"
         def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)
@@ -235,5 +222,41 @@ class SimplePushRegistrationSpecification extends Specification {
 
         and: "The registered device tokens should contain the registered SimplePush token"
         deviceTokens.contains(SIMPLE_PUSH_DEVICE_TOKEN)
+    }
+
+    @RunAsClient
+    def "Update a SimplePush Variant"() {
+
+        given: "A SimplePush Variant"
+        SimplePushVariant variant = createSimplePushVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME, UPDATED_SIMPLE_PUSH_VARIANT_DESC,
+                null, null, null)
+
+        when: "SimplePush Variant is updated"
+        def response = updateSimplePushVariant(pushApplicationId, variant, authCookies, simplePushVariantId)
+
+        then: "Push Application id and SimplePush variant Id are not empty"
+        pushApplicationId != null && simplePushVariantId != null
+
+        and: "Response status code is 204"
+        response != null && response.statusCode() == Status.NO_CONTENT.getStatusCode()
+    }
+
+    def "Verify that update was done"() {
+
+        when: "Getting the Android variants"
+        def List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
+        def simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
+
+        then: "Injections have been done"
+        simplePushVariantService != null
+
+        and: "A SimplePush variant exists"
+        simplePushVariants != null && simplePushVariants.size() == 1 && simplePushVariant != null
+
+        and: "The SimplePush variant has the expected name"
+        UPDATED_SIMPLE_PUSH_VARIANT_NAME.equals(simplePushVariant.getName())
+
+        and: "The SimplePush variant has the expected desc"
+        UPDATED_SIMPLE_PUSH_VARIANT_DESC.equals(simplePushVariant.getDescription())
     }
 }

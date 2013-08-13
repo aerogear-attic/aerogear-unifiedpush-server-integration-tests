@@ -25,14 +25,15 @@ import com.jayway.restassured.RestAssured
 class InstallationUtils {
 
     def createInstallation(String deviceToken, String deviceType,
-            String OperatingSystem, String osVersion, String alias, String category) {
+            String operatingSystem, String osVersion, String alias, String category, String simplePushEndpoint) {
         InstallationImpl installation = new InstallationImpl()
         installation.setDeviceToken(deviceToken)
         installation.setDeviceType(deviceType)
-        installation.setOperatingSystem(OperatingSystem)
+        installation.setOperatingSystem(operatingSystem)
         installation.setOsVersion(osVersion)
         installation.setAlias(alias)
         installation.setCategory(category)
+        installation.setSimplePushEndpoint(simplePushEndpoint)
         return installation
     }
 
@@ -52,6 +53,7 @@ class InstallationUtils {
                     osVersion installation.getOsVersion()
                     alias installation.getAlias()
                     category installation.getCategory()
+                    simplePushEndpoint installation.getSimplePushEndpoint()
                 }).post("${root}rest/registry/device")
 
         return response

@@ -73,7 +73,7 @@ class iOSVariantUtils {
                 .multiPart("passphrase", form.getPassphrase())
                 .multiPart("name", form.getName())
                 .multiPart("description", form.getDescription())
-                .put("${root}rest/applications/${pushAppId}/iOS/" + variantId)
+                .put("${root}rest/applications/${pushAppId}/iOS/${variantId}")
 
         return response
     }
@@ -95,7 +95,7 @@ class iOSVariantUtils {
                     passphrase null
                     certificate null
                 })
-                .patch("${root}rest/applications/${pushAppId}/iOS/" + variantId)
+                .patch("${root}rest/applications/${pushAppId}/iOS/${variantId}")
 
         return response
     }

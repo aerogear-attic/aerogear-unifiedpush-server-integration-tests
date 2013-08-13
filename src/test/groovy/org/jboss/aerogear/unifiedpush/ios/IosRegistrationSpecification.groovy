@@ -284,7 +284,7 @@ class IosRegistrationSpecification extends Specification {
 
         given: "An installation for an iOS device"
         InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null)
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
@@ -301,7 +301,7 @@ class IosRegistrationSpecification extends Specification {
 
         given: "An installation for an iOS device"
         InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null)
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)

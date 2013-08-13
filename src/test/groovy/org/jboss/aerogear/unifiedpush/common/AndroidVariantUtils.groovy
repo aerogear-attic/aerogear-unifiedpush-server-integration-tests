@@ -16,9 +16,12 @@
  */
 package org.jboss.aerogear.unifiedpush.common
 
+import java.util.Map
+
 import groovy.json.JsonBuilder
 
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant
+import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm
 
 import com.jayway.restassured.RestAssured
 
@@ -50,6 +53,26 @@ class AndroidVariantUtils {
                     name variant.getName()
                     description variant.getDescription()
                 }).post("${root}rest/applications/${pushAppId}/android")
+
+        return response
+    }
+
+    def updateAndroidVariant(String pushAppId, AndroidVariant variant, Map<String, ?> cookies,
+            String variantId) {
+
+        assert root !=null
+
+        JsonBuilder json = new JsonBuilder()
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .body( json {
+                    googleKey variant.getGoogleKey()
+                    name variant.getName()
+                    description variant.getDescription()
+                })
+                .put("${root}rest/applications/${pushAppId}/android/${variantId}")
 
         return response
     }
