@@ -16,9 +16,9 @@
  */
 package org.jboss.aerogear.unifiedpush.common
 
-import java.util.Map;
+import java.util.Map
 
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.Status
 
 import groovy.json.JsonBuilder
 
@@ -36,7 +36,7 @@ class AuthenticationUtils {
 
     def login(String loginNameStr, String passwordStr) {
         assert root !=null
-        
+
         def json = new JsonBuilder()
         def response = RestAssured.given()
                 .contentType("application/json")
@@ -47,12 +47,12 @@ class AuthenticationUtils {
                 })
                 .post("${root}rest/auth/login")
 
-        return response;
+        return response
     }
 
     def updatePassword(String loginNameStr, String oldPassword, String newPasswd, Map<String, ?> cookies) {
         assert root !=null
-        
+
         def json = new JsonBuilder()
         def response = RestAssured.given()
                 .contentType("application/json")
