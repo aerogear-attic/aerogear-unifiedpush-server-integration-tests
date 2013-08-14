@@ -74,4 +74,43 @@ class PushApplicationUtils {
 
         return response
     }
+
+    def listAllPushApplications(Map<String, ?> cookies) {
+
+        assert root !=null
+
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies).get("${root}rest/applications")
+
+        return response
+    }
+
+    def findPushApplicationById(Map<String, ?> cookies, String pushAppId) {
+
+        assert root !=null
+
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies).get("${root}rest/applications/${pushAppId}")
+
+        return response
+    }
+
+    def deletePushApplication(Map<String, ?> cookies, String pushApplicationId) {
+
+        assert root !=null
+
+        def json = new JsonBuilder()
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .body( json { pushAppId pushApplicationId })
+                .delete("${root}rest/applications/${pushApplicationId}")
+
+        return response
+    }
 }

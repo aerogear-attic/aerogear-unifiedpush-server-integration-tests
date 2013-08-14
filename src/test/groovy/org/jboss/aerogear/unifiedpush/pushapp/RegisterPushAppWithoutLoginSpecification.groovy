@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.simplepush
+package org.jboss.aerogear.unifiedpush.pushapp
 
+
+import java.util.HashMap
+import java.util.Map
 
 import javax.ws.rs.core.Response.Status
 
@@ -27,6 +30,8 @@ import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.spock.ArquillianSpecification
 import org.jboss.arquillian.test.api.ArquillianResource
 import org.jboss.aerogear.unifiedpush.common.Deployments
+import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
+import org.jboss.aerogear.unifiedpush.model.PushApplication
 import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
@@ -38,6 +43,7 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter
 import org.apache.http.entity.ContentType
 
 @ArquillianSpecification
+@Mixin([PushApplicationUtils])
 class RegisterPushAppWithoutLoginSpecification extends Specification {
 
     @ArquillianResource
@@ -48,25 +54,16 @@ class RegisterPushAppWithoutLoginSpecification extends Specification {
         Deployments.unifiedPushServer()
     }
 
-    //	def setup() {
-    //		RestAssured.filters(new RequestLoggingFilter(System.err), new ResponseLoggingFilter(System.err))
-    //	}
-
     def "Registering a push application without being logged"() {
 
-        given: "Trying to register application My App"
-        def json = new JsonBuilder()
-        def request = RestAssured.given()
-                .contentType("application/json")
-                .header("Accept", "application/json")
-                .body( json {
-                    name "MyApp"
-                    description "Not logged in app"
-                })
+        given: "A PushApplication"
+        def pushAppName = "My App"
+        def pushAppDesc = "Awesome App"
+        PushApplication pushApp = createPushApplication(pushAppName, pushAppDesc,
+                null, null, null)
 
-        when: "Application is registered"
-        def response = RestAssured.given().spec(request).post("${root}rest/applications")
-        def responseString = response.asString()
+        when: "The Push Application is registered without being logged in"
+        def response = registerPushApplication(pushApp, new HashMap<String, ?>(), null)
 
         then: "Response code 401 is returned"
         response.statusCode() == Status.UNAUTHORIZED.getStatusCode()

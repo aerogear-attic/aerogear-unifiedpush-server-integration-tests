@@ -14,12 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.simplepush
+package org.jboss.aerogear.unifiedpush.pushapp
+
+import java.util.Map
+
+import javax.ws.rs.core.Response.Status
 
 import groovy.json.JsonBuilder
 
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
 import org.jboss.aerogear.unifiedpush.common.Deployments
+import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
+import org.jboss.aerogear.unifiedpush.model.PushApplication
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.spock.ArquillianSpecification
 import org.jboss.arquillian.test.api.ArquillianResource
@@ -36,7 +42,7 @@ import com.jayway.restassured.config.RestAssuredConfig
 
 
 @ArquillianSpecification
-@Mixin(AuthenticationUtils)
+@Mixin([AuthenticationUtils, PushApplicationUtils])
 class RegisterPushAppSpecification extends Specification {
 
     @ArquillianResource
@@ -47,7 +53,7 @@ class RegisterPushAppSpecification extends Specification {
         Deployments.unifiedPushServer()
     }
 
-    @Shared def authCookies
+    @Shared def static authCookies
 
     def setupSpec() {
         // RestAssured uses ISO-8859-1 by default to encode all the stuff, this is not the same as curl does
@@ -65,30 +71,25 @@ class RegisterPushAppSpecification extends Specification {
     }
 
     def setup() {
-        authCookies = authCookies ? authCookies : adminLogin().getDetailedCookies()
+        authCookies = authCookies ? authCookies : adminLogin().getCookies()
     }
 
     // curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"name" : "MyApp", "description" :  "awesome app" }'
     // http://localhost:8080/ag-push/rest/applications
     def "Registering a push application"() {
 
-        given: "Application is about to be registered"
-        def json = new JsonBuilder()
-        def request = RestAssured.given()
-                .contentType("application/json")
-                .header("Accept", "application/json")
-                .cookies(authCookies)
-                .body( json {
-                    name "MyApp"
-                    description "awesome app"
-                })
+        given: "A PushApplication"
+        def pushAppName = "My App"
+        def pushAppDesc = "Awesome App"
+        PushApplication pushApp = createPushApplication(pushAppName, pushAppDesc,
+                null, null, null)
 
-        when: "Application is registered"
-        def response = RestAssured.given().spec(request).post("${root}rest/applications")
+        when: "The Push Application is registered"
+        def response = registerPushApplication(pushApp, authCookies, "application/json")
         def body = response.body().jsonPath()
 
         then: "Response code 201 is returned"
-        response.statusCode() == 201
+        response.statusCode() == Status.CREATED.getStatusCode()
 
         and: "Push App Id is not null"
         body.get("pushApplicationID") != null
@@ -96,8 +97,11 @@ class RegisterPushAppSpecification extends Specification {
         and: "Master Secret is not null"
         body.get("masterSecret") != null
 
-        and: "Push App Name is MyApp"
-        body.get("name") == "MyApp"
+        and: "Push App Name is the expected one"
+        body.get("name") == pushAppName
+
+        and: "Push App Decsription is the expected one"
+        body.get("description") == pushAppDesc
     }
 
     // note, in json description we cannot use GString ("Description of ${appName}")
@@ -106,22 +110,16 @@ class RegisterPushAppSpecification extends Specification {
     def "Registering a push application with UTF8"() {
 
         given: "Application ${appName} is about to be registered"
-        def json = new JsonBuilder()
-        def request = RestAssured.given()
-                .contentType(contentType)
-                .header("Accept", "application/json")
-                .cookies(authCookies)
-                .body( json {
-                    name appName
-                    description "Description of " + appName
-                })
+        def pushAppDesc = "Awesome App"
+        PushApplication pushApp = createPushApplication(appName, pushAppDesc,
+                null, null, null)
 
         when: "Application ${appName} is registered"
-        def response = RestAssured.given().spec(request).post("${root}rest/applications")
+        def response = registerPushApplication(pushApp, authCookies, contentType)
         def body = response.body().jsonPath()
 
         then: "Response code 201 is returned"
-        response.statusCode() == 201
+        response.statusCode() == Status.CREATED.getStatusCode()
 
         and: "Push Application Id is not null"
         body.get("pushApplicationID") != null

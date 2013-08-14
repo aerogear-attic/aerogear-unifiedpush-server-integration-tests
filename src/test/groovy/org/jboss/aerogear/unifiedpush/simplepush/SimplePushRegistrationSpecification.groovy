@@ -312,10 +312,10 @@ class SimplePushRegistrationSpecification extends Specification {
         and: "The previously registered push app is included in the list"
         pushApps != null && pushApps.size() == 1 && nameExistsInList(PUSH_APPLICATION_NAME, pushApps)
 
-        and: "A SImplePush variant exists"
+        and: "A SimplePush variant exists"
         simplePushVariants != null && simplePushVariants.size() == 1 && simplePushVariant != null
 
-        and: "The installation's data are updated"
+        and: "The installation's data is updated"
         installation != null && UPDATED_SIMPLE_PUSH_DEVICE_TYPE.equals(installation.getDeviceType()) && UPDATED_SIMPLE_PUSH_DEVICE_OS.equals(installation.getOperatingSystem())
 
         and:
