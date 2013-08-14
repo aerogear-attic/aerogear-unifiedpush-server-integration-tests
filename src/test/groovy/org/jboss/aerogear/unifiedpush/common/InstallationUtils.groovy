@@ -16,6 +16,8 @@
  */
 package org.jboss.aerogear.unifiedpush.common
 
+import java.util.Map
+
 import groovy.json.JsonBuilder
 
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl
@@ -58,4 +60,69 @@ class InstallationUtils {
 
         return response
     }
+
+    /* methods of the InstallationManagementEndpoint used by the Admin UI begin */
+
+    def findInstallations(String variantID, Map<String, ?> cookies) {
+
+        assert root !=null
+
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .cookies(cookies)
+                .header("Accept", "application/json")
+                .get("${root}rest/applications/${variantID}/installations/")
+
+        return response
+    }
+
+    def findInstallation(String variantID, String installationID, Map<String, ?> cookies) {
+
+        assert root !=null
+
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .cookies(cookies)
+                .header("Accept", "application/json")
+                .get("${root}rest/applications/${variantID}/installations/${installationID}")
+
+        return response
+    }
+
+    def updateInstallation(String variantID, String installationID, InstallationImpl installation, Map<String, ?> cookies) {
+
+        assert root !=null
+
+        JsonBuilder json = new JsonBuilder()
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .cookies(cookies)
+                .header("Accept", "application/json")
+                .body( json {
+                    deviceToken installation.getDeviceToken()
+                    deviceType installation.getDeviceType()
+                    operatingSystem installation.getOperatingSystem()
+                    osVersion installation.getOsVersion()
+                    alias installation.getAlias()
+                    category installation.getCategory()
+                    simplePushEndpoint installation.getSimplePushEndpoint()
+                }).put("${root}rest/applications/${variantID}/installations/${installationID}")
+
+        return response
+    }
+
+    def removeInstallation(String variantID, String installationID, Map<String, ?> cookies) {
+
+        assert root !=null
+
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .cookies(cookies)
+                .header("Accept", "application/json")
+                .delete("${root}rest/applications/${variantID}/installations/${installationID}")
+
+        return response
+    }
+
+    /* methods of the InstallationManagementEndpoint used by the Admin UI end */
 }

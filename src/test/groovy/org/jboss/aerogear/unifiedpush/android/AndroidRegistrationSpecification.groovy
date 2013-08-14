@@ -68,13 +68,21 @@ class AndroidRegistrationSpecification extends Specification {
 
     def private final static String ANDROID_DEVICE_OS = "ANDROID"
 
+    def private final static String UPDATED_ANDROID_DEVICE_OS = "AndroidOS"
+
     def private final static String ANDROID_DEVICE_TYPE = "AndroidTablet"
+
+    def private final static String UPDATED_ANDROID_DEVICE_TYPE = "AndroidPhone"
 
     def private final static String ANDROID_DEVICE_TYPE_2 = "AndroidPhone"
 
     def private final static String ANDROID_DEVICE_OS_VERSION = "4.2.2"
 
+    def private final static String UPDATED_ANDROID_DEVICE_OS_VERSION = "4.1.2"
+
     def private final static String ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear"
+
+    def private final static String UPDATED_ANDROID_CLIENT_ALIAS = "upd_qa_android_1@aerogear"
 
     def private final static String ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam"
 
@@ -317,5 +325,49 @@ class AndroidRegistrationSpecification extends Specification {
 
         and: "The Android variant has the expected Google Key"
         UPDATED_ANDROID_VARIANT_GOOGLE_KEY.equals(androidVariant.getGoogleKey())
+    }
+
+    @RunAsClient
+    def "Update an Android installation"() {
+        given: "An Android installation"
+        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, UPDATED_ANDROID_DEVICE_TYPE,
+                UPDATED_ANDROID_DEVICE_OS, UPDATED_ANDROID_DEVICE_OS_VERSION, UPDATED_ANDROID_CLIENT_ALIAS, null, null)
+
+        when: "Installation is registered/updated"
+        def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
+
+        then: "Android variant id and secret are not null"
+        androidVariantId != null && androidSecret != null
+
+        and: "Response status code is 200"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
+    }
+
+    def "Verify that Android installation update was done"() {
+
+        when: "Getting all the Push Applications for the admin user"
+        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+
+        and: "Getting all the Android variants"
+        def List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants()
+        def AndroidVariant androidVariant = androidVariants != null ? androidVariants.get(0) : null
+
+        and: "Getting the installation by device token"
+        def InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(androidVariant.getVariantID(), ANDROID_DEVICE_TOKEN)
+
+        then: "Injections have been done"
+        pushAppService != null && androidVariantService != null && clientInstallationService != null
+
+        and: "The previously registered push app is included in the list"
+        pushApps != null && pushApps.size() == 1 && nameExistsInList(PUSH_APPLICATION_NAME, pushApps)
+
+        and: "An android variant exists"
+        androidVariants != null && androidVariants.size() == 1 && androidVariant != null
+
+        and: "The installation's data are updated"
+        installation != null && UPDATED_ANDROID_DEVICE_TYPE.equals(installation.getDeviceType()) && UPDATED_ANDROID_DEVICE_OS.equals(installation.getOperatingSystem())
+
+        and:
+        UPDATED_ANDROID_DEVICE_OS_VERSION.equals(installation.getOsVersion()) && UPDATED_ANDROID_CLIENT_ALIAS.equals(installation.getAlias())
     }
 }

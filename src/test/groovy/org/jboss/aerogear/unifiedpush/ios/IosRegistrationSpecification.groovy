@@ -86,11 +86,19 @@ class IosRegistrationSpecification extends Specification {
 
     def private final static String IOS_DEVICE_OS = "IOS"
 
+    def private final static String UPDATED_IOS_DEVICE_OS = "IOS6"
+
     def private final static String IOS_DEVICE_TYPE = "IOSTablet"
+
+    def private final static String UPDATED_IOS_DEVICE_TYPE = "IPhone"
 
     def private final static String IOS_DEVICE_OS_VERSION = "6"
 
+    def private final static String UPDATED_IOS_DEVICE_OS_VERSION = "5"
+
     def private final static String IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
+
+    def private final static String UPDATED_IOS_CLIENT_ALIAS = "upd_qa_iOS_1@aerogear"
 
     def private final static String COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
 
@@ -342,5 +350,50 @@ class IosRegistrationSpecification extends Specification {
 
         and: "The registered device tokens should contain the 2 registered iOS tokens"
         deviceTokens.contains(IOS_DEVICE_TOKEN) && deviceTokens.contains(IOS_DEVICE_TOKEN_2)
+    }
+
+    @RunAsClient
+    def "Update an iOS installation"() {
+
+        given: "An iOS installation"
+        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, UPDATED_IOS_DEVICE_TYPE,
+                UPDATED_IOS_DEVICE_OS, UPDATED_IOS_DEVICE_OS_VERSION, UPDATED_IOS_CLIENT_ALIAS, null, null)
+
+        when: "Installation is registered/updated"
+        def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
+
+        then: "IOS variant id and secret are not null"
+        iOSVariantId != null && iOSPushSecret != null
+
+        and: "Response status code is 200"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
+    }
+
+    def "Verify that iOS installation update was done"() {
+
+        when: "Getting all the Push Applications for the user"
+        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+
+        and: "Getting the iOS variants"
+        def List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants()
+        def iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null
+
+        and: "Getting the installation by device token"
+        def InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(iOSVariant.getVariantID(), IOS_DEVICE_TOKEN)
+
+        then: "Injections have been done"
+        pushAppService != null && iosVariantService != null && clientInstallationService != null
+
+        and: "The previously registered push app is included in the list"
+        pushApps != null && pushApps.size() == 1 && nameExistsInList(PUSH_APPLICATION_NAME, pushApps)
+
+        and: "An iOS variant exists"
+        iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null
+
+        and: "The installation's data are updated"
+        installation != null && UPDATED_IOS_DEVICE_TYPE.equals(installation.getDeviceType()) && UPDATED_IOS_DEVICE_OS.equals(installation.getOperatingSystem())
+
+        and:
+        UPDATED_IOS_DEVICE_OS_VERSION.equals(installation.getOsVersion()) && UPDATED_IOS_CLIENT_ALIAS.equals(installation.getAlias())
     }
 }

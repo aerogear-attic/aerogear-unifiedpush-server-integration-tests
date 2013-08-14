@@ -64,16 +64,28 @@ class SimplePushRegistrationSpecification extends Specification {
 
     def private final static String SIMPLE_PUSH_DEVICE_TYPE = "web"
 
+    def private final static String UPDATED_SIMPLE_PUSH_DEVICE_TYPE = "upd_web"
+
     def private final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
+
+    def private final static String UPDATED_SIMPLE_PUSH_DEVICE_OS = "UPD_MozillaOS"
 
     def private final static String SIMPLE_PUSH_CATEGORY = "1234"
 
+    def private final static String UPDATED_SIMPLE_PUSH_CATEGORY = "12345"
+
     def private final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
 
+    def private final static String UPDATED_SIMPLE_PUSH_CLIENT_ALIAS = "upd_qa_simple_push_1@aerogear"
+
     def private final static String SIMPLE_PUSH_VERSION = "version=15"
-    
+
+    def private final static String UPDATED_SIMPLE_PUSH_VERSION = "version=18"
+
     def private final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/"
-    
+
+    def private final static String UPDATED_SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
+
     def private final static URL root = new URL("http://localhost:8080/ag-push/")
 
     @Deployment(testable=true)
@@ -185,12 +197,17 @@ class SimplePushRegistrationSpecification extends Specification {
 
         when: "Installation is registered"
         def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)
+        def body = response.body().jsonPath()
+        def simplePushEndpointURL = body.get("simplePushEndpoint")
 
         then: "Variant id and secret is not null"
         simplePushVariantId != null && simplePushSecret != null
 
         and: "Response status code is 200"
         response != null && response.statusCode() == Status.OK.getStatusCode()
+
+        and: "SimplePush endpoint returned is the correct one"
+        SIMPLE_PUSH_NETWORK_URL.equals(simplePushEndpointURL)
     }
 
     def "Verify that registrations were done"() {
@@ -258,5 +275,53 @@ class SimplePushRegistrationSpecification extends Specification {
 
         and: "The SimplePush variant has the expected desc"
         UPDATED_SIMPLE_PUSH_VARIANT_DESC.equals(simplePushVariant.getDescription())
+    }
+
+    @RunAsClient
+    def "Update an SimplePush installation"() {
+
+        given: "A SimplePush installation"
+        InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, UPDATED_SIMPLE_PUSH_DEVICE_TYPE,
+                UPDATED_SIMPLE_PUSH_DEVICE_OS, "", UPDATED_SIMPLE_PUSH_CLIENT_ALIAS, UPDATED_SIMPLE_PUSH_CATEGORY, UPDATED_SIMPLE_PUSH_NETWORK_URL)
+
+        when: "Installation is registered/updated"
+        def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)
+
+        then: "SimplePush variant id and secret are not null"
+        simplePushVariantId != null && simplePushSecret != null
+
+        and: "Response status code is 200"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
+    }
+
+    def "Verify that SimplePush installation update was done"() {
+
+        when: "Getting all the Push Applications for the user"
+        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+
+        and: "Getting the Simple Push variants"
+        def List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
+        def SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
+
+        and: "Getting the installation by device token"
+        def InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(simplePushVariant.getVariantID(), SIMPLE_PUSH_DEVICE_TOKEN)
+
+        then: "Injections have been done"
+        pushAppService != null && simplePushVariantService != null && clientInstallationService != null
+
+        and: "The previously registered push app is included in the list"
+        pushApps != null && pushApps.size() == 1 && nameExistsInList(PUSH_APPLICATION_NAME, pushApps)
+
+        and: "A SImplePush variant exists"
+        simplePushVariants != null && simplePushVariants.size() == 1 && simplePushVariant != null
+
+        and: "The installation's data are updated"
+        installation != null && UPDATED_SIMPLE_PUSH_DEVICE_TYPE.equals(installation.getDeviceType()) && UPDATED_SIMPLE_PUSH_DEVICE_OS.equals(installation.getOperatingSystem())
+
+        and:
+        UPDATED_SIMPLE_PUSH_CLIENT_ALIAS.equals(installation.getAlias()) && UPDATED_SIMPLE_PUSH_NETWORK_URL.equals(installation.getSimplePushEndpoint())
+
+        and:
+        UPDATED_SIMPLE_PUSH_CATEGORY.equals(installation.getCategory())
     }
 }
