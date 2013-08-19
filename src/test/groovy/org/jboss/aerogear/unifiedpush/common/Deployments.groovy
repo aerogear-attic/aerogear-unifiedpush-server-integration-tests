@@ -45,7 +45,7 @@ class Deployments {
 
     def static WebArchive unifiedPushServer() {
 
-        def unifiedPushServerPom = System.getProperty("unified.push.server.location", "aerogear-unified-push-server/pom.xml")
+        def unifiedPushServerPom = System.getProperty("unified.push.server.location", "aerogear-unifiedpush-server/pom.xml")
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
                 .as(WebArchive.class)
@@ -59,7 +59,7 @@ class Deployments {
 
     def static WebArchive unifiedPushServerWithClasses(Class<?>... clazz) {
 
-        def unifiedPushServerPom = System.getProperty("unified.push.server.location", "aerogear-unified-push-server/pom.xml")
+        def unifiedPushServerPom = System.getProperty("unified.push.server.location", "aerogear-unifiedpush-server/pom.xml")
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
                 .as(WebArchive.class)
@@ -80,7 +80,7 @@ class Deployments {
     }
 
     def static WebArchive customUnifiedPushServerWithClasses(Class<?>... clazz) {
-        def unifiedPushServerPom = System.getProperty("unified.push.server.location", "aerogear-unified-push-server/pom.xml")
+        def unifiedPushServerPom = System.getProperty("unified.push.server.location", "aerogear-unifiedpush-server/pom.xml")
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
                 .as(WebArchive.class)
