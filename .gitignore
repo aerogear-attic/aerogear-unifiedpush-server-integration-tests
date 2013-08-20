@@ -8,5 +8,5 @@ target/
 *.iml
 bin/
 *.properties
-aerogear-unified-push-server/
+aerogear-unifiedpush-server/
 /test-classes
