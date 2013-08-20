@@ -16,47 +16,38 @@
  */
 package org.jboss.aerogear.unifiedpush.android
 
-import javax.inject.Inject
 import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AndroidVariantUtils
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
 import org.jboss.aerogear.unifiedpush.common.Constants
-import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.InstallationUtils
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
+import org.jboss.aerogear.unifiedpush.common.PushNotificationSenderUtils
+import org.jboss.aerogear.unifiedpush.common.SimplePushVariantUtils
+import org.jboss.aerogear.unifiedpush.common.iOSVariantUtils
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl
 import org.jboss.aerogear.unifiedpush.model.PushApplication
-import org.jboss.aerogear.unifiedpush.service.AndroidVariantService
-import org.jboss.aerogear.unifiedpush.service.ClientInstallationService
-import org.jboss.aerogear.unifiedpush.service.PushApplicationService
-import org.jboss.arquillian.container.test.api.Deployment
-import org.jboss.arquillian.container.test.api.RunAsClient
+import org.jboss.aerogear.unifiedpush.model.SimplePushVariant
+import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm
 import org.jboss.arquillian.spock.ArquillianSpecification
-import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
 import spock.lang.Specification
 
 
 @ArquillianSpecification
-@RunAsClient
 @Mixin([AuthenticationUtils, PushApplicationUtils, AndroidVariantUtils,
-    InstallationUtils])
-class SecureAndroidRegistrationSpecification extends Specification {
+    InstallationUtils, PushNotificationSenderUtils, SimplePushVariantUtils,
+    iOSVariantUtils])
+class SecureAndroidSelectiveSendCustomDataSpecification extends Specification {
 
     def private final static String ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1"
 
     def private final static String ANDROID_VARIANT_NAME = "AndroidVariant__1"
 
     def private final static String ANDROID_VARIANT_DESC = "awesome variant__1"
-
-    def private final static String UPDATED_ANDROID_VARIANT_GOOGLE_KEY = "UPD_IDDASDASDSAQ__1"
-
-    def private final static String UPDATED_ANDROID_VARIANT_NAME = "UPD_AndroidVariant__1"
-
-    def private final static String UPDATED_ANDROID_VARIANT_DESC = "UPD_awesome variant__1"
 
     def private final static String PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
@@ -70,27 +61,63 @@ class SecureAndroidRegistrationSpecification extends Specification {
 
     def private final static String ANDROID_DEVICE_OS = "ANDROID"
 
-    def private final static String UPDATED_ANDROID_DEVICE_OS = "AndroidOS"
-
     def private final static String ANDROID_DEVICE_TYPE = "AndroidTablet"
-
-    def private final static String UPDATED_ANDROID_DEVICE_TYPE = "AndroidPhone"
 
     def private final static String ANDROID_DEVICE_TYPE_2 = "AndroidPhone"
 
     def private final static String ANDROID_DEVICE_OS_VERSION = "4.2.2"
 
-    def private final static String UPDATED_ANDROID_DEVICE_OS_VERSION = "4.1.2"
-
     def private final static String ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear"
-
-    def private final static String UPDATED_ANDROID_CLIENT_ALIAS = "upd_qa_android_1@aerogear"
 
     def private final static String ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam"
 
+    def private final static String SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
+
+    def private final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
+
+    def private final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
+
+    def private final static String SIMPLE_PUSH_DEVICE_TYPE = "web"
+
+    def private final static String SIMPLE_PUSH_NETWORK_URL = "https://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
+
+    def private final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
+
     def private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
 
+    def private final static String NOTIFICATION_SOUND = "default"
+
+    def private final static int NOTIFICATION_BADGE = 7
+
+    def private final static String IOS_VARIANT_NAME = "IOS_Variant__1"
+
+    def private final static String IOS_VARIANT_DESC = "awesome variant__1"
+
+    def private final static String IOS_DEVICE_TOKEN = "abcd123456"
+
+    def private final static String IOS_DEVICE_TOKEN_2 = "abcd456789"
+
+    def private final static String IOS_DEVICE_OS = "IOS"
+
+    def private final static String IOS_DEVICE_TYPE = "IOSTablet"
+
+    def private final static String IOS_DEVICE_OS_VERSION = "6"
+
+    def private final static String IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
+
+    def private final static String SIMPLE_PUSH_CATEGORY = "1234"
+
+    def private final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
+
     def private final static String COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
+
+    def private final static String CUSTOM_FIELD_DATA_MSG = "custom field msg"
+
+    def private final static String SIMPLE_PUSH_VERSION = "version=15"
+
+    def private final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
+
+    def private final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
 
     def private final static URL root = new URL(Constants.SECURE_ENDPOINT)
 
@@ -103,6 +130,14 @@ class SecureAndroidRegistrationSpecification extends Specification {
     @Shared def static androidVariantId
 
     @Shared def static androidSecret
+
+    @Shared def static simplePushVariantId
+
+    @Shared def static simplePushSecret
+
+    @Shared def static iOSVariantId
+
+    @Shared def static iOSPushSecret
 
     def "Authenticate"() {
         when:
@@ -126,13 +161,13 @@ class SecureAndroidRegistrationSpecification extends Specification {
         then: "Response code 201 is returned"
         response.statusCode() == Status.CREATED.getStatusCode()
 
-        and: "Push Application Id is not null"
+        and: "Push App Id is not null"
         pushApplicationId != null
 
         and: "Master secret is not null"
         masterSecret != null
 
-        and: "Push Application Name is the expected one"
+        and: "Push App Name is the expected one"
         body.get("name") == PUSH_APPLICATION_NAME
     }
 
@@ -147,7 +182,7 @@ class SecureAndroidRegistrationSpecification extends Specification {
         androidVariantId = body.get("variantID")
         androidSecret = body.get("secret")
 
-        then: "Push Application id is not empty"
+        then: "Push Application id is not null"
         pushApplicationId != null
 
         and: "Response status code is 201"
@@ -160,34 +195,85 @@ class SecureAndroidRegistrationSpecification extends Specification {
         androidSecret != null
     }
 
-    def "Register an Android Variant - Bad Case - Missing Google key"() {
-        given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
-                null, null, null, null)
+    def "Register a Simple Push Variant"() {
+        given: "A SimplePush Variant"
+        SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
+                null, null, null)
 
-        when: "Android Variant is registered"
-        def response = registerAndroidVariant(pushApplicationId, variant, authCookies)
+        when: "Simple Push Variant is registered"
+        def response = registerSimplePushVariant(pushApplicationId, variant, authCookies)
+        def body = response.body().jsonPath()
+        simplePushVariantId = body.get("variantID")
+        simplePushSecret = body.get("secret")
 
         then: "Push Application id is not null"
         pushApplicationId != null
 
-        and: "Response status code is 400"
-        response != null && response.statusCode() == Status.BAD_REQUEST.getStatusCode()
+        and: "Response status code is 201"
+        response != null && response.statusCode() == Status.CREATED.getStatusCode()
+
+        and: "Simple Push Variant id is not null"
+        simplePushVariantId != null
+
+        and: "Simple Push secret is not empty"
+        simplePushSecret != null
     }
 
-    def "Register an Android Variant - Bad Case - Missing auth cookies"() {
-        given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
-                null, null, null, ANDROID_VARIANT_GOOGLE_KEY)
+    def "Register an iOS Variant"() {
+        given: "An iOS application form"
+        def form = createiOSApplicationUploadForm(Boolean.FALSE, IOS_CERTIFICATE_PASS_PHRASE, null,
+                IOS_VARIANT_NAME, IOS_VARIANT_DESC)
 
-        when: "Android Variant is registered"
-        def response = registerAndroidVariant(pushApplicationId, variant, new HashMap<String, ?>())
+        when: "iOS Variant is registered"
+        def response = registerIOsVariant(pushApplicationId, (iOSApplicationUploadForm)form, authCookies,
+                IOS_CERTIFICATE_PATH)
+        def body = response.body().jsonPath()
+        iOSVariantId = body.get("variantID")
+        iOSPushSecret = body.get("secret")
 
         then: "Push Application id is not null"
         pushApplicationId != null
 
-        and: "Response status code is 401"
-        response != null && response.statusCode() == Status.UNAUTHORIZED.getStatusCode()
+        and: "Response status code is 201"
+        response != null && response.statusCode() == Status.CREATED.getStatusCode()
+
+        and: "iOS Variant id is not null"
+        iOSVariantId != null
+
+        and: "iOS Secret is not null"
+        iOSPushSecret != null
+    }
+
+    def "Register an installation for an iOS device"() {
+
+        given: "An installation for an iOS device"
+        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null)
+
+        when: "Installation is registered"
+        def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
+
+        then: "Variant id and secret are not null"
+        iOSVariantId != null && iOSPushSecret != null
+
+        and: "Response status code is 200"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
+    }
+
+    def "Register a second installation for an iOS device"() {
+
+        given: "An installation for an iOS device"
+        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
+
+        when: "Installation is registered"
+        def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
+
+        then: "Variant id and secret are not null"
+        iOSVariantId != null && iOSPushSecret != null
+
+        and: "Response status code is 200"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
     }
 
     def "Register an installation for an Android device"() {
@@ -215,7 +301,7 @@ class SecureAndroidRegistrationSpecification extends Specification {
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
 
-        then: "Android variant id and secret are not null"
+        then: "Variant id and secret are not null"
         androidVariantId != null && androidSecret != null
 
         and: "Response status code is 200"
@@ -231,38 +317,46 @@ class SecureAndroidRegistrationSpecification extends Specification {
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
 
-        then: "Android variant id and secret are not null"
+        then: "Variant id and secret are not null"
         androidVariantId != null && androidSecret != null
 
         and: "Response status code is 200"
         response != null && response.statusCode() == Status.OK.getStatusCode()
     }
 
-    def "Update an Android Variant"() {
-        given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(UPDATED_ANDROID_VARIANT_NAME, UPDATED_ANDROID_VARIANT_DESC,
-                null, null, null, UPDATED_ANDROID_VARIANT_GOOGLE_KEY)
+    def "Register an installation for a Simple Push device"() {
 
-        when: "Android Variant is updated"
-        def response = updateAndroidVariant(pushApplicationId, variant, authCookies, androidVariantId)
+        given: "An installation for a Simple Push device"
+        InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
+                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_NETWORK_URL)
 
-        then: "Push Application id and Android Variant Id are not empty"
-        pushApplicationId != null && androidVariantId != null
+        when: "Installation is registered"
+        def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)
 
-        and: "Response status code is 204"
-        response != null && response.statusCode() == Status.NO_CONTENT.getStatusCode()
+        then: "Variant id and secret are not null"
+        simplePushVariantId != null && simplePushSecret != null
+
+        and: "Response status code is 200"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
     }
 
-    def "Update an Android installation"() {
-        given: "An Android installation"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, UPDATED_ANDROID_DEVICE_TYPE,
-                UPDATED_ANDROID_DEVICE_OS, UPDATED_ANDROID_DEVICE_OS_VERSION, UPDATED_ANDROID_CLIENT_ALIAS, null, null)
+    def "Selective send to Android by aliases - Custom data case"() {
 
-        when: "Installation is registered/updated"
-        def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
+        given: "A List of aliases"
+        List<String> aliases = new ArrayList<String>()
+        aliases.add(ANDROID_CLIENT_ALIAS)
+        aliases.add(ANDROID_CLIENT_ALIAS_2)
 
-        then: "Android variant id and secret are not null"
-        androidVariantId != null && androidSecret != null
+        and: "A message"
+        Map<String, Object> messages = new HashMap<String, Object>()
+        messages.put("custom", NOTIFICATION_ALERT_MSG)
+        messages.put("test", CUSTOM_FIELD_DATA_MSG)
+
+        when: "Selective send to aliases"
+        def response = selectiveSend(pushApplicationId, masterSecret, aliases, null, messages, null, null)
+
+        then: "Push application id and master secret are not null"
+        pushApplicationId != null && masterSecret != null
 
         and: "Response status code is 200"
         response != null && response.statusCode() == Status.OK.getStatusCode()
