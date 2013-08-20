@@ -128,7 +128,7 @@ class RegisterPushAppSpecification extends Specification {
         body.get("masterSecret") != null
 
         and: "Push App Name is ${appName}"
-        body.get("name") == appName
+        body.get("name").equals(appName)
 
         where:
         appName                 | contentType

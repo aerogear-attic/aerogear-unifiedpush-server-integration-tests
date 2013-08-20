@@ -33,6 +33,8 @@ class AuthenticationUtils {
     def static final String ADMIN_LOGIN_NAME = "admin"
 
     def static final String ADMIN_PASSWORD = "123"
+    
+    def static final String SECURE_ADMIN_NEW_PASSWORD = "aerogear"
 
     def login(String loginNameStr, String passwordStr) {
         assert root !=null
@@ -68,7 +70,7 @@ class AuthenticationUtils {
         return response
     }
 
-    def loginWorkFlow(String loginNameStr, String passwordStr) {
+    def loginWorkFlow(String loginNameStr, String passwordStr, String newPassword) {
         assert root !=null
 
         // login with default password
@@ -78,19 +80,29 @@ class AuthenticationUtils {
         if(response.getStatusCode() == Status.FORBIDDEN.getStatusCode()) {
             def cookies = response.getCookies()
             assert cookies !=null
-            response = updatePassword(loginNameStr, passwordStr, NEWPASSWORD, cookies)
+            response = updatePassword(loginNameStr, passwordStr, newPassword, cookies)
 
             assert response.getStatusCode() == 200
-        }
 
-        // try to login with new password
-        response = login(loginNameStr, NEWPASSWORD)
+
+            // try to login with new password
+            response = login(loginNameStr, newPassword)
+        }
 
         return response
     }
 
     def adminLogin() {
-        return loginWorkFlow(ADMIN_LOGIN_NAME, ADMIN_PASSWORD)
+        return loginWorkFlow(ADMIN_LOGIN_NAME, ADMIN_PASSWORD, NEWPASSWORD)
+    }
+
+    def secureLogin() {
+        def response = loginWorkFlow(ADMIN_LOGIN_NAME, ADMIN_PASSWORD, SECURE_ADMIN_NEW_PASSWORD)
+
+        if (response.getStatusCode() == Status.UNAUTHORIZED.statusCode) {
+            response = login(ADMIN_LOGIN_NAME, SECURE_ADMIN_NEW_PASSWORD)
+        }
+        return response
     }
 
     def createDeveloper(String loginName, String password) {

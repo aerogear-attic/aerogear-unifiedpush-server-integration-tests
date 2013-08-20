@@ -221,7 +221,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register a Simple Push Variant"() {
         given: "A SimplePush Variant"
         SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
-                null, null, null, SIMPLE_PUSH_VARIANT_NETWORK_URL)
+                null, null, null)
 
         when: "Simple Push Variant is registered"
         def response = registerSimplePushVariant(pushApplicationId, variant, authCookies)
@@ -356,7 +356,7 @@ class SelectiveSendNegativeCases extends Specification {
 
         given: "An installation for a Simple Push device"
         InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
-                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, null)
+                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VARIANT_NETWORK_URL)
 
         when: "Installation is registered"
         def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)
