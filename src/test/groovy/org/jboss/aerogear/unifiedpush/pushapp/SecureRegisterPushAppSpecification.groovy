@@ -20,9 +20,12 @@ import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
 import org.jboss.aerogear.unifiedpush.common.Constants
+import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
 import org.jboss.aerogear.unifiedpush.model.PushApplication
+import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
 import spock.lang.Specification
@@ -38,7 +41,12 @@ import com.jayway.restassured.config.RestAssuredConfig
 @Mixin([AuthenticationUtils, PushApplicationUtils])
 class SecureRegisterPushAppSpecification extends Specification {
 
-    def private final static URL root = new URL(Constants.SECURE_ENDPOINT)
+    @Deployment(testable=false)
+    def static WebArchive "create deployment"() {
+        Deployments.unifiedPushServer()
+    }
+
+    def private final static root = new URL(Constants.SECURE_AG_PUSH_ENDPOINT)
 
     @Shared def static authCookies
 
@@ -49,6 +57,8 @@ class SecureRegisterPushAppSpecification extends Specification {
         RestAssured.config = RestAssuredConfig.newConfig()
                 .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"))
+
+        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD)
     }
 
     def cleanupSpec() {
@@ -68,7 +78,7 @@ class SecureRegisterPushAppSpecification extends Specification {
         given: "A PushApplication"
         def pushAppName = "My App"
         def pushAppDesc = "Awesome App"
-        PushApplication pushApp = createPushApplication(pushAppName, pushAppDesc,
+        def pushApp = createPushApplication(pushAppName, pushAppDesc,
                 null, null, null)
 
         when: "The Push Application is registered"
@@ -98,7 +108,7 @@ class SecureRegisterPushAppSpecification extends Specification {
 
         given: "Application ${appName} is about to be registered"
         def pushAppDesc = "Awesome App"
-        PushApplication pushApp = createPushApplication(appName, pushAppDesc,
+        def pushApp = createPushApplication(appName, pushAppDesc,
                 null, null, null)
 
         when: "Application ${appName} is registered"
@@ -124,6 +134,5 @@ class SecureRegisterPushAppSpecification extends Specification {
         "AwesomeAppěščřžýáíéňľ" | "application/json"
         "AwesomeAppவான்வழிe"   | "application/json"
     }
-
 
 }

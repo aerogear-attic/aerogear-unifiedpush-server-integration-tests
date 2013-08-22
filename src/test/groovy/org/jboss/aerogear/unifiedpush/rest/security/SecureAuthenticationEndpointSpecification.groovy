@@ -19,20 +19,22 @@ package org.jboss.aerogear.unifiedpush.rest.security
 import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
+import org.jboss.aerogear.unifiedpush.common.Constants
 import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
 import org.jboss.arquillian.spock.ArquillianSpecification
-import org.jboss.arquillian.test.api.ArquillianResource
 import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
 import spock.lang.Specification
 
+import com.jayway.restassured.RestAssured
+
 @ArquillianSpecification
 @RunAsClient
 @Mixin(AuthenticationUtils)
-class AuthenticationEndpointSpecification extends Specification {
+class SecureAuthenticationEndpointSpecification extends Specification {
 
     @Deployment(testable=false)
     def static WebArchive "create deployment"() {
@@ -41,7 +43,11 @@ class AuthenticationEndpointSpecification extends Specification {
 
     @Shared def static authCookies
 
-    @ArquillianResource URL root
+    def private final static root = new URL(Constants.SECURE_AG_PUSH_ENDPOINT)
+
+    def setupSpec() {
+        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD)
+    }
 
     def "Login with default credentials returns HTTP 403"() {
         when: "Performing login with default credentials"

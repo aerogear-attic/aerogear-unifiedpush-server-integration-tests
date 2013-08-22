@@ -22,10 +22,12 @@ import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AndroidVariantUtils
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
+import org.jboss.aerogear.unifiedpush.common.Constants
 import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.InstallationUtils
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
 import org.jboss.aerogear.unifiedpush.common.PushNotificationSenderUtils
+import org.jboss.aerogear.unifiedpush.common.ServerSocketUtils
 import org.jboss.aerogear.unifiedpush.common.SimplePushVariantUtils
 import org.jboss.aerogear.unifiedpush.common.iOSVariantUtils
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant
@@ -48,90 +50,90 @@ import com.jayway.awaitility.Duration
 @ArquillianSpecification
 @Mixin([AuthenticationUtils, PushApplicationUtils, AndroidVariantUtils,
     SimplePushVariantUtils, InstallationUtils, PushNotificationSenderUtils,
-    iOSVariantUtils])
+    iOSVariantUtils, ServerSocketUtils])
 class SimplePushSelectiveSendByOsSpecification extends Specification {
 
-    def private final static String ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1"
+    def private final static ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1"
 
-    def private final static String ANDROID_VARIANT_NAME = "AndroidVariant__1"
+    def private final static ANDROID_VARIANT_NAME = "AndroidVariant__1"
 
-    def private final static String ANDROID_VARIANT_DESC = "awesome variant__1"
+    def private final static ANDROID_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String PUSH_APPLICATION_NAME = "TestPushApplication__1"
+    def private final static PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
-    def private final static String PUSH_APPLICATION_DESC = "awesome app__1"
+    def private final static PUSH_APPLICATION_DESC = "awesome app__1"
 
-    def private final static String ANDROID_DEVICE_TOKEN = "gsmToken__1"
+    def private final static ANDROID_DEVICE_TOKEN = "gsmToken__1"
 
-    def private final static String ANDROID_DEVICE_TOKEN_2 = "gsmToken__2"
+    def private final static ANDROID_DEVICE_TOKEN_2 = "gsmToken__2"
 
-    def private final static String ANDROID_DEVICE_TOKEN_3 = "gsmToken__3"
+    def private final static ANDROID_DEVICE_TOKEN_3 = "gsmToken__3"
 
-    def private final static String ANDROID_DEVICE_OS = "ANDROID"
+    def private final static ANDROID_DEVICE_OS = "ANDROID"
 
-    def private final static String ANDROID_DEVICE_TYPE = "AndroidTablet"
+    def private final static ANDROID_DEVICE_TYPE = "AndroidTablet"
 
-    def private final static String ANDROID_DEVICE_TYPE_2 = "AndroidPhone"
+    def private final static ANDROID_DEVICE_TYPE_2 = "AndroidPhone"
 
-    def private final static String ANDROID_DEVICE_OS_VERSION = "4.2.2"
+    def private final static ANDROID_DEVICE_OS_VERSION = "4.2.2"
 
-    def private final static String ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear"
+    def private final static ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear"
 
-    def private final static String ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam"
+    def private final static ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam"
 
-    def private final static String SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
+    def private final static SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
+    def private final static SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
+    def private final static SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
 
-    def private final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
+    def private final static SIMPLE_PUSH_NETWORK_URL = "http://localhost:" + Constants.SOCKET_SERVER_PORT + "/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
 
-    def private final static String SIMPLE_PUSH_DEVICE_TYPE = "web"
+    def private final static SIMPLE_PUSH_DEVICE_TYPE = "web"
 
-    def private final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
+    def private final static SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
 
-    def private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
+    def private final static NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
 
-    def private final static String NOTIFICATION_SOUND = "default"
+    def private final static NOTIFICATION_SOUND = "default"
 
-    def private final static int NOTIFICATION_BADGE = 7
+    def private final static NOTIFICATION_BADGE = 7
 
-    def private final static String IOS_VARIANT_NAME = "IOS_Variant__1"
+    def private final static IOS_VARIANT_NAME = "IOS_Variant__1"
 
-    def private final static String IOS_VARIANT_DESC = "awesome variant__1"
+    def private final static IOS_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String IOS_DEVICE_TOKEN = "abcd123456"
+    def private final static IOS_DEVICE_TOKEN = "abcd123456"
 
-    def private final static String IOS_DEVICE_TOKEN_2 = "abcd456789"
+    def private final static IOS_DEVICE_TOKEN_2 = "abcd456789"
 
-    def private final static String IOS_DEVICE_OS = "IOS"
+    def private final static IOS_DEVICE_OS = "IOS"
 
-    def private final static String IOS_DEVICE_TYPE = "IOSTablet"
+    def private final static IOS_DEVICE_TYPE = "IOSTablet"
 
-    def private final static String IOS_DEVICE_OS_VERSION = "6"
+    def private final static IOS_DEVICE_OS_VERSION = "6"
 
-    def private final static String IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
+    def private final static IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
 
-    def private final static String SIMPLE_PUSH_CATEGORY = "1234"
+    def private final static SIMPLE_PUSH_CATEGORY = "1234"
 
-    def private final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
+    def private final static SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
 
-    def private final static String COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
+    def private final static COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
 
-    def private final static String CUSTOM_FIELD_DATA_MSG = "custom field msg"
+    def private final static CUSTOM_FIELD_DATA_MSG = "custom field msg"
 
-    def private final static String SIMPLE_PUSH_VERSION = "version=15"
+    def private final static SIMPLE_PUSH_VERSION = "version=15"
 
-    def private final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
+    def private final static IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
 
-    def private final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
+    def private final static IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
 
-    def private final static URL root = new URL("http://localhost:8080/ag-push/")
+    def private final static root = new URL(Constants.INSECURE_AG_PUSH_ENDPOINT)
 
     @Deployment(testable=true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(SimplePushSelectiveSendByOsSpecification.class)
+        Deployments.customUnifiedPushServerWithClasses(SimplePushSelectiveSendByOsSpecification.class, Constants.class)
     }
 
     @Shared def static authCookies
@@ -164,7 +166,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register a push application - Bad Case - Empty push application"() {
         given: "A Push Application"
-        PushApplication pushApp = createPushApplication(null, null,
+        def pushApp = createPushApplication(null, null,
                 null, null, null)
 
         when: "Application is registered"
@@ -177,7 +179,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register a push application - Bad Case - Missing auth cookies"() {
         given: "A Push Application"
-        PushApplication pushApp = createPushApplication(null, null,
+        def pushApp = createPushApplication(null, null,
                 null, null, null)
 
         when: "Application is registered"
@@ -190,7 +192,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register a Push Application"() {
         given: "A Push Application"
-        PushApplication pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
+        def pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
                 null, null, null)
 
         when: "Application is registered"
@@ -215,7 +217,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register an Android Variant"() {
         given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
+        def variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
                 null, null, null, ANDROID_VARIANT_GOOGLE_KEY)
 
         when: "Android Variant is registered"
@@ -240,7 +242,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register an Android Variant - Bad Case - Missing Google key"() {
         given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
+        def variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
                 null, null, null, null)
 
         when: "Android Variant is registered"
@@ -256,7 +258,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register an Android Variant - Bad Case - Missing auth cookies"() {
         given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
+        def variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
                 null, null, null, ANDROID_VARIANT_GOOGLE_KEY)
 
         when: "Android Variant is registered"
@@ -272,7 +274,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     @RunAsClient
     def "Register a Simple Push Variant"() {
         given: "A SimplePush Variant"
-        SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
+        def variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
                 null, null, null)
 
         when: "Simple Push Variant is registered"
@@ -324,7 +326,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Register an installation for an iOS device"() {
 
         given: "An installation for an iOS device"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
                 IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -341,7 +343,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Register a second installation for an iOS device"() {
 
         given: "An installation for an iOS device"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
                 IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -358,7 +360,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Register an installation for an Android device"() {
 
         given: "An installation for an Android device"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
+        def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
                 ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -375,7 +377,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Register a second installation for an Android device"() {
 
         given: "An installation for an Android device"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_2, ANDROID_DEVICE_TYPE_2,
+        def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_2, ANDROID_DEVICE_TYPE_2,
                 ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null, null)
 
         when: "Installation is registered"
@@ -392,7 +394,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Register a third installation for an Android device"() {
 
         given: "An installation for an Android device"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
+        def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
                 ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -409,7 +411,7 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Register an installation for a Simple Push device"() {
 
         given: "An installation for a Simple Push device"
-        InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
+        def simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
                 SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_NETWORK_URL)
 
         when: "Installation is registered"
@@ -426,15 +428,15 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
     def "Selective send to Simple Push by platform OS - Filtering by OS case"() {
 
         given: "A List of platform OS"
-        List<String> platforms = new ArrayList<String>()
+        def platforms = new ArrayList<String>()
         platforms.add(SIMPLE_PUSH_DEVICE_OS)
 
         and: "A Map of categories / messages"
-        Map<String, String> simplePush = new HashMap<String, String>()
+        def simplePush = new HashMap<String, String>()
         simplePush.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION)
 
         and: "A socket server"
-        ServerSocket server = createSocket()
+        def server = createServerSocket(Constants.SOCKET_SERVER_PORT)
 
         when: "Selective send to aliases"
         def response = selectiveSend(pushApplicationId, masterSecret, null, null, new HashMap<String, Object>(), simplePush, platforms)
@@ -446,14 +448,14 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
         response != null && response.statusCode() == Status.OK.getStatusCode()
 
         and:
-        def String serverInput = connectAndRead(server)
+        def String serverInput = readUntilMessageIsShown(server, NOTIFICATION_ALERT_MSG)
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
                 new Callable<Boolean>() {
                     public Boolean call() throws Exception {
                         return serverInput != null && serverInput.contains(SIMPLE_PUSH_VERSION)
                     }
                 }
-        )
+                )
 
         and: "The message should have been sent"
         serverInput != null && serverInput.contains(SIMPLE_PUSH_VERSION)
@@ -462,46 +464,4 @@ class SimplePushSelectiveSendByOsSpecification extends Specification {
         serverInput != null && serverInput.contains("PUT /endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN)
     }
 
-    private ServerSocket createSocket() {
-        return new ServerSocket(8081, 0, InetAddress.getByName("localhost"))
-    }
-
-    private String connectAndRead(ServerSocket providerSocket) {
-
-        Socket connection = null
-        BufferedReader input = null
-        StringBuffer response = new StringBuffer()
-        try{
-            connection = providerSocket.accept()
-            connection.setSoTimeout(2000)
-            input = new BufferedReader(new InputStreamReader(connection.getInputStream()))
-
-            int result
-            while ((result = input.read()) != -1) {
-                response.append(Character.toChars(result))
-
-                if (response.toString().contains(NOTIFICATION_ALERT_MSG)) {
-                    break
-                }
-            }
-        }
-        catch(Exception ex){
-            //ex.printStackTrace();
-        }
-        finally{
-            try{
-                input.close()
-            }
-            catch(Exception e){
-                e.printStackTrace()
-            }
-            try{
-                providerSocket.close()
-            }
-            catch(Exception e){
-                e.printStackTrace()
-            }
-        }
-        return response.toString()
-    }
 }

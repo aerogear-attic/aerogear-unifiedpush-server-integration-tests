@@ -20,24 +20,19 @@ import javax.inject.Inject
 import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
+import org.jboss.aerogear.unifiedpush.common.Constants
 import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.InstallationUtils
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
 import org.jboss.aerogear.unifiedpush.common.PushNotificationSenderUtils
 import org.jboss.aerogear.unifiedpush.common.SimplePushVariantUtils
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl
-import org.jboss.aerogear.unifiedpush.model.PushApplication
-import org.jboss.aerogear.unifiedpush.model.SimplePushVariant
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService
 import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
 import org.jboss.arquillian.spock.ArquillianSpecification
-import org.jboss.shrinkwrap.api.ShrinkWrap
 import org.jboss.shrinkwrap.api.spec.WebArchive
-import org.jboss.shrinkwrap.resolver.api.maven.Maven
-import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter
 
 import spock.lang.Shared
 import spock.lang.Specification
@@ -48,49 +43,49 @@ import spock.lang.Specification
     InstallationUtils, PushNotificationSenderUtils])
 class SimplePushRegistrationSpecification extends Specification {
 
-    def private final static String PUSH_APPLICATION_NAME = "TestPushApplication__1"
+    def private final static PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
-    def private final static String PUSH_APPLICATION_DESC = "awesome app__1"
+    def private final static PUSH_APPLICATION_DESC = "awesome app__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
+    def private final static SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
+    def private final static SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String UPDATED_SIMPLE_PUSH_VARIANT_NAME = "UPD_SimplePushVariant__1"
+    def private final static UPDATED_SIMPLE_PUSH_VARIANT_NAME = "UPD_SimplePushVariant__1"
 
-    def private final static String UPDATED_SIMPLE_PUSH_VARIANT_DESC = "UPD_awesome variant__1"
+    def private final static UPDATED_SIMPLE_PUSH_VARIANT_DESC = "UPD_awesome variant__1"
 
-    def private final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
+    def private final static SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
 
-    def private final static String SIMPLE_PUSH_DEVICE_TYPE = "web"
+    def private final static SIMPLE_PUSH_DEVICE_TYPE = "web"
 
-    def private final static String UPDATED_SIMPLE_PUSH_DEVICE_TYPE = "upd_web"
+    def private final static UPDATED_SIMPLE_PUSH_DEVICE_TYPE = "upd_web"
 
-    def private final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
+    def private final static SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
 
-    def private final static String UPDATED_SIMPLE_PUSH_DEVICE_OS = "UPD_MozillaOS"
+    def private final static UPDATED_SIMPLE_PUSH_DEVICE_OS = "UPD_MozillaOS"
 
-    def private final static String SIMPLE_PUSH_CATEGORY = "1234"
+    def private final static SIMPLE_PUSH_CATEGORY = "1234"
 
-    def private final static String UPDATED_SIMPLE_PUSH_CATEGORY = "12345"
+    def private final static UPDATED_SIMPLE_PUSH_CATEGORY = "12345"
 
-    def private final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
+    def private final static SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
 
-    def private final static String UPDATED_SIMPLE_PUSH_CLIENT_ALIAS = "upd_qa_simple_push_1@aerogear"
+    def private final static UPDATED_SIMPLE_PUSH_CLIENT_ALIAS = "upd_qa_simple_push_1@aerogear"
 
-    def private final static String SIMPLE_PUSH_VERSION = "version=15"
+    def private final static SIMPLE_PUSH_VERSION = "version=15"
 
-    def private final static String UPDATED_SIMPLE_PUSH_VERSION = "version=18"
+    def private final static UPDATED_SIMPLE_PUSH_VERSION = "version=18"
 
-    def private final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/"
+    def private final static SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/"
 
-    def private final static String UPDATED_SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
+    def private final static UPDATED_SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
 
-    def private final static URL root = new URL("http://localhost:8080/ag-push/")
+    def private final static root = new URL(Constants.INSECURE_AG_PUSH_ENDPOINT)
 
     @Deployment(testable=true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(SimplePushRegistrationSpecification.class)
+        Deployments.customUnifiedPushServerWithClasses(SimplePushRegistrationSpecification.class, Constants.class)
     }
 
     @Shared def static authCookies
@@ -124,7 +119,7 @@ class SimplePushRegistrationSpecification extends Specification {
     @RunAsClient
     def "Register a Push Application"() {
         given: "A Push Application"
-        PushApplication pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
+        def pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
                 null, null, null)
 
         when: "Application is registered"
@@ -150,7 +145,7 @@ class SimplePushRegistrationSpecification extends Specification {
     @RunAsClient
     def "Register a Simple Push Variant"() {
         given: "A SimplePush Variant"
-        SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
+        def variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
                 null, null, null)
 
         when: "Simple Push Variant is registered"
@@ -175,7 +170,7 @@ class SimplePushRegistrationSpecification extends Specification {
     @RunAsClient
     def "Register a Simple Push Variant - Bad Case - Missing auth cookies"() {
         given: "A SimplePush Variant"
-        SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
+        def variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
                 null, null, null)
 
         when: "Simple Push Variant is registered"
@@ -192,7 +187,7 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Register an installation for a Simple Push device"() {
 
         given: "An installation for a Simple Push device"
-        InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
+        def simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
                 SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_NETWORK_URL)
 
         when: "Installation is registered"
@@ -213,14 +208,14 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Verify that registrations were done"() {
 
         when: "Getting all the Push Applications for the user"
-        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+        def pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
 
         and: "Getting the Simple Push variants"
-        def List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
-        def SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
+        def simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
+        def simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
 
         and: "Getting the registered tokens by variant id"
-        def List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(simplePushVariant.getVariantID())
+        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(simplePushVariant.getVariantID())
 
         then: "Injections have been done"
         pushAppService != null && simplePushVariantService != null && clientInstallationService != null
@@ -245,7 +240,7 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Update a SimplePush Variant"() {
 
         given: "A SimplePush Variant"
-        SimplePushVariant variant = createSimplePushVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME, UPDATED_SIMPLE_PUSH_VARIANT_DESC,
+        def variant = createSimplePushVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME, UPDATED_SIMPLE_PUSH_VARIANT_DESC,
                 null, null, null)
 
         when: "SimplePush Variant is updated"
@@ -261,7 +256,7 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Verify that update was done"() {
 
         when: "Getting the Android variants"
-        def List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
+        def simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
         def simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
 
         then: "Injections have been done"
@@ -281,7 +276,7 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Update an SimplePush installation"() {
 
         given: "A SimplePush installation"
-        InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, UPDATED_SIMPLE_PUSH_DEVICE_TYPE,
+        def simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, UPDATED_SIMPLE_PUSH_DEVICE_TYPE,
                 UPDATED_SIMPLE_PUSH_DEVICE_OS, "", UPDATED_SIMPLE_PUSH_CLIENT_ALIAS, UPDATED_SIMPLE_PUSH_CATEGORY, UPDATED_SIMPLE_PUSH_NETWORK_URL)
 
         when: "Installation is registered/updated"
@@ -297,14 +292,14 @@ class SimplePushRegistrationSpecification extends Specification {
     def "Verify that SimplePush installation update was done"() {
 
         when: "Getting all the Push Applications for the user"
-        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+        def pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
 
         and: "Getting the Simple Push variants"
-        def List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
-        def SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
+        def simplePushVariants = simplePushVariantService.findAllSimplePushVariants()
+        def simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
 
         and: "Getting the installation by device token"
-        def InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(simplePushVariant.getVariantID(), SIMPLE_PUSH_DEVICE_TOKEN)
+        def installation = clientInstallationService.findInstallationForVariantByDeviceToken(simplePushVariant.getVariantID(), SIMPLE_PUSH_DEVICE_TOKEN)
 
         then: "Injections have been done"
         pushAppService != null && simplePushVariantService != null && clientInstallationService != null

@@ -16,45 +16,28 @@
  */
 package org.jboss.aerogear.unifiedpush.ios
 
-import java.util.List
-
 import javax.inject.Inject
 import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
+import org.jboss.aerogear.unifiedpush.common.Constants
 import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.InstallationUtils
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
 import org.jboss.aerogear.unifiedpush.common.PushNotificationSenderUtils
 import org.jboss.aerogear.unifiedpush.common.iOSVariantUtils
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl
-import org.jboss.aerogear.unifiedpush.model.PushApplication
 import org.jboss.aerogear.unifiedpush.model.iOSVariant
 import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService
-// workaround to inject lowercase class
 import org.jboss.aerogear.unifiedpush.service.iOSVariantService as IOSVariantService
-import org.jboss.aerogear.unifiedpush.service.impl.iOSVariantServiceImpl
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
 import org.jboss.arquillian.spock.ArquillianSpecification
-import org.jboss.shrinkwrap.api.ShrinkWrap
-import org.jboss.shrinkwrap.api.spec.JavaArchive
 import org.jboss.shrinkwrap.api.spec.WebArchive
-import org.jboss.shrinkwrap.resolver.api.maven.Maven
-import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter
 
 import spock.lang.Shared
 import spock.lang.Specification
-
-import com.google.android.gcm.server.Sender
-import com.notnoop.apns.APNS
-import com.notnoop.apns.ApnsService
-import com.notnoop.apns.ApnsServiceBuilder
-import com.notnoop.apns.PayloadBuilder
-import com.notnoop.apns.internal.ApnsServiceImpl
-import com.notnoop.exceptions.NetworkIOException
 
 
 @ArquillianSpecification
@@ -62,55 +45,55 @@ import com.notnoop.exceptions.NetworkIOException
     PushNotificationSenderUtils,iOSVariantUtils])
 class IosRegistrationSpecification extends Specification {
 
-    def private final static String PUSH_APPLICATION_NAME = "TestPushApplication__1"
+    def private final static PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
-    def private final static String PUSH_APPLICATION_DESC = "awesome app__1"
+    def private final static PUSH_APPLICATION_DESC = "awesome app__1"
 
-    def private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
+    def private final static NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
 
-    def private final static String NOTIFICATION_SOUND = "default"
+    def private final static NOTIFICATION_SOUND = "default"
 
-    def private final static int NOTIFICATION_BADGE = 7
+    def private final static NOTIFICATION_BADGE = 7
 
-    def private final static String IOS_VARIANT_NAME = "IOS_Variant__1"
+    def private final static IOS_VARIANT_NAME = "IOS_Variant__1"
 
-    def private final static String UPDATED_IOS_VARIANT_NAME = "IOS_Variant__2"
+    def private final static UPDATED_IOS_VARIANT_NAME = "IOS_Variant__2"
 
-    def private final static String IOS_VARIANT_DESC = "awesome variant__1"
+    def private final static IOS_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String UPDATED_IOS_VARIANT_DESC = "awesome variant__2"
+    def private final static UPDATED_IOS_VARIANT_DESC = "awesome variant__2"
 
-    def private final static String IOS_DEVICE_TOKEN = "abcd123456"
+    def private final static IOS_DEVICE_TOKEN = "abcd123456"
 
-    def private final static String IOS_DEVICE_TOKEN_2 = "abcd456789"
+    def private final static IOS_DEVICE_TOKEN_2 = "abcd456789"
 
-    def private final static String IOS_DEVICE_OS = "IOS"
+    def private final static IOS_DEVICE_OS = "IOS"
 
-    def private final static String UPDATED_IOS_DEVICE_OS = "IOS6"
+    def private final static UPDATED_IOS_DEVICE_OS = "IOS6"
 
-    def private final static String IOS_DEVICE_TYPE = "IOSTablet"
+    def private final static IOS_DEVICE_TYPE = "IOSTablet"
 
-    def private final static String UPDATED_IOS_DEVICE_TYPE = "IPhone"
+    def private final static UPDATED_IOS_DEVICE_TYPE = "IPhone"
 
-    def private final static String IOS_DEVICE_OS_VERSION = "6"
+    def private final static IOS_DEVICE_OS_VERSION = "6"
 
-    def private final static String UPDATED_IOS_DEVICE_OS_VERSION = "5"
+    def private final static UPDATED_IOS_DEVICE_OS_VERSION = "5"
 
-    def private final static String IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
+    def private final static IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
 
-    def private final static String UPDATED_IOS_CLIENT_ALIAS = "upd_qa_iOS_1@aerogear"
+    def private final static UPDATED_IOS_CLIENT_ALIAS = "upd_qa_iOS_1@aerogear"
 
-    def private final static String COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
+    def private final static COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
 
-    def private final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
+    def private final static IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
 
-    def private final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
+    def private final static IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
 
-    def private final static URL root = new URL("http://localhost:8080/ag-push/")
+    def private final static root = new URL(Constants.INSECURE_AG_PUSH_ENDPOINT)
 
     @Deployment(testable=true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(IosRegistrationSpecification.class)
+        Deployments.customUnifiedPushServerWithClasses(IosRegistrationSpecification.class, Constants.class)
     }
 
     @Shared def static authCookies
@@ -144,7 +127,7 @@ class IosRegistrationSpecification extends Specification {
     @RunAsClient
     def "Register a Push Application"() {
         given: "A Push Application"
-        PushApplication pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
+        def pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
                 null, null, null)
 
         when: "Application is registered"
@@ -268,7 +251,7 @@ class IosRegistrationSpecification extends Specification {
     def "Verify that update was done"() {
 
         when: "Getting the iOS variants"
-        def List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants()
+        def iOSVariants = iosVariantService.findAlliOSVariants()
         def iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null
 
         then: "Injections have been done"
@@ -291,7 +274,7 @@ class IosRegistrationSpecification extends Specification {
     def "Register an installation for an iOS device"() {
 
         given: "An installation for an iOS device"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
                 IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -308,7 +291,7 @@ class IosRegistrationSpecification extends Specification {
     def "Register a second installation for an iOS device"() {
 
         given: "An installation for an iOS device"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
                 IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -324,14 +307,14 @@ class IosRegistrationSpecification extends Specification {
     def "Verify that registrations were done"() {
 
         when: "Getting all the Push Applications for the user"
-        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+        def pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
 
         and: "Getting the iOS variants"
-        def List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants()
+        def iOSVariants = iosVariantService.findAlliOSVariants()
         def iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null
 
         and: "Getting the registered tokens by variant id"
-        def List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(iOSVariant.getVariantID())
+        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(iOSVariant.getVariantID())
 
         then: "Injections have been done"
         pushAppService != null && iosVariantService != null && clientInstallationService != null
@@ -356,7 +339,7 @@ class IosRegistrationSpecification extends Specification {
     def "Update an iOS installation"() {
 
         given: "An iOS installation"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, UPDATED_IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, UPDATED_IOS_DEVICE_TYPE,
                 UPDATED_IOS_DEVICE_OS, UPDATED_IOS_DEVICE_OS_VERSION, UPDATED_IOS_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered/updated"
@@ -372,14 +355,14 @@ class IosRegistrationSpecification extends Specification {
     def "Verify that iOS installation update was done"() {
 
         when: "Getting all the Push Applications for the user"
-        def List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
+        def pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.ADMIN_LOGIN_NAME)
 
         and: "Getting the iOS variants"
-        def List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants()
+        def iOSVariants = iosVariantService.findAlliOSVariants()
         def iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null
 
         and: "Getting the installation by device token"
-        def InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(iOSVariant.getVariantID(), IOS_DEVICE_TOKEN)
+        def installation = clientInstallationService.findInstallationForVariantByDeviceToken(iOSVariant.getVariantID(), IOS_DEVICE_TOKEN)
 
         then: "Injections have been done"
         pushAppService != null && iosVariantService != null && clientInstallationService != null

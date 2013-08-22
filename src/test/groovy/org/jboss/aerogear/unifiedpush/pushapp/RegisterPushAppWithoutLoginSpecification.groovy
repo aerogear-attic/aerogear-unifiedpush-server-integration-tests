@@ -59,7 +59,7 @@ class RegisterPushAppWithoutLoginSpecification extends Specification {
         given: "A PushApplication"
         def pushAppName = "My App"
         def pushAppDesc = "Awesome App"
-        PushApplication pushApp = createPushApplication(pushAppName, pushAppDesc,
+        def pushApp = createPushApplication(pushAppName, pushAppDesc,
                 null, null, null)
 
         when: "The Push Application is registered without being logged in"

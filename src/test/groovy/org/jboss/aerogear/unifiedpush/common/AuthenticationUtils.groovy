@@ -28,13 +28,13 @@ import com.jayway.restassured.RestAssured
 
 class AuthenticationUtils {
 
-    def static final String NEWPASSWORD = "aerogear123"
+    def static final NEWPASSWORD = "aerogear123"
 
-    def static final String ADMIN_LOGIN_NAME = "admin"
+    def static final ADMIN_LOGIN_NAME = "admin"
 
-    def static final String ADMIN_PASSWORD = "123"
+    def static final ADMIN_PASSWORD = "123"
     
-    def static final String SECURE_ADMIN_NEW_PASSWORD = "aerogear"
+    def static final SECURE_ADMIN_NEW_PASSWORD = "aerogear"
 
     def login(String loginNameStr, String passwordStr) {
         assert root !=null

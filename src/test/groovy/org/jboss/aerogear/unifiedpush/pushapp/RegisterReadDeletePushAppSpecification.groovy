@@ -49,8 +49,8 @@ class RegisterReadDeletePushAppSpecification extends Specification {
         Deployments.unifiedPushServer()
     }
 
-    def private static final String pushAppName = "My App"
-    def private static final String  pushAppDesc = "Awesome App"
+    def private static final pushAppName = "My App"
+    def private static final pushAppDesc = "Awesome App"
     
     @Shared def static authCookies
     @Shared def static pushAppId

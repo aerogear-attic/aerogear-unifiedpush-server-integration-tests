@@ -28,10 +28,20 @@
     <!-- Force the use of the Servlet 3.0 protocol with all containers, as it is the most mature -->
     <defaultProtocol type="Servlet 3.0" />
 
-    <!-- Example configuration for a remote JBoss AS 7 instance -->
+    <!-- Configuration to be used when the JBoss remote profile is active -->
+    <container qualifier="jboss-remote" default="false">
+        <configuration>
+            <property name="managementAddress">127.0.0.1</property>
+            <property name="managementPort">9999</property>
+            <property name="username">admin</property>
+            <property name="password">admin</property>
+        </configuration>
+    </container>
+
+    <!-- Configuration to be used when the JBoss managed profile is active -->
     <container qualifier="jboss" default="true">
         <configuration>
-            <property name="jbossHome">${jbossHome:target/jboss-as-7.1.1.Final}</property>
+            <property name="jbossHome">${env.JBOSS_HOME:target/jboss-as-7.1.1.Final}</property>
             <!-- <property name="serverConfig">standalone-full.xml</property> -->
             <property name="javaVmArguments">-Djboss.bind.address=${jbossBindAddress:127.0.0.1} -Xmx512m -XX:MaxPermSize=128m</property>
         </configuration>

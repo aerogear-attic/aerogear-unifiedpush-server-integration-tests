@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AndroidVariantUtils
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
+import org.jboss.aerogear.unifiedpush.common.Constants
 import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.InstallationUtils
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
@@ -34,22 +35,12 @@ import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
 import org.jboss.arquillian.spock.ArquillianSpecification
-import org.jboss.shrinkwrap.api.ShrinkWrap
-import org.jboss.shrinkwrap.api.spec.JavaArchive
 import org.jboss.shrinkwrap.api.spec.WebArchive
-import org.jboss.shrinkwrap.resolver.api.maven.Maven
-import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter
 
 import spock.lang.Shared
 import spock.lang.Specification
 
 import com.google.android.gcm.server.Sender
-import com.notnoop.apns.APNS
-import com.notnoop.apns.ApnsService
-import com.notnoop.apns.ApnsServiceBuilder
-import com.notnoop.apns.PayloadBuilder
-import com.notnoop.apns.internal.ApnsServiceImpl
-import com.notnoop.exceptions.NetworkIOException
 
 
 @ArquillianSpecification
@@ -58,87 +49,87 @@ import com.notnoop.exceptions.NetworkIOException
     iOSVariantUtils])
 class SelectiveSendNegativeCases extends Specification {
 
-    def private final static String ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1"
+    def private final static ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1"
 
-    def private final static String ANDROID_VARIANT_NAME = "AndroidVariant__1"
+    def private final static ANDROID_VARIANT_NAME = "AndroidVariant__1"
 
-    def private final static String ANDROID_VARIANT_DESC = "awesome variant__1"
+    def private final static ANDROID_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String PUSH_APPLICATION_NAME = "TestPushApplication__1"
+    def private final static PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
-    def private final static String PUSH_APPLICATION_DESC = "awesome app__1"
+    def private final static PUSH_APPLICATION_DESC = "awesome app__1"
 
-    def private final static String ANDROID_DEVICE_TOKEN = "gsmToken__1"
+    def private final static ANDROID_DEVICE_TOKEN = "gsmToken__1"
 
-    def private final static String ANDROID_DEVICE_TOKEN_2 = "gsmToken__2"
+    def private final static ANDROID_DEVICE_TOKEN_2 = "gsmToken__2"
 
-    def private final static String ANDROID_DEVICE_TOKEN_3 = "gsmToken__3"
+    def private final static ANDROID_DEVICE_TOKEN_3 = "gsmToken__3"
 
-    def private final static String ANDROID_DEVICE_OS = "ANDROID"
+    def private final static ANDROID_DEVICE_OS = "ANDROID"
 
-    def private final static String ANDROID_DEVICE_TYPE = "AndroidTablet"
+    def private final static ANDROID_DEVICE_TYPE = "AndroidTablet"
 
-    def private final static String ANDROID_DEVICE_TYPE_2 = "AndroidPhone"
+    def private final static ANDROID_DEVICE_TYPE_2 = "AndroidPhone"
 
-    def private final static String ANDROID_DEVICE_OS_VERSION = "4.2.2"
+    def private final static ANDROID_DEVICE_OS_VERSION = "4.2.2"
 
-    def private final static String ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear"
+    def private final static ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear"
 
-    def private final static String ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam"
+    def private final static ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam"
 
-    def private final static String SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
+    def private final static SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
+    def private final static SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:8081/endpoint/"
+    def private final static SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:8081/endpoint/"
 
-    def private final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
+    def private final static SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
 
-    def private final static String SIMPLE_PUSH_DEVICE_TYPE = "web"
+    def private final static SIMPLE_PUSH_DEVICE_TYPE = "web"
 
-    def private final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
+    def private final static SIMPLE_PUSH_DEVICE_OS = "MozillaOS"
 
-    def private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
+    def private final static NOTIFICATION_ALERT_MSG = "Hello AeroGearers"
 
-    def private final static String NOTIFICATION_SOUND = "default"
+    def private final static NOTIFICATION_SOUND = "default"
 
-    def private final static int NOTIFICATION_BADGE = 7
+    def private final static NOTIFICATION_BADGE = 7
 
-    def private final static String IOS_VARIANT_NAME = "IOS_Variant__1"
+    def private final static IOS_VARIANT_NAME = "IOS_Variant__1"
 
-    def private final static String IOS_VARIANT_DESC = "awesome variant__1"
+    def private final static IOS_VARIANT_DESC = "awesome variant__1"
 
-    def private final static String IOS_DEVICE_TOKEN = "abcd123456"
+    def private final static IOS_DEVICE_TOKEN = "abcd123456"
 
-    def private final static String IOS_DEVICE_TOKEN_2 = "abcd456789"
+    def private final static IOS_DEVICE_TOKEN_2 = "abcd456789"
 
-    def private final static String IOS_DEVICE_OS = "IOS"
+    def private final static IOS_DEVICE_OS = "IOS"
 
-    def private final static String IOS_DEVICE_TYPE = "IOSTablet"
+    def private final static IOS_DEVICE_TYPE = "IOSTablet"
 
-    def private final static String IOS_DEVICE_OS_VERSION = "6"
+    def private final static IOS_DEVICE_OS_VERSION = "6"
 
-    def private final static String IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
+    def private final static IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear"
 
-    def private final static String SIMPLE_PUSH_CATEGORY = "1234"
+    def private final static SIMPLE_PUSH_CATEGORY = "1234"
 
-    def private final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
+    def private final static SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
 
-    def private final static String COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
+    def private final static COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
 
-    def private final static String CUSTOM_FIELD_DATA_MSG = "custom field msg"
+    def private final static CUSTOM_FIELD_DATA_MSG = "custom field msg"
 
-    def private final static String SIMPLE_PUSH_VERSION = "version=15"
+    def private final static SIMPLE_PUSH_VERSION = "version=15"
 
-    def private final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
+    def private final static IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12"
 
-    def private final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
+    def private final static IOS_CERTIFICATE_PASS_PHRASE = "aerogear"
 
-    def private final static URL root = new URL("http://localhost:8080/ag-push/")
+    def private final static root = new URL(Constants.INSECURE_AG_PUSH_ENDPOINT)
 
     @Deployment(testable=true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(SelectiveSendNegativeCases.class)
+        Deployments.customUnifiedPushServerWithClasses(SelectiveSendNegativeCases.class, Constants.class)
     }
 
     @Shared def static authCookies
@@ -170,7 +161,7 @@ class SelectiveSendNegativeCases extends Specification {
     @RunAsClient
     def "Register a Push Application"() {
         given: "A Push Application"
-        PushApplication pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
+        def pushApp = createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
                 null, null, null)
 
         when: "Application is registered"
@@ -195,7 +186,7 @@ class SelectiveSendNegativeCases extends Specification {
     @RunAsClient
     def "Register an Android Variant"() {
         given: "An Android Variant"
-        AndroidVariant variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
+        def variant = createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC,
                 null, null, null, ANDROID_VARIANT_GOOGLE_KEY)
 
         when: "Android Variant is registered"
@@ -220,7 +211,7 @@ class SelectiveSendNegativeCases extends Specification {
     @RunAsClient
     def "Register a Simple Push Variant"() {
         given: "A SimplePush Variant"
-        SimplePushVariant variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
+        def variant = createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC,
                 null, null, null)
 
         when: "Simple Push Variant is registered"
@@ -270,7 +261,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register an installation for an iOS device"() {
 
         given: "An installation for an iOS device"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
                 IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -287,7 +278,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register a second installation for an iOS device"() {
 
         given: "An installation for an iOS device"
-        InstallationImpl iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
+        def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
                 IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -304,7 +295,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register an installation for an Android device"() {
 
         given: "An installation for an Android device"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
+        def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
                 ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -321,7 +312,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register a second installation for an Android device"() {
 
         given: "An installation for an Android device"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_2, ANDROID_DEVICE_TYPE_2,
+        def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_2, ANDROID_DEVICE_TYPE_2,
                 ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null, null)
 
         when: "Installation is registered"
@@ -338,7 +329,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register a third installation for an Android device"() {
 
         given: "An installation for an Android device"
-        InstallationImpl androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
+        def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
                 ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
@@ -355,7 +346,7 @@ class SelectiveSendNegativeCases extends Specification {
     def "Register an installation for a Simple Push device"() {
 
         given: "An installation for a Simple Push device"
-        InstallationImpl simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
+        def simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
                 SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VARIANT_NETWORK_URL)
 
         when: "Installation is registered"
@@ -372,12 +363,12 @@ class SelectiveSendNegativeCases extends Specification {
     def "Selective send - Bad request - Empty push application id"() {
 
         given: "A List of aliases"
-        List<String> aliases = new ArrayList<String>()
+        def aliases = new ArrayList<String>()
         aliases.add(ANDROID_CLIENT_ALIAS)
         aliases.add(ANDROID_CLIENT_ALIAS_2)
 
         and: "A message"
-        Map<String, Object> messages = new HashMap<String, Object>()
+        def messages = new HashMap<String, Object>()
         messages.put("alert", NOTIFICATION_ALERT_MSG)
 
         when: "Selective send to aliases"
@@ -391,13 +382,13 @@ class SelectiveSendNegativeCases extends Specification {
     def "Selective send - Wrong push application id - Negative case"() {
 
         given: "A List of aliases"
-        List<String> aliases = new ArrayList<String>()
+        def aliases = new ArrayList<String>()
         aliases.add(ANDROID_CLIENT_ALIAS)
         aliases.add(ANDROID_CLIENT_ALIAS_2)
         Sender.clear()
 
         and: "A message"
-        Map<String, Object> messages = new HashMap<String, Object>()
+        def messages = new HashMap<String, Object>()
         messages.put("custom", NOTIFICATION_ALERT_MSG)
         messages.put("test", CUSTOM_FIELD_DATA_MSG)
 
@@ -416,13 +407,13 @@ class SelectiveSendNegativeCases extends Specification {
     def "Selective send - Wrong master secret - Negative case"() {
 
         given: "A List of aliases"
-        List<String> aliases = new ArrayList<String>()
+        def aliases = new ArrayList<String>()
         aliases.add(ANDROID_CLIENT_ALIAS)
         aliases.add(ANDROID_CLIENT_ALIAS_2)
         Sender.clear()
 
         and: "A message"
-        Map<String, Object> messages = new HashMap<String, Object>()
+        def messages = new HashMap<String, Object>()
         messages.put("custom", NOTIFICATION_ALERT_MSG)
         messages.put("test", CUSTOM_FIELD_DATA_MSG)
 

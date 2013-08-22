@@ -18,5 +18,13 @@ package org.jboss.aerogear.unifiedpush.common
 
 class Constants {
 
-    def static final String SECURE_ENDPOINT = "https://agpushsmall-arqtest.rhcloud.com/"
+    def static final SECURE_AG_PUSH_ENDPOINT = "https://localhost:8443/ag-push/"
+
+    def static final INSECURE_AG_PUSH_ENDPOINT = "http://localhost:8080/ag-push/"
+
+    def static final KEYSTORE_PATH = "jboss-as-conf/aerogear.keystore"
+
+    def static final KEYSTORE_PASSWORD = "aerogear"
+    
+    def static final SOCKET_SERVER_PORT = 8081
 }

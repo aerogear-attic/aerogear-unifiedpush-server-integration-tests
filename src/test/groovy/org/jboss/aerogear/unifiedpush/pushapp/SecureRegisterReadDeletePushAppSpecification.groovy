@@ -23,22 +23,34 @@ import javax.ws.rs.core.Response.Status
 
 import org.jboss.aerogear.unifiedpush.common.AuthenticationUtils
 import org.jboss.aerogear.unifiedpush.common.Constants
+import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
-import org.jboss.aerogear.unifiedpush.model.PushApplication
+import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
 import spock.lang.Specification
+
+import com.jayway.restassured.RestAssured
 
 @ArquillianSpecification
 @Mixin([AuthenticationUtils, PushApplicationUtils])
 class SecureRegisterReadDeletePushAppSpecification extends Specification {
 
+    @Deployment(testable=false)
+    def static WebArchive "create deployment"() {
+        Deployments.unifiedPushServer()
+    }
 
-    def private final static URL root = new URL(Constants.SECURE_ENDPOINT)
+    def private final static root = new URL(Constants.SECURE_AG_PUSH_ENDPOINT)
 
-    def private static final String pushAppName = "My App"
-    def private static final String  pushAppDesc = "Awesome App"
+    def setupSpec() {
+        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD)
+    }
+
+    def private static final pushAppName = "My App"
+    def private static final pushAppDesc = "Awesome App"
 
     @Shared def static authCookies
     @Shared def static pushAppId
@@ -51,7 +63,7 @@ class SecureRegisterReadDeletePushAppSpecification extends Specification {
     def "Registering a push application"() {
 
         given: "A PushApplication"
-        PushApplication pushApp = createPushApplication(pushAppName, pushAppDesc,
+        def pushApp = createPushApplication(pushAppName, pushAppDesc,
                 null, null, null)
 
         when: "The Push Application is registered"

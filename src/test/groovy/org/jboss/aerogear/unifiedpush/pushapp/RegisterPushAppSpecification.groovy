@@ -81,7 +81,7 @@ class RegisterPushAppSpecification extends Specification {
         given: "A PushApplication"
         def pushAppName = "My App"
         def pushAppDesc = "Awesome App"
-        PushApplication pushApp = createPushApplication(pushAppName, pushAppDesc,
+        def pushApp = createPushApplication(pushAppName, pushAppDesc,
                 null, null, null)
 
         when: "The Push Application is registered"
@@ -111,7 +111,7 @@ class RegisterPushAppSpecification extends Specification {
 
         given: "Application ${appName} is about to be registered"
         def pushAppDesc = "Awesome App"
-        PushApplication pushApp = createPushApplication(appName, pushAppDesc,
+        def pushApp = createPushApplication(appName, pushAppDesc,
                 null, null, null)
 
         when: "Application ${appName} is registered"
