@@ -5,7 +5,7 @@ before_install:
  - cd ..
  - wget http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.tar.gz
  - tar -xvf jboss-as-7.1.1.Final.tar.gz
- - mv jboss-as-conf/standalone.xml jboss-as-7.1.1.Final/standalone/configuration
+ - mv aerogear-unifiedpush-server-integration-tests/jboss-as-conf/standalone.xml jboss-as-7.1.1.Final/standalone/configuration
  - export JBOSS_HOME=/home/travis/build/aerogear/jboss-as-7.1.1.Final
  - cd aerogear-unifiedpush-server-integration-tests
  - git clone https://github.com/aerogear/aerogear-unifiedpush-server.git
