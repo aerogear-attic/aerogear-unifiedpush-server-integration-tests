@@ -57,6 +57,8 @@ public class ApnsServiceImpl implements ApnsService {
 	public static String sound = null;
 
 	public static int badge = -1;
+	
+	public static String customFields;
 
 	public void start() {
 	}
@@ -81,7 +83,7 @@ public class ApnsServiceImpl implements ApnsService {
 
 	@SuppressWarnings("rawtypes")
 	public Collection push(Collection<String> tokens, String message) {
-		if (tokens != null) {
+	    if (tokens != null) {
 			tokensList = new ArrayList<String>();
 			tokensList.addAll(tokens);
 		}
@@ -94,9 +96,11 @@ public class ApnsServiceImpl implements ApnsService {
 					alert = subparts[1];
 				else if ("sound".equals(subparts[0]))
 					sound = subparts[1];
-				else
+				else if ("badge".equals(subparts[0]))
 					badge = subparts[1] != null ? Integer.parseInt(subparts[1])
 							: -1;
+				else if ("customFields".equals(subparts[0]))
+				    customFields = subparts[1];
 			}
 		}
 		return null;
@@ -107,5 +111,6 @@ public class ApnsServiceImpl implements ApnsService {
 		alert = null;
 		sound = null;
 		badge = -1;
+		customFields = null;
 	}
 }

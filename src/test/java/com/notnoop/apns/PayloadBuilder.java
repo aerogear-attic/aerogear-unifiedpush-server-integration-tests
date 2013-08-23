@@ -45,6 +45,8 @@ public final class PayloadBuilder {
     private String sound;
 
     private int badge;
+    
+    private Map<String, ? extends Object> customFields;
 
     public String getAlert() {
         return alert;
@@ -129,11 +131,12 @@ public final class PayloadBuilder {
     }
 
     public PayloadBuilder customFields(final Map<String, ? extends Object> values) {
+        this.customFields = values;
         return this;
     }
 
     public String build() {
-        return "alert:" + alert + ",sound:" + sound + ",badge:" + badge;
+        return "alert:" + alert + ",sound:" + sound + ",badge:" + badge + ",customFields:" + customFields;
     }
 
 }
