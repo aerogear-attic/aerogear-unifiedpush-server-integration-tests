@@ -20,9 +20,13 @@ Download the JBoss AS:
 
     wget http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.tar.gz
 
-Replace the `jboss-as-7.1.1.Final/standalone/configuration/standalone.xml` file with the one which is included inside the [jboss-as-conf](https://github.com/aerogear/aerogear-unifiedpush-server-integration-tests/blob/master/jboss-as-conf) folder of this project.
+Extract all the files from the archive:
 
-Modify the `keystore` [path](https://github.com/aerogear/aerogear-unifiedpush-server-integration-tests/blob/master/jboss-as-conf/standalone.xml#L261) so that it matches your environment's path:
+    tar -xvf jboss-as-7.1.1.Final.tar.gz
+
+Modify the [certificate-key-file value](https://github.com/aerogear/aerogear-unifiedpush-server-integration-tests/blob/master/jboss-as-conf/standalone.xml#L261) so that it matches your environment's path.
+
+Replace the `jboss-as-7.1.1.Final/standalone/configuration/standalone.xml` file with the one you modified during the previous step.
 
 Setup the `JBOSS_HOME` environment variable:
 
