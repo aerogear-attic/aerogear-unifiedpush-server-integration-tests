@@ -27,6 +27,7 @@ import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.InstallationUtils
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
 import org.jboss.aerogear.unifiedpush.common.PushNotificationSenderUtils
+import org.jboss.aerogear.unifiedpush.common.ServerSocketUtils;
 import org.jboss.aerogear.unifiedpush.common.SimplePushVariantUtils
 import org.jboss.aerogear.unifiedpush.common.iOSVariantUtils
 import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm
@@ -48,7 +49,7 @@ import com.notnoop.apns.internal.ApnsServiceImpl
 @ArquillianSpecification
 @Mixin([AuthenticationUtils, PushApplicationUtils, AndroidVariantUtils,
     SimplePushVariantUtils, InstallationUtils, PushNotificationSenderUtils,
-    iOSVariantUtils])
+    iOSVariantUtils, ServerSocketUtils])
 class SecureSelectiveSendByCommonAlias extends Specification {
 
     def private final static ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1"
@@ -83,7 +84,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
     def private final static SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1"
 
-    def private final static SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:8081/endpoint/"
+    def private final static SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:" + Constants.SOCKET_SERVER_PORT + "/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN
 
     def private final static SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1"
 
@@ -115,9 +116,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
     def private final static SIMPLE_PUSH_CATEGORY = "1234"
 
-    def private final static SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear"
-
-    def private final static COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear"
+    def private final static COMMON_IOS_ANDROID_SIMPLEPUSH_CLIENT_ALIAS = "qa_ios_android_simplepush@aerogear"
 
     def private final static CUSTOM_FIELD_DATA_MSG = "custom field msg"
 
@@ -131,7 +130,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
     @Deployment(testable=true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(SecureSelectiveSendByCommonAlias.class, Constants.class)
+        Deployments.customUnifiedPushServerWithClasses(SecureSelectiveSendByCommonAlias.class, Constants.class, ServerSocketUtils.class)
     }
 
     @Shared def static authCookies
@@ -285,7 +284,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
         given: "An installation for an iOS device"
         def iOSInstallation = createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
+                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_SIMPLEPUSH_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(iOSVariantId, iOSPushSecret, iOSInstallation)
@@ -336,7 +335,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
         given: "An installation for an Android device"
         def androidInstallation = createInstallation(ANDROID_DEVICE_TOKEN_3, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null)
+                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_SIMPLEPUSH_CLIENT_ALIAS, null, null)
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
@@ -353,7 +352,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
         given: "An installation for a Simple Push device"
         def simplePushInstallation = createInstallation(SIMPLE_PUSH_DEVICE_TOKEN, SIMPLE_PUSH_DEVICE_TYPE,
-                SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VARIANT_NETWORK_URL)
+                SIMPLE_PUSH_DEVICE_OS, "", COMMON_IOS_ANDROID_SIMPLEPUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VARIANT_NETWORK_URL)
 
         when: "Installation is registered"
         def response = registerInstallation(simplePushVariantId, simplePushSecret, simplePushInstallation)
@@ -370,7 +369,7 @@ class SecureSelectiveSendByCommonAlias extends Specification {
 
         given: "A List of aliases"
         def aliases = new ArrayList<String>()
-        aliases.add(COMMON_IOS_ANDROID_CLIENT_ALIAS)
+        aliases.add(COMMON_IOS_ANDROID_SIMPLEPUSH_CLIENT_ALIAS)
         Sender.clear()
         ApnsServiceImpl.clear()
 
@@ -378,14 +377,37 @@ class SecureSelectiveSendByCommonAlias extends Specification {
         def messages = new HashMap<String, Object>()
         messages.put("alert", NOTIFICATION_ALERT_MSG)
 
+        and: "A SimplePush message"
+        def simplePushMessage = new HashMap<String, String>()
+        simplePushMessage.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION)
+
+        and: "A Socket server"
+        def socketServer = createServerSocket(Constants.SOCKET_SERVER_PORT)
+
         when: "Selective send to aliases"
-        def response = selectiveSend(pushApplicationId, masterSecret, aliases, null, messages, null, null)
+        def response = selectiveSend(pushApplicationId, masterSecret, aliases, null, messages, simplePushMessage, null)
 
         then: "Push application id and master secret are not null"
         pushApplicationId != null && masterSecret != null
 
         and: "Response status code is 200"
         response != null && response.statusCode() == Status.OK.getStatusCode()
+
+        and:
+        def serverInput = readUntilMessageIsShown(socketServer, NOTIFICATION_ALERT_MSG)
+        Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
+                new Callable<Boolean>() {
+                    public Boolean call() throws Exception {
+                        return serverInput != null && serverInput.contains(SIMPLE_PUSH_VERSION)
+                    }
+                }
+                )
+
+        and: "The message should have been sent"
+        serverInput != null && serverInput.contains(SIMPLE_PUSH_VERSION)
+
+        and: "The message is sent to the correct channel"
+        serverInput != null && serverInput.contains("PUT /endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN)
     }
 
     def "Verify that right GCM & APN notifications were sent - Target multiple devices by alias case"() {
