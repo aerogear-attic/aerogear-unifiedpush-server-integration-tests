@@ -43,4 +43,25 @@ class PushNotificationSenderUtils {
 
         return response
     }
+
+    // TODO parameter categories should be List<String> when there is possibility to send array and not just string
+    def selectiveSendByCategories(String pushApplicationId, String masterSecret, String categories,
+                                  Map<String, Object> messages, Map<String, String> simplePush) {
+        assert root != null
+
+        JsonBuilder json = new JsonBuilder()
+        def response = RestAssured.given()
+                .contentType("application/json")
+                .auth().basic(pushApplicationId, masterSecret)
+                .header("Accept", "application/json")
+                .body( json {
+                    category categories
+                    message messages
+                    "simple-push" simplePush
+                }).post("${root}rest/sender/selected")
+
+
+        return response;
+    }
+
 }
