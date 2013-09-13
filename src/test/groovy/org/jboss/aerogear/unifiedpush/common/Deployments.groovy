@@ -98,7 +98,7 @@ class Deployments {
                 InstallationUtils.class,
                 iOSVariantUtils.class,
                 PushNotificationSenderUtils.class
-                )
+        )
 
         war.addClasses(clazz)
 
@@ -109,7 +109,7 @@ class Deployments {
                 MulticastResult.class,
                 Message.class,
                 Sender.class
-                )
+        )
         war.addAsLibraries(jar)
 
         war.delete("/WEB-INF/lib/apns-0.2.3.jar")

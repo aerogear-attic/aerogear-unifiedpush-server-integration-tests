@@ -131,7 +131,7 @@ class SelectiveSendByCommonAlias extends Specification {
 
     @Deployment(testable=true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(SelectiveSendByCommonAlias.class, Constants.class, ServerSocketUtils)
+        Deployments.customUnifiedPushServerWithClasses(SelectiveSendByCommonAlias.class, Constants.class, ServerSocketUtils.class)
     }
 
     @Shared def static authCookies
@@ -413,29 +413,22 @@ class SelectiveSendByCommonAlias extends Specification {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
                 new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return Sender.gcmRegIdsList != null && Sender.gcmRegIdsList.size() == 1 // The condition that must be fulfilled
+                        return Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().size() == 1 &&
+                        ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 1
                     }
                 }
-                )
-
-        Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
-                new Callable<Boolean>() {
-                    public Boolean call() throws Exception {
-                        return ApnsServiceImpl.tokensList != null && ApnsServiceImpl.tokensList.size() == 1 // The condition that must be fulfilled
-                    }
-                }
-                )
-
+        )
+        
         and: "The GCM list contains the correct token ids"
-        Sender.gcmRegIdsList.contains(ANDROID_DEVICE_TOKEN_3)
+        Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_3)
 
         and: "The GCM message sent is the correct one"
-        Sender.gcmMessage != null && NOTIFICATION_ALERT_MSG.equals(Sender.gcmMessage.getData().get("alert"))
+        Sender.getGcmMessage() != null && NOTIFICATION_ALERT_MSG.equals(Sender.getGcmMessage().getData().get("alert"))
 
         and: "The IOS list contains 1 registration token id"
-        ApnsServiceImpl.tokensList.contains(IOS_DEVICE_TOKEN_2)
+        ApnsServiceImpl.getTokensList.contains(IOS_DEVICE_TOKEN_2)
 
         and: "The IOS message is the expected one"
-        NOTIFICATION_ALERT_MSG.equals(ApnsServiceImpl.alert)
+        NOTIFICATION_ALERT_MSG.equals(ApnsServiceImpl.getAlert())
     }
 }

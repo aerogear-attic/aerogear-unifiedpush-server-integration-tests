@@ -105,10 +105,10 @@ class PushApplicationUtils {
 
         def json = new JsonBuilder()
         def response = RestAssured.given()
-                .contentType("application/json")
+                //.contentType("application/json")
                 .header("Accept", "application/json")
                 .cookies(cookies)
-                .body( json { pushAppId pushApplicationId })
+                //.body( json { pushAppId pushApplicationId })
                 .delete("${root}rest/applications/${pushApplicationId}")
 
         return response

@@ -406,19 +406,19 @@ class SecureAndroidSelectiveSendCustomDataSpecification extends Specification {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
                 new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return Sender.gcmRegIdsList != null && Sender.gcmRegIdsList.size() == 2
+                        return Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().size() == 2
                     }
                 }
                 )
 
         and: "The list contains the correct token ids"
-        Sender.gcmRegIdsList.contains(ANDROID_DEVICE_TOKEN) && Sender.gcmRegIdsList.contains(ANDROID_DEVICE_TOKEN_2)
+        Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN) && Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_2)
 
         and: "The messages sent are the correct"
-        Sender.gcmMessage != null && NOTIFICATION_ALERT_MSG.equals(Sender.gcmMessage.getData().get("custom"))
+        Sender.getGcmMessage() != null && NOTIFICATION_ALERT_MSG.equals(Sender.getGcmMessage().getData().get("custom"))
 
         and: "The messages sent are the correct"
-        CUSTOM_FIELD_DATA_MSG.equals(Sender.gcmMessage.getData().get("test"))
+        CUSTOM_FIELD_DATA_MSG.equals(Sender.getGcmMessage().getData().get("test"))
     }
 
     // The GCM Sender returns the tokens as inactive so they should have been deleted

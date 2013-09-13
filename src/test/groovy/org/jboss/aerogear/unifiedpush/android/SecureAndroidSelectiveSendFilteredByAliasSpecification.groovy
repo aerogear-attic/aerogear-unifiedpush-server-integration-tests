@@ -405,16 +405,16 @@ class SecureAndroidSelectiveSendFilteredByAliasSpecification extends Specificati
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
                 new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return Sender.gcmRegIdsList != null && Sender.gcmRegIdsList.size() == 2 // The condition that must be fulfilled
+                        return Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().size() == 2 // The condition that must be fulfilled
                     }
                 }
                 )
 
         and: "The list contains the correct token ids"
-        Sender.gcmRegIdsList.contains(ANDROID_DEVICE_TOKEN) && Sender.gcmRegIdsList.contains(ANDROID_DEVICE_TOKEN_2)
+        Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN) && Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_2)
 
         and: "The message sent is the correct one"
-        Sender.gcmMessage != null && NOTIFICATION_ALERT_MSG.equals(Sender.gcmMessage.getData().get("alert"))
+        Sender.getGcmMessage() != null && NOTIFICATION_ALERT_MSG.equals(Sender.getGcmMessage().getData().get("alert"))
     }
 
     // The GCM Sender returns the tokens as inactive so they should have been deleted

@@ -1,4 +1,4 @@
-package org.jboss.aerogear.unifiedpush.common
+package org.jboss.aerogear.unifiedpush.rest.sender
 
 import com.google.android.gcm.server.Sender
 import com.jayway.awaitility.Awaitility
@@ -39,7 +39,7 @@ import java.util.concurrent.Callable
     InstallationUtils,
     PushNotificationSenderUtils,
     iOSVariantUtils])
-class SelectiveSendFilteredByCategorySpecification extends Specification {
+class SelectiveSendFilteredByCommonCategorySpecification extends Specification {
 
     def private static final PUSH_APPLICATION_NAME = "TestPushApplication__1"
 
@@ -115,7 +115,7 @@ class SelectiveSendFilteredByCategorySpecification extends Specification {
 
     @Deployment(testable = true)
     def static WebArchive "create deployment"() {
-        Deployments.customUnifiedPushServerWithClasses(SelectiveSendFilteredByCategorySpecification.class)
+        Deployments.customUnifiedPushServerWithClasses(SelectiveSendFilteredByCommonCategorySpecification.class)
     }
 
     @Shared
@@ -419,20 +419,20 @@ class SelectiveSendFilteredByCategorySpecification extends Specification {
                 new Callable<Boolean>() {
                     @Override
                     public Boolean call() throws Exception {
-                        return Sender.gcmRegIdsList != null && Sender.gcmRegIdsList.size() == 1 &&
-                                ApnsServiceImpl.tokensList != null && ApnsServiceImpl.tokensList.size() == 1
+                        return Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().size() == 1 &&
+                                ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 1
                         // TODO add simplepush sending service
                     }
                 })
 
         and:
-        Sender.gcmRegIdsList.contains(ANDROID_DEVICE_TOKEN_X + 1)
+        Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_X + 1)
 
         and:
-        Sender.gcmMessage != null && Sender.gcmMessage.getData().get("alert") == NOTIFICATION_ALERT_MSG
+        Sender.getGcmMessage() != null && Sender.getGcmMessage().getData().get("alert") == NOTIFICATION_ALERT_MSG
 
         and:
-        ApnsServiceImpl.tokensList.contains(IOS_DEVICE_TOKEN_X + 1)
+        ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN_X + 1)
     }
 
 }

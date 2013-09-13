@@ -26,76 +26,74 @@ import javax.enterprise.context.ApplicationScoped;
 
 /**
  * 
- * This class mocks the original com.google.android.gcm.server.Sender class and
- * is used for testing reasons.
+ * This class mocks the original com.google.android.gcm.server.Sender class and is used for testing reasons.
  * 
  */
 @ApplicationScoped
 public class Sender {
 
-	public static List<String> gcmRegIdsList = null;
+    private static List<String> gcmRegIdsList = null;
 
-	public static Message gcmMessage = null;
+    private static Message gcmMessage = null;
 
-	private String key;
+    private String key;
 
-	public Sender(String key) {
-		this.setKey(key);
-	}
+    public Sender(String key) {
+        this.key = key;
+    }
 
-	public Sender() {
-	}
+    public Sender() {
+    }
 
-	public Result send(Message message, String registrationId, int retries)
-			throws IOException {
-		return null;
-	}
+    public Result send(Message message, String registrationId, int retries) throws IOException {
+        return null;
+    }
 
-	public Result sendNoRetry(Message message, String registrationId)
-			throws IOException {
-		return null;
-	}
+    public Result sendNoRetry(Message message, String registrationId) throws IOException {
+        return null;
+    }
 
-	public MulticastResult send(Message message, List<String> regIds,
-			int retries) throws IOException {
+    public MulticastResult send(Message message, List<String> regIds, int retries) throws IOException {
 
-		MulticastResult multicatResult = mock(MulticastResult.class);
-		ArrayList<Result> resultList = new ArrayList<Result>();
+        MulticastResult multicatResult = mock(MulticastResult.class);
+        ArrayList<Result> resultList = new ArrayList<Result>();
 
-		if (regIds != null && !regIds.isEmpty()) {
-			gcmRegIdsList = new ArrayList<String>();
-			gcmRegIdsList.addAll(regIds);
+        if (regIds != null && !regIds.isEmpty()) {
+            gcmRegIdsList = new ArrayList<String>();
+            gcmRegIdsList.addAll(regIds);
 
-			for (int i = 0; i < regIds.size(); i++) {
-				Result result = mock(Result.class);
-				when(result.getErrorCodeName()).thenReturn(
-						Constants.ERROR_INVALID_REGISTRATION);
-				resultList.add(result);
-			}
-		}
-		if (message != null) {
-			gcmMessage = message;
-		}
+            for (int i = 0; i < regIds.size(); i++) {
+                Result result = mock(Result.class);
+                when(result.getErrorCodeName()).thenReturn(Constants.ERROR_INVALID_REGISTRATION);
+                resultList.add(result);
+            }
+        }
+        if (message != null) {
+            gcmMessage = message;
+        }
 
-		when(multicatResult.getResults()).thenReturn(resultList);
-		return multicatResult;
-	}
+        when(multicatResult.getResults()).thenReturn(resultList);
+        return multicatResult;
+    }
 
-	public MulticastResult sendNoRetry(Message message,
-			List<String> registrationIds) throws IOException {
-		return null;
-	}
+    public MulticastResult sendNoRetry(Message message, List<String> registrationIds) throws IOException {
+        return null;
+    }
 
-	public String getKey() {
-		return key;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    public static List<String> getGcmRegIdsList() {
+        return gcmRegIdsList;
+    }
 
-	public static void clear() {
-		gcmRegIdsList = null;
-		gcmMessage = null;
-	}
+    public static Message getGcmMessage() {
+        return gcmMessage;
+    }
+
+    public static void clear() {
+        gcmRegIdsList = null;
+        gcmMessage = null;
+    }
 }

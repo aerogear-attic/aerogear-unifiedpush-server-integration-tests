@@ -408,22 +408,22 @@ class SecureIosSelectiveSendFilteredByOsSpecification extends Specification {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
                 new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return ApnsServiceImpl.tokensList != null && ApnsServiceImpl.tokensList.size() == 2 // The condition that must be fulfilled
+                        return ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 2 // The condition that must be fulfilled
                     }
                 }
                 )
 
         and: "The list contains 2 registration token id"
-        ApnsServiceImpl.tokensList.contains(IOS_DEVICE_TOKEN) && ApnsServiceImpl.tokensList.contains(IOS_DEVICE_TOKEN_2)
+        ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN) && ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN_2)
 
         and: "The message is the expected one"
-        NOTIFICATION_ALERT_MSG.equals(ApnsServiceImpl.alert)
+        NOTIFICATION_ALERT_MSG.equals(ApnsServiceImpl.getAlert())
 
         and: "The sound is the expected one"
-        NOTIFICATION_SOUND.equals(ApnsServiceImpl.sound)
+        NOTIFICATION_SOUND.equals(ApnsServiceImpl.getSound())
 
         and: "The badge is the expected one"
-        NOTIFICATION_BADGE == ApnsServiceImpl.badge
+        NOTIFICATION_BADGE == ApnsServiceImpl.getBadge()
     }
 
     // The APNS Sender returns the tokens as inactive so they should have been deleted

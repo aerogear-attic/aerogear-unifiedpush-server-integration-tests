@@ -406,25 +406,25 @@ class IosSelectiveSendCustomDataSpecification extends Specification {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(
                 new Callable<Boolean>() {
                     public Boolean call() throws Exception {
-                        return ApnsServiceImpl.tokensList != null && ApnsServiceImpl.tokensList.size() == 1 // The condition that must be fulfilled
+                        return ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 1 // The condition that must be fulfilled
                     }
                 }
                 )
 
         and: "The list contains 1 registration token id"
-        ApnsServiceImpl.tokensList.contains(IOS_DEVICE_TOKEN)
+        ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN)
 
         and: "The message is the expected one"
-        NOTIFICATION_ALERT_MSG.equals(ApnsServiceImpl.alert)
+        NOTIFICATION_ALERT_MSG.equals(ApnsServiceImpl.getAlert())
 
         and: "The sound is the expected one"
-        NOTIFICATION_SOUND.equals(ApnsServiceImpl.sound)
+        NOTIFICATION_SOUND.equals(ApnsServiceImpl.getSound())
 
         and: "The badge is the expected one"
-        NOTIFICATION_BADGE == ApnsServiceImpl.badge
+        NOTIFICATION_BADGE == ApnsServiceImpl.getBadge()
 
         and: "The custom data is the expected"
-        ApnsServiceImpl.customFields != null && ApnsServiceImpl.customFields.contains(CUSTOM_FIELD_DATA_KEY + "=" + CUSTOM_FIELD_DATA_MSG)
+        ApnsServiceImpl.getCustomFields() != null && ApnsServiceImpl.getCustomFields().contains(CUSTOM_FIELD_DATA_KEY + "=" + CUSTOM_FIELD_DATA_MSG)
     }
 
     // The APNS Sender returns the tokens as inactive so they should have been deleted

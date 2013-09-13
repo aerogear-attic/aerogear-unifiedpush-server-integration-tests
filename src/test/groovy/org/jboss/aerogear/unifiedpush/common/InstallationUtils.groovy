@@ -116,7 +116,7 @@ class InstallationUtils {
         assert root !=null
 
         def response = RestAssured.given()
-                .contentType("application/json")
+                //.contentType("application/json")
                 .cookies(cookies)
                 .header("Accept", "application/json")
                 .delete("${root}rest/applications/${variantID}/installations/${installationID}")
