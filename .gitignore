@@ -4,9 +4,11 @@
 target/
 .idea/
 *.class
-*.jar
 *.iml
 bin/
+jboss-as-7.1.1.Final/
+jboss-as-7.1.1.Final*
+nohup.out
 *.properties
 aerogear-unifiedpush-server/
 /test-classes
