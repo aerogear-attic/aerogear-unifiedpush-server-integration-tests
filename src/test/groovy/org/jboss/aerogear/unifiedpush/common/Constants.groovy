@@ -22,7 +22,7 @@ class Constants {
 
     def static final INSECURE_AG_PUSH_ENDPOINT = "http://localhost:8080/ag-push/"
 
-    def static final KEYSTORE_PATH = "jboss-as-conf/aerogear.keystore"
+    def static final KEYSTORE_PATH = "jboss-conf/aerogear.keystore"
 
     def static final KEYSTORE_PASSWORD = "aerogear"
     
