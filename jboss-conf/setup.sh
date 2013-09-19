@@ -12,7 +12,7 @@ if [ -d "$AG_UPS_REPO" ]; then
 fi
 
 if [ ! -d "$AG_UPS_REPO" ]; then
-    git clone https://github.com/aerogear/aerogear-unifiedpush-server.git
+    git clone https://github.com/aerogear/aerogear-unifiedpush-server.git $AG_UPS_REPO
 fi
 
 if [ -d "$JBOSS_HOME" ]; then
