@@ -10,3 +10,4 @@ bin/
 *.properties
 aerogear-unifiedpush-server/
 /test-classes
+jboss-as-7.1.1.Final*

@@ -16,27 +16,15 @@ The container's configuration resides in the [Arquillian XML](https://github.com
 The test case is dispatched to the container's environment through coordination with ShrinkWrap, which is used to declaratively define a custom archive that encapsulates the test class and its dependent resources. Arquillian packages the ShrinkWrap defined archive at runtime and deploys it to the target container. It then negotiates the execution of the test methods and captures the test results using remote communication with the server. Finally, Arquillian undeploys the test archive.
 
 ## Execution
-Download the JBoss AS:
+Navigate to the project's root folder and execute:
 
-    wget http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.tar.gz
+    ./jboss-as-conf/setup.sh
 
-Extract all the files from the archive:
+Navigate to the project's root folder and setup the `JBOSS_HOME` environment variable:
 
-    tar -xvf jboss-as-7.1.1.Final.tar.gz
+    export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
 
-Modify the [certificate-key-file value](https://github.com/aerogear/aerogear-unifiedpush-server-integration-tests/blob/master/jboss-as-conf/standalone.xml#L261) so that it matches your environment's path.
-
-Replace the `jboss-as-7.1.1.Final/standalone/configuration/standalone.xml` file with the one you modified during the previous step.
-
-Setup the `JBOSS_HOME` environment variable:
-
-    export JBOSS_HOME=/home/your_jboss_as_path
-
-Before executing the integration tests, you have to get the latest aerogear-unified-push-server source. Navigate to the project's root folder and execute:
-
-    git clone https://github.com/aerogear/aerogear-unifiedpush-server.git
-
-The integration tests execution is done through Maven. Navigate to the project's root  folder and execute:
+The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
     mvn test
 
