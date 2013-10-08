@@ -105,6 +105,8 @@ class AndroidRegistrationSpecification extends Specification {
 
     @Shared def static androidSecret
 
+    @Shared def static secondInstallationId
+
     @Inject
     private AndroidVariantService androidVariantService
 
@@ -231,12 +233,17 @@ class AndroidRegistrationSpecification extends Specification {
 
         when: "Installation is registered"
         def response = registerInstallation(androidVariantId, androidSecret, androidInstallation)
+        def body = response.body().jsonPath();
+        secondInstallationId = body.get("id");
 
         then: "Android variant id and secret are not null"
         androidVariantId != null && androidSecret != null
 
         and: "Response status code is 200"
         response != null && response.statusCode() == Status.OK.getStatusCode()
+
+        and:
+        secondInstallationId != null
     }
 
     @RunAsClient
@@ -285,6 +292,53 @@ class AndroidRegistrationSpecification extends Specification {
 
         and: "The registered device tokens should contain the 3 registered Android tokens"
         deviceTokens.contains(ANDROID_DEVICE_TOKEN) && deviceTokens.contains(ANDROID_DEVICE_TOKEN_2) && deviceTokens.contains(ANDROID_DEVICE_TOKEN_3)
+    }
+
+    @RunAsClient
+    def "Verify installations from client"() {
+        when:
+            def installations = findInstallations(androidVariantId, authCookies);
+            def body = installations.body().jsonPath();
+            def installationsList = body.getList("");
+        then:
+            installations != null && installations.statusCode() == Status.OK.getStatusCode();
+
+        and:
+            installationsList != null && installationsList.size() == 3
+    }
+
+    // This test will pass when AGPUSH-298 is resolved
+    @RunAsClient
+    def "Unregister second installation"() {
+        when:
+            def installation = findInstallation(androidVariantId, secondInstallationId, authCookies);
+            def body = installation.body().jsonPath();
+            def secondInstallationToken = body.get("deviceToken");
+        then:
+            installation != null && installation.statusCode() == Status.OK.getStatusCode();
+        and:
+            secondInstallationId != null
+        and:
+            secondInstallationToken != null && secondInstallationToken == ANDROID_DEVICE_TOKEN_2;
+        when:
+            def response = removeInstallation(androidVariantId, secondInstallationId, authCookies);
+        then:
+            response != null && response.statusCode() == Status.OK.getStatusCode();
+    }
+
+    // This test will pass when AGPUSH-298 is resolved
+    @RunAsClient
+    def "Verify second installation removed"() {
+        when:
+        def installations = findInstallations(androidVariantId, authCookies);
+        def body = installations.body().jsonPath();
+        def installationList = body.getList("");
+
+        then:
+        installations != null && installations.statusCode() == Status.OK.getStatusCode()
+
+        and:
+        installationList != null && installationList.size() == 2
     }
 
     @RunAsClient
