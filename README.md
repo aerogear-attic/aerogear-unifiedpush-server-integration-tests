@@ -2,7 +2,7 @@
 
 This project contains the integration tests for the [aerogear-unified-push-server](https://github.com/aerogear/aerogear-unified-push-server) project.
 
-The [Arquillian](http://arquillian.org/) testing platform is used to enable the testing automation. Arquillian integrates with the testing framework which is [Spock](https://code.google.com/p/spock/wiki/SpockBasics) in this case. Spock lets you write specifications that describe expected features (properties, aspects) exhibited by a system of interest.
+The [Arquillian](http://arquillian.org/) testing platform is used to enable the testing automation. Arquillian integrates with the testing framework which is JUnit in this case.
 
 ## Integration Tests Content
 Each Test defines the three core aspects needed for the execution of an [Arquillian](http://arquillian.org/) test case:
