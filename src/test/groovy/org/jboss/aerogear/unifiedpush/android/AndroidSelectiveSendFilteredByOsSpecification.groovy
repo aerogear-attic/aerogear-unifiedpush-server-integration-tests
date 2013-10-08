@@ -419,7 +419,7 @@ class AndroidSelectiveSendFilteredByOsSpecification extends Specification {
         def androidVariant = androidVariants != null ? androidVariants.get(0) : null
 
         and: "Getting the registered tokens by variant id"
-        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(androidVariant.getVariantID())
+        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(androidVariant.getVariantID(), null, null, null)
 
         then: "Injections have been done"
         androidVariantService != null && clientInstallationService != null

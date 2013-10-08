@@ -39,7 +39,7 @@ class PushNotificationSenderUtils {
                     message messages
                     "simple-push" simplePush
                     mobileOperatingSystem mobileOS
-                }).post("${root}rest/sender/selected")
+                }).post("${root}rest/sender")
 
         return response
     }
@@ -58,7 +58,7 @@ class PushNotificationSenderUtils {
                     category categories
                     message messages
                     "simple-push" simplePush
-                }).post("${root}rest/sender/selected")
+                }).post("${root}rest/sender")
 
 
         return response;

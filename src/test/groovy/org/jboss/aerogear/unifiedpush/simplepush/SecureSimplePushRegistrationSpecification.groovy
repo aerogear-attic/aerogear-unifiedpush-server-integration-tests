@@ -221,7 +221,7 @@ class SecureSimplePushRegistrationSpecification extends Specification {
         def simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null
 
         and: "Getting the registered tokens by variant id"
-        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(simplePushVariant.getVariantID())
+        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(simplePushVariant.getVariantID(), null, null, null)
 
         then: "Injections have been done"
         pushAppService != null && simplePushVariantService != null && clientInstallationService != null

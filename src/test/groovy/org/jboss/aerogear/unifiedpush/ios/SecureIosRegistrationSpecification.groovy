@@ -320,7 +320,7 @@ class SecureIosRegistrationSpecification extends Specification {
         def iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null
 
         and: "Getting the registered tokens by variant id"
-        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(iOSVariant.getVariantID())
+        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(iOSVariant.getVariantID(), null, null, null)
 
         then: "Injections have been done"
         pushAppService != null && iosVariantService != null && clientInstallationService != null

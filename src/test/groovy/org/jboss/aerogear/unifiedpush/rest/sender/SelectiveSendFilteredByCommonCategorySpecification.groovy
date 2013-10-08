@@ -366,13 +366,13 @@ class SelectiveSendFilteredByCommonCategorySpecification extends Specification {
         def simplePushVariant = simplePushVariants.get(0)
 
         and: "Getting all registered android device tokens by variant id"
-        def androidDeviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(androidVariant.getVariantID())
+        def androidDeviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(androidVariant.getVariantID(), null, null, null)
 
         and: "Getting all registered iOS device tokens by variant id"
-        def iOSDeviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(iOSVariant.getVariantID())
+        def iOSDeviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(iOSVariant.getVariantID(), null, null, null)
 
         and: "Getting all registered SimplePush device tokens by variant id"
-        def simplePushDeviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(simplePushVariant.getVariantID())
+        def simplePushDeviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(simplePushVariant.getVariantID(), null, null, null)
 
         then: "Android variant is valid and has valid google key"
         androidVariant != null && androidVariant.getGoogleKey() == ANDROID_VARIANT_GOOGLE_KEY

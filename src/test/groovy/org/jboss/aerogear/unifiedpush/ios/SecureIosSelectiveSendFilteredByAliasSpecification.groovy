@@ -434,7 +434,7 @@ class SecureIosSelectiveSendFilteredByAliasSpecification extends Specification {
         def iosVariant = iosVariants != null ? iosVariants.get(0) : null
 
         and: "Getting the registered tokens by variant id"
-        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantID(iosVariant.getVariantID())
+        def deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(iosVariant.getVariantID(), null, null, null)
 
         then: "Injections have been done"
         iosVariantService != null && clientInstallationService != null
