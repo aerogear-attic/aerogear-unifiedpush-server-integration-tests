@@ -16,8 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.android
 
-import spock.lang.Ignore
-
 import javax.inject.Inject
 import javax.ws.rs.core.Response.Status
 
@@ -309,8 +307,6 @@ class AndroidRegistrationSpecification extends Specification {
             installationsList != null && installationsList.size() == 3
     }
 
-    // This test will be ignored until AGPUSH-298 is resolved
-    @Ignore
     @RunAsClient
     def "Unregister second installation"() {
         when:
@@ -326,11 +322,9 @@ class AndroidRegistrationSpecification extends Specification {
         when:
             def response = removeInstallation(androidVariantId, secondInstallationId, authCookies);
         then:
-            response != null && response.statusCode() == Status.OK.getStatusCode();
+            response != null && response.statusCode() == Status.NO_CONTENT.getStatusCode();
     }
 
-    // This test will be ignored until AGPUSH-298 is resolved
-    @Ignore
     @RunAsClient
     def "Verify second installation removed"() {
         when:
