@@ -49,6 +49,14 @@ class SecureAuthenticationEndpointSpecification extends Specification {
         RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD)
     }
 
+    def "Logout before login returns HTTP 401"() {
+        when: "Performing logout before login"
+        def response = logout([:]) // hand empty cookie map, TODO should we set authCookies to [:] right away and use authCookies?
+
+        then: "Response code 401 is returned"
+        response != null && response.statusCode() == Status.UNAUTHORIZED.getStatusCode()
+    }
+
     def "Login with default credentials returns HTTP 403"() {
         when: "Performing login with default credentials"
         def response = login(AuthenticationUtils.ADMIN_LOGIN_NAME, AuthenticationUtils.ADMIN_PASSWORD)
@@ -97,5 +105,17 @@ class SecureAuthenticationEndpointSpecification extends Specification {
 
         and: "Cookies exist"
         authCookies != null
+    }
+
+    def "Proper logout returns HTTP 200"() {
+        when: "Performing proper logout"
+        def response = logout(authCookies)
+        authCookies = response.getCookies()
+
+        then: "Response code 200 is returned"
+        response != null && response.statusCode() == Status.OK.getStatusCode()
+
+        and: "Cookies are reset"
+        authCookies != null && authCookies.size() == 0
     }
 }

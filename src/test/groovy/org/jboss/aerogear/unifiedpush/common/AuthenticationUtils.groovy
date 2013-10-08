@@ -52,6 +52,17 @@ class AuthenticationUtils {
         return response
     }
 
+    def logout(Map<String, ?> cookies) {
+        assert root != null
+
+        def response = RestAssured.given()
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .post("${root}rest/auth/logout")
+
+        return response
+    }
+
     def updatePassword(String loginNameStr, String oldPassword, String newPasswd, Map<String, ?> cookies) {
         assert root !=null
 
@@ -103,12 +114,5 @@ class AuthenticationUtils {
             response = login(ADMIN_LOGIN_NAME, SECURE_ADMIN_NEW_PASSWORD)
         }
         return response
-    }
-
-    def createDeveloper(String loginName, String password) {
-        def developer = new Developer()
-        developer.setLoginName(loginName)
-        developer.setPassword(password)
-        return developer
     }
 }
