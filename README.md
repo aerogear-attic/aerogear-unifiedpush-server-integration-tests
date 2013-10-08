@@ -28,6 +28,12 @@ The integration tests execution is done through Maven. Navigate to the project's
 
     mvn test
 
+## Code coverage
+
+Executed with following modification
+
+    mvn test -Pcode-coverage -Djacoco.report.file=jacoco.exec
+
 ## Documentation
 
 * [Arquillian Guides](http://arquillian.org/guides/)

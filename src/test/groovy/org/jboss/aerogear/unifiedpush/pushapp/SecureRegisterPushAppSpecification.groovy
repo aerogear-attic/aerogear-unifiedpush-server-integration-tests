@@ -24,7 +24,7 @@ import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
 import org.jboss.aerogear.unifiedpush.model.PushApplication
 import org.jboss.arquillian.container.test.api.Deployment
-import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.arquillian.spock.ArquillianSputnik;import org.junit.runner.RunWith;
 import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
@@ -37,7 +37,7 @@ import com.jayway.restassured.config.EncoderConfig
 import com.jayway.restassured.config.RestAssuredConfig
 
 
-@ArquillianSpecification
+@RunWith(ArquillianSputnik)
 @Mixin([AuthenticationUtils, PushApplicationUtils])
 class SecureRegisterPushAppSpecification extends Specification {
 

@@ -27,7 +27,7 @@ import com.jayway.restassured.RestAssured
 import groovy.json.JsonBuilder
 
 import org.jboss.arquillian.container.test.api.Deployment
-import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.arquillian.spock.ArquillianSputnik;import org.junit.runner.RunWith;
 import org.jboss.arquillian.test.api.ArquillianResource
 import org.jboss.aerogear.unifiedpush.common.Deployments
 import org.jboss.aerogear.unifiedpush.common.PushApplicationUtils
@@ -42,7 +42,7 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter
 
 import org.apache.http.entity.ContentType
 
-@ArquillianSpecification
+@RunWith(ArquillianSputnik)
 @Mixin([PushApplicationUtils])
 class RegisterPushAppWithoutLoginSpecification extends Specification {
 

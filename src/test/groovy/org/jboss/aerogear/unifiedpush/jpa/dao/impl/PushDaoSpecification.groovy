@@ -31,7 +31,7 @@ import org.jboss.aerogear.unifiedpush.jpa.dao.PushApplicationDao
 import org.jboss.aerogear.unifiedpush.model.PushApplication
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.persistence.UsingDataSet
-import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.arquillian.spock.ArquillianSputnik;import org.junit.runner.RunWith;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode
 import org.jboss.arquillian.transaction.api.annotation.Transactional
 import org.jboss.shrinkwrap.api.Archive
@@ -41,7 +41,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven
 
 import spock.lang.Specification
 
-@ArquillianSpecification
+@RunWith(ArquillianSputnik)
 class PushDaoSpecification extends Specification {
 
     @Deployment

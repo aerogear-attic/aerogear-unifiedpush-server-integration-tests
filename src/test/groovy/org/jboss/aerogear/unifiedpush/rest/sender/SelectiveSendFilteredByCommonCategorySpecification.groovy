@@ -20,7 +20,7 @@ import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService
 import org.jboss.aerogear.unifiedpush.service.iOSVariantService as IOSVariantService
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
-import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.arquillian.spock.ArquillianSputnik;import org.junit.runner.RunWith;
 import org.jboss.shrinkwrap.api.spec.WebArchive
 import org.junit.Ignore
 import spock.lang.Shared
@@ -30,7 +30,7 @@ import javax.inject.Inject
 import javax.ws.rs.core.Response
 import java.util.concurrent.Callable
 
-@ArquillianSpecification
+@RunWith(ArquillianSputnik)
 @Mixin([
     AuthenticationUtils,
     PushApplicationUtils,

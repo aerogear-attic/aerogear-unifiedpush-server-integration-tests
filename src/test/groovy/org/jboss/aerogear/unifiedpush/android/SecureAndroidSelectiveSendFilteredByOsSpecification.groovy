@@ -35,7 +35,7 @@ import org.jboss.aerogear.unifiedpush.service.AndroidVariantService
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
-import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.arquillian.spock.ArquillianSputnik;import org.junit.runner.RunWith;
 import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
@@ -47,7 +47,7 @@ import com.jayway.awaitility.Duration
 import com.jayway.restassured.RestAssured
 
 
-@ArquillianSpecification
+@RunWith(ArquillianSputnik)
 @Mixin([AuthenticationUtils, PushApplicationUtils, AndroidVariantUtils,
     SimplePushVariantUtils, InstallationUtils, PushNotificationSenderUtils,
     iOSVariantUtils])

@@ -31,14 +31,14 @@ import org.jboss.aerogear.unifiedpush.service.PushApplicationService
 import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService
 import org.jboss.arquillian.container.test.api.Deployment
 import org.jboss.arquillian.container.test.api.RunAsClient
-import org.jboss.arquillian.spock.ArquillianSpecification
+import org.jboss.arquillian.spock.ArquillianSputnik;import org.junit.runner.RunWith;
 import org.jboss.shrinkwrap.api.spec.WebArchive
 
 import spock.lang.Shared
 import spock.lang.Specification
 
 
-@ArquillianSpecification
+@RunWith(ArquillianSputnik)
 @Mixin([AuthenticationUtils, PushApplicationUtils, SimplePushVariantUtils,
     InstallationUtils, PushNotificationSenderUtils])
 class SimplePushRegistrationSpecification extends Specification {

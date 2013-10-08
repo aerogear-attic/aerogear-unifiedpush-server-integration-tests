@@ -179,7 +179,7 @@
         <dependency>
             <groupId>org.jboss.arquillian.spock</groupId>
             <artifactId>arquillian-spock-container</artifactId>
-            <version>1.0.0.Beta1</version>
+            <version>1.0.0.Beta2</version>
         </dependency>
 
         <dependency>
@@ -394,11 +394,11 @@
 
         <profile>
             <id>as711-remote</id>
-            
+
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
-        
+
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
@@ -431,6 +431,63 @@
             <build>
                 <!-- JBoss EAP 6.0.1 is not hosted in any Maven repository, you have to unpack it manually -->
             </build>
+        </profile>
+
+        <profile>
+            <id>code-coverage</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <configuration>
+                            <rules>
+                                <requireProperty>
+                                    <property>jacoco.report.file</property>
+                                    <message>Please specify -Djacoco.report.file as file where results will be stored</message>
+                                </requireProperty>
+                            </rules>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.jacoco</groupId>
+                                            <artifactId>org.jacoco.agent</artifactId>
+                                            <version>0.6.3.201306030806</version>
+                                            <type>jar</type>
+                                            <overWrite>true</overWrite>
+                                            <outputDirectory>${project.build.directory}</outputDirectory>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <!-- As for excludes, there is something wrong in EJB 3.1 implementation in JBoss AS 7 - https://groups.google.com/forum/#!topic/jacoco/9TlsMdRE_10 -->
+                                <arq.container.jboss.configuration.javaVmArguments>
+                                    -Djboss.bind.address=127.0.0.1 -Xmx512m -XX:MaxPermSize=128m -javaagent:${project.build.directory}/jacocoagent.jar=append=true,destfile=${jacoco.report.file},excludes=*$$$$$$*
+                                </arq.container.jboss.configuration.javaVmArguments>
+                                <maven.profile>code-coverage</maven.profile>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
         </profile>
 
     </profiles>
