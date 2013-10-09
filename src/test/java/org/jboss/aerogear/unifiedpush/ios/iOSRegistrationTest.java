@@ -363,10 +363,10 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
     }
 
-    // TODO this has to be the end of this test class, change it to be independent!!!
     @RunAsClient
     @Test
-    @InSequence(116)
+    // TODO this has to be the end of this test class, change it to be independent!!!
+    @InSequence(1000)
     public void removeiOSVariant() {
         assertNotNull(getAuthCookies());
 
