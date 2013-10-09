@@ -18,11 +18,14 @@ package org.jboss.aerogear.unifiedpush.utils;
 
 import java.util.Map;
 
+import junit.framework.TestCase;
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
 import org.json.simple.JSONObject;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
+
+import static org.junit.Assert.assertNotNull;
 
 public final class AndroidVariantUtils {
 
@@ -67,6 +70,40 @@ public final class AndroidVariantUtils {
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
                 .cookies(cookies).body(jsonObject.toString())
                 .put(root + "rest/applications/" + pushAppId + "/android/" + variantId);
+
+        return response;
+    }
+
+    public static Response listAllAndroidVariants(String pushAppId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .get("{root}rest/applications/{pushAppId}/android", root, pushAppId);
+
+        return response;
+    }
+
+    public static Response findAndroidVariantById(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .get("{root}rest/applications/{pushAppId}/android/{variantId}", root, pushAppId, variantId);
+
+        return response;
+    }
+
+    public static Response deleteAndroidVariant(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .cookies(cookies)
+                .delete("{root}rest/applications/{pushAppId}/android/{variantId}", root, pushAppId, variantId);
 
         return response;
     }

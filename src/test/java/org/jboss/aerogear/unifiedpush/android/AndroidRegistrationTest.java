@@ -26,6 +26,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
+import com.jayway.restassured.path.json.JsonPath;
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
@@ -84,7 +85,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(12)
+    @InSequence(100)
     public void registerAndroidVariantMissingGooglekey() {
         assertNotNull(getPushApplicationId());
         assertNotNull(getAuthCookies());
@@ -99,7 +100,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(13)
+    @InSequence(101)
     public void registerAndroidVariantMissingAuthCookies() {
         assertNotNull(getPushApplicationId());
         AndroidVariant variant = AndroidVariantUtils.createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC, null,
@@ -113,7 +114,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(14)
+    @InSequence(102)
     public void verifyRegistrations() {
 
         assertNotNull(pushAppService);
@@ -142,7 +143,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(15)
+    @InSequence(103)
     public void updateAndroidVariant() {
 
         assertNotNull(getPushApplicationId());
@@ -159,7 +160,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(16)
+    @InSequence(104)
     public void verifyUpdate() {
         assertNotNull(androidVariantService);
 
@@ -175,7 +176,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(17)
+    @InSequence(105)
     public void updateAndroidInstallation() {
         assertNotNull(getAndroidVariantId());
         assertNotNull(getAndroidSecret());
@@ -192,7 +193,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(18)
+    @InSequence(106)
     public void verifyAndroidInstallationUpdate() {
 
         assertNotNull(pushAppService);
@@ -221,5 +222,113 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         assertEquals(UPDATED_ANDROID_DEVICE_OS_VERSION, installation.getOsVersion());
         assertEquals(UPDATED_ANDROID_CLIENT_ALIAS, installation.getAlias());
     }
+
+    @RunAsClient
+    @Test
+    @InSequence(107)
+    public void registerAndroidVariantWithWrongPushApplication() {
+        assertNotNull(getAuthCookies());
+
+        AndroidVariant variant = AndroidVariantUtils.createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC, null, null, null,
+                ANDROID_VARIANT_GOOGLE_KEY);
+
+        String nonExistentPushAppId = "this-will-never-exist";
+
+        Response response = AndroidVariantUtils.registerAndroidVariant(nonExistentPushAppId, variant,
+                getAuthCookies(), getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(108)
+    public void listAllAndroidVariants() {
+        assertNotNull(getAuthCookies());
+
+        Response response = AndroidVariantUtils.listAllAndroidVariants(getPushApplicationId(), getAuthCookies(),
+                getContextRoot());
+
+        JsonPath body = response.getBody().jsonPath();
+        List variants = body.getList("");
+
+        assertNotNull(response);
+        assertEquals(Status.OK.getStatusCode(), response.statusCode());
+        assertEquals(1, variants.size());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(109)
+    public void findAndroidVariant() {
+        assertNotNull(getAuthCookies());
+
+        Response response = AndroidVariantUtils.findAndroidVariantById(getPushApplicationId(), getAndroidVariantId(),
+                getAuthCookies(), getContextRoot());
+
+        JsonPath body = response.getBody().jsonPath();
+
+        assertNotNull(response);
+        assertEquals(Status.OK.getStatusCode(), response.statusCode());
+        assertEquals(getAndroidVariantId(), body.getString("variantID"));
+        assertEquals(UPDATED_ANDROID_VARIANT_NAME, body.getString("name")); // TODO in iOS test this is non-updated value
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(110)
+    public void findAndroidVariantWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        Response response = AndroidVariantUtils.findAndroidVariantById(getPushApplicationId(),
+                getAndroidVariantId() + "-invalidation", getAuthCookies(), getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(111)
+    public void updateAndroidVariantWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        AndroidVariant variant = AndroidVariantUtils.createAndroidVariant(ANDROID_VARIANT_NAME + "-invalidation",
+                ANDROID_VARIANT_DESC, null, null, null, null);
+
+        Response response = AndroidVariantUtils.updateAndroidVariant(getPushApplicationId(), variant, getAuthCookies(),
+                getAndroidVariantId() + "-invalidation", getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(112)
+    public void removeAndroidVariantWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        Response response = AndroidVariantUtils.deleteAndroidVariant(getPushApplicationId(),
+                getAndroidVariantId() + "-invalidation", getAuthCookies(), getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(1000)
+    public void removeAndroidVariant() {
+        assertNotNull(getAuthCookies());
+
+        Response response = AndroidVariantUtils.deleteAndroidVariant(getPushApplicationId(), getAndroidVariantId(),
+                getAuthCookies(), getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.statusCode());
+    }
+
 
 }
