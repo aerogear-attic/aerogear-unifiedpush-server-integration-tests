@@ -21,12 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
-import com.jayway.restassured.path.json.JsonPath;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
@@ -47,6 +45,7 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
+import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
 public class iOSRegistrationTest extends GenericUnifiedPushTest {
@@ -267,7 +266,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         Response response = iOSVariantUtils.listAlliOSVariants(getPushApplicationId(), getAuthCookies(), getContextRoot());
 
         JsonPath body = response.getBody().jsonPath();
-        List variants = body.getList("");
+        List<Object> variants = body.getList("");
 
         assertNotNull(response);
         assertEquals(Status.OK.getStatusCode(), response.statusCode());
@@ -280,8 +279,8 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     public void findiOSVariant() {
         assertNotNull(getAuthCookies());
 
-        Response response = iOSVariantUtils.findiOSVariantById(getPushApplicationId(), getiOSVariantId(),
-                getAuthCookies(), getContextRoot());
+        Response response = iOSVariantUtils.findiOSVariantById(getPushApplicationId(), getiOSVariantId(), getAuthCookies(),
+                getContextRoot());
 
         JsonPath body = response.getBody().jsonPath();
 
