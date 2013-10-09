@@ -41,11 +41,11 @@ public final class AuthenticationUtils {
     public static String getAdminLoginName() {
         return ADMIN_LOGIN_NAME;
     }
-    
+
     public static String getAdminPassword() {
         return ADMIN_PASSWORD;
     }
-    
+
     public static String getAdminNewPassword() {
         return NEWPASSWORD;
     }
@@ -102,6 +102,14 @@ public final class AuthenticationUtils {
         }
 
         assertTrue(response.getStatusCode() == Status.OK.getStatusCode());
+
+        return response;
+    }
+
+    public static Response logout(Map<String, String> cookies, String root) {
+
+        Response response = RestAssured.given().header("Accept", "application/json").cookies(cookies)
+                .post(root + "rest/auth/logout");
 
         return response;
     }

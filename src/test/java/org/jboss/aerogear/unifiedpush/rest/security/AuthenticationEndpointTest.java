@@ -19,6 +19,7 @@ package org.jboss.aerogear.unifiedpush.rest.security;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
@@ -88,5 +89,24 @@ public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
                 AuthenticationUtils.getAdminNewPassword(), getContextRoot());
         assertNotNull(response);
         assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        authCookies = response.getCookies();
+        assertNotNull(authCookies);
+    }
+    
+    @Test
+    @InSequence(6)
+    public void logoutLeadsTo200() {
+        assertNotNull(authCookies);
+        Response response = AuthenticationUtils.logout(authCookies, getContextRoot());
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+    }
+    
+    @Test
+    @InSequence(7)
+    public void logoutWithoutBeingLoggedInLeadsTo401() {
+        Response response = AuthenticationUtils.logout(new HashMap<String, String>(), getContextRoot());
+        assertNotNull(response);
+        assertEquals(response.getStatusCode(), Status.UNAUTHORIZED.getStatusCode());
     }
 }
