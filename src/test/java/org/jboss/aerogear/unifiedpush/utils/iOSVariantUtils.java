@@ -55,7 +55,7 @@ public final class iOSVariantUtils {
                 .cookies(cookies).multiPart("certificate", new File(certificatePath))
                 .multiPart("production", form.getProduction().toString()).multiPart("passphrase", form.getPassphrase())
                 .multiPart("name", form.getName()).multiPart("description", form.getDescription())
-                .post(root + "rest/applications/" + pushAppId + "/iOS");
+                .post("{root}rest/applications/{pushAppId}/iOS", root, pushAppId);
 
         return response;
     }
@@ -69,7 +69,7 @@ public final class iOSVariantUtils {
                 .cookies(cookies).multiPart("certificate", new File(certificatePath))
                 .multiPart("production", form.getProduction().toString()).multiPart("passphrase", form.getPassphrase())
                 .multiPart("name", form.getName()).multiPart("description", form.getDescription())
-                .put(root + "rest/applications/${pushAppId}/iOS/" + variantId);
+                .put("{root}rest/applications/{pushAppId}/iOS/{variantId}", root, pushAppId, variantId);
 
         return response;
     }
@@ -87,9 +87,48 @@ public final class iOSVariantUtils {
         jsonObject.put("passphrase", null);
         jsonObject.put("certificate", null);
 
-        Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString()).patch(root + "rest/applications/${pushAppId}/iOS/" + variantId);
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .body(jsonObject.toString())
+                .patch("{root}rest/applications/{pushAppId}/iOS/{variantId}", root, pushAppId, variantId);
 
         return response;
     }
+
+    public static Response listAlliOSVariants(String pushAppId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .get("{root}rest/applications/{pushAppId}/iOS/", root, pushAppId);
+
+        return response;
+    }
+
+    public static Response findiOSVariantById(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .get("{root}rest/applications/{pushAppId}/iOS/{variantId}", root, pushAppId, variantId);
+
+        return response;
+    }
+
+    public static Response deleteiOSVariant(String pushAppid, String variantId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .cookies(cookies)
+                .delete("{root}rest/applications/{pushAppId}/iOS/{variantId}", root, pushAppid, variantId);
+
+        return response;
+    }
+
 }

@@ -21,10 +21,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
+import com.jayway.restassured.path.json.JsonPath;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
@@ -82,7 +84,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(12)
+    @InSequence(100)
     public void updateIOSVariantPatchCase() {
         assertNotNull(getPushApplicationId());
         assertNotNull(getiOSVariantId());
@@ -98,7 +100,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(13)
+    @InSequence(101)
     public void verifyUpdatePatch() {
         assertNotNull(iosVariantService);
 
@@ -115,7 +117,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(14)
+    @InSequence(102)
     public void updateiOSVariant() {
         assertNotNull(getPushApplicationId());
         assertNotNull(getiOSVariantId());
@@ -131,7 +133,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(15)
+    @InSequence(103)
     public void verifyiOSVariantUpdate() {
         assertNotNull(iosVariantService);
 
@@ -147,7 +149,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(16)
+    @InSequence(104)
     public void verifyRegistrations() {
 
         assertNotNull(pushAppService);
@@ -176,7 +178,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(17)
+    @InSequence(105)
     public void updateiOSInstallation() {
         assertNotNull(getiOSVariantId());
         assertNotNull(getiOSPushSecret());
@@ -192,7 +194,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Test
-    @InSequence(18)
+    @InSequence(106)
     public void verifyiOSInstallationUpdate() {
 
         assertNotNull(pushAppService);
@@ -221,4 +223,159 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         assertEquals(UPDATED_IOS_DEVICE_OS_VERSION, installation.getOsVersion());
         assertEquals(UPDATED_IOS_CLIENT_ALIAS, installation.getAlias());
     }
+
+    @RunAsClient
+    @Test
+    @InSequence(107)
+    public void registeriOSVariantWithWrongPushApplication() {
+        assertNotNull(getAuthCookies());
+
+        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
+                IOS_CERTIFICATE_PASS_PHRASE, null, IOS_VARIANT_NAME, IOS_VARIANT_DESC);
+
+        String nonExistentPushAppId = "this-will-never-exist";
+
+        Response response = iOSVariantUtils.registerIOsVariant(nonExistentPushAppId, form, getAuthCookies(),
+                IOS_CERTIFICATE_PATH, getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(108)
+    public void registeriOSVariantWithWrongCertificate() {
+        assertNotNull(getAuthCookies());
+
+        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
+                IOS_CERTIFICATE_PASS_PHRASE + "-invalidation", null, IOS_VARIANT_NAME, IOS_VARIANT_DESC);
+
+        Response response = iOSVariantUtils.registerIOsVariant(getPushApplicationId(), form, getAuthCookies(),
+                IOS_CERTIFICATE_PATH, getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(109)
+    public void listAlliOSVariants() {
+        assertNotNull(getAuthCookies());
+
+        Response response = iOSVariantUtils.listAlliOSVariants(getPushApplicationId(), getAuthCookies(), getContextRoot());
+
+        JsonPath body = response.getBody().jsonPath();
+        List variants = body.getList("");
+
+        assertNotNull(response);
+        assertEquals(Status.OK.getStatusCode(), response.statusCode());
+        assertEquals(1, variants.size());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(110)
+    public void findiOSVariant() {
+        assertNotNull(getAuthCookies());
+
+        Response response = iOSVariantUtils.findiOSVariantById(getPushApplicationId(), getiOSVariantId(),
+                getAuthCookies(), getContextRoot());
+
+        JsonPath body = response.getBody().jsonPath();
+
+        assertNotNull(response);
+        assertEquals(Status.OK.getStatusCode(), response.statusCode());
+        assertEquals(getiOSVariantId(), body.getString("variantID"));
+        assertEquals(IOS_VARIANT_NAME, body.getString("name"));
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(111)
+    public void findiOSVariantWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        Response response = iOSVariantUtils.findiOSVariantById(getPushApplicationId(), getiOSVariantId() + "-invalidation",
+                getAuthCookies(), getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(112)
+    public void updateiOSVariantPatchWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE, null, null,
+                UPDATED_IOS_VARIANT_NAME + "-invalidation", UPDATED_IOS_VARIANT_DESC);
+        Response response = iOSVariantUtils.updateIOsVariantPatch(getPushApplicationId(), form, getAuthCookies(),
+                getiOSVariantId() + "-invalidation", getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(113)
+    public void updateiOSVariantWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
+                IOS_CERTIFICATE_PASS_PHRASE, null, IOS_VARIANT_NAME + "-invalidation", IOS_VARIANT_DESC);
+        Response response = iOSVariantUtils.updateIOsVariant(getPushApplicationId(), form, getAuthCookies(),
+                IOS_CERTIFICATE_PATH, getiOSVariantId() + "-invalidation", getContextRoot());
+
+        assertNotNull(response);
+
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(114)
+    public void updateiOSVariantWithWrongCertificate() {
+        assertNotNull(getAuthCookies());
+
+        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
+                IOS_CERTIFICATE_PASS_PHRASE + "-invalidation", null, IOS_VARIANT_NAME + "-invalidation", IOS_VARIANT_DESC);
+        Response response = iOSVariantUtils.updateIOsVariant(getPushApplicationId(), form, getAuthCookies(),
+                IOS_CERTIFICATE_PATH, getiOSVariantId(), getContextRoot());
+
+        assertNotNull(response);
+
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), response.statusCode());
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(115)
+    public void removeiOSVariantWithInvalidId() {
+        assertNotNull(getAuthCookies());
+
+        Response response = iOSVariantUtils.deleteiOSVariant(getPushApplicationId(), getiOSVariantId() + "-invalidation",
+                getAuthCookies(), getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+
+    // TODO this has to be the end of this test class, change it to be independent!!!
+    @RunAsClient
+    @Test
+    @InSequence(116)
+    public void removeiOSVariant() {
+        assertNotNull(getAuthCookies());
+
+        Response response = iOSVariantUtils.deleteiOSVariant(getPushApplicationId(), getiOSVariantId(), getAuthCookies(),
+                getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.statusCode());
+    }
+
 }
