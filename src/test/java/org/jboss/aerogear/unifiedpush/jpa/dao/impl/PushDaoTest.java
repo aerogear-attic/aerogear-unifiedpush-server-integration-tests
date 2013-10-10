@@ -45,7 +45,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
-public class PushDaoSpecification {
+public class PushDaoTest {
 
     @Deployment
     public static Archive<?> testArchive() {
