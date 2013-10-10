@@ -75,4 +75,38 @@ public final class SimplePushVariantUtils {
 
         return response;
     }
+
+    public static Response listAllSimplePushVariants(String pushAppId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .get("{root}rest/applications/{pushAppId}/simplePush", root, pushAppId);
+
+        return response;
+    }
+
+    public static Response findSimplePushVariantById(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .contentType("application/json")
+                .header("Accept", "application/json")
+                .cookies(cookies)
+                .get("{root}rest/applications/{pushAppId}/simplePush/{variantId}", root, pushAppId, variantId);
+
+        return response;
+    }
+
+    public static Response deleteSimplePushVariant(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
+        assertNotNull(root);
+
+        Response response = RestAssured.given()
+                .cookies(cookies)
+                .delete("{root}rest/applications/{pushAppId}/simplePush/{variantId}", root, pushAppId, variantId);
+
+        return response;
+    }
 }
