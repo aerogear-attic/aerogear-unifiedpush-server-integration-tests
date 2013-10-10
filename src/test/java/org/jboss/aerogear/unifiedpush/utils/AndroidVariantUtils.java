@@ -16,16 +16,15 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.util.Map;
 
-import junit.framework.TestCase;
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
 import org.json.simple.JSONObject;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
-
-import static org.junit.Assert.assertNotNull;
 
 public final class AndroidVariantUtils {
 
@@ -53,7 +52,8 @@ public final class AndroidVariantUtils {
         jsonObject.put("description", variant.getDescription());
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString()).post(root + "rest/applications/" + pushAppId + "/android");
+                .cookies(cookies).body(jsonObject.toString())
+                .post("{root}rest/applications/{pushAppId}/android", root, pushAppId);
 
         return response;
     }
@@ -69,7 +69,7 @@ public final class AndroidVariantUtils {
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
                 .cookies(cookies).body(jsonObject.toString())
-                .put(root + "rest/applications/" + pushAppId + "/android/" + variantId);
+                .put("{root}rest/applications/{pushAppId}/android/{variantId}", root, pushAppId, variantId);
 
         return response;
     }
@@ -77,11 +77,8 @@ public final class AndroidVariantUtils {
     public static Response listAllAndroidVariants(String pushAppId, Map<String, ?> cookies, String root) {
         assertNotNull(root);
 
-        Response response = RestAssured.given()
-                .contentType("application/json")
-                .header("Accept", "application/json")
-                .cookies(cookies)
-                .get("{root}rest/applications/{pushAppId}/android", root, pushAppId);
+        Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
+                .cookies(cookies).get("{root}rest/applications/{pushAppId}/android", root, pushAppId);
 
         return response;
     }
@@ -89,11 +86,8 @@ public final class AndroidVariantUtils {
     public static Response findAndroidVariantById(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
         assertNotNull(root);
 
-        Response response = RestAssured.given()
-                .contentType("application/json")
-                .header("Accept", "application/json")
-                .cookies(cookies)
-                .get("{root}rest/applications/{pushAppId}/android/{variantId}", root, pushAppId, variantId);
+        Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
+                .cookies(cookies).get("{root}rest/applications/{pushAppId}/android/{variantId}", root, pushAppId, variantId);
 
         return response;
     }
@@ -101,8 +95,7 @@ public final class AndroidVariantUtils {
     public static Response deleteAndroidVariant(String pushAppId, String variantId, Map<String, ?> cookies, String root) {
         assertNotNull(root);
 
-        Response response = RestAssured.given()
-                .cookies(cookies)
+        Response response = RestAssured.given().cookies(cookies)
                 .delete("{root}rest/applications/{pushAppId}/android/{variantId}", root, pushAppId, variantId);
 
         return response;

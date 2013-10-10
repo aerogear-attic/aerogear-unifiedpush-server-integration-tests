@@ -34,7 +34,7 @@ public final class AdminUtils {
         jsonObject.put("password", developer.getPassword());
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString()).post(root + "rest/auth/enroll");
+                .cookies(cookies).body(jsonObject.toString()).post("{root}rest/auth/enroll", root);
         return response;
     }
 }

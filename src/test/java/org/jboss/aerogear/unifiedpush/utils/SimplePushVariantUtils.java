@@ -53,7 +53,8 @@ public final class SimplePushVariantUtils {
         jsonObject.put("description", variant.getDescription());
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString()).post(root + "rest/applications/" + pushAppId + "/simplePush");
+                .cookies(cookies).body(jsonObject.toString())
+                .post("{root}rest/applications/{pushAppId}/simplePush", root, pushAppId);
 
         return response;
     }
@@ -70,7 +71,7 @@ public final class SimplePushVariantUtils {
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
                 .cookies(cookies).body(jsonObject.toString())
-                .put(root + "rest/applications/" + pushAppId + "/simplePush/" + variantId);
+                .put("{root}rest/applications/{pushAppId}/simplePush/{variantId}", root, pushAppId, variantId);
 
         return response;
     }

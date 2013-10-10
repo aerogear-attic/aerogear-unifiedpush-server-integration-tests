@@ -59,7 +59,7 @@ public final class InstallationUtils {
         jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
         Response response = RestAssured.given().contentType("application/json").auth().basic(variantID, secret)
-                .header("Accept", "application/json").body(jsonObject.toString()).post(root + "rest/registry/device");
+                .header("Accept", "application/json").body(jsonObject.toString()).post("{root}rest/registry/device", root);
 
         return response;
     }
@@ -71,7 +71,8 @@ public final class InstallationUtils {
         assertNotNull(root);
 
         Response response = RestAssured.given().contentType("application/json").cookies(cookies)
-                .header("Accept", "application/json").get(root + "rest/applications/" + variantID + "/installations/");
+                .header("Accept", "application/json")
+                .get("{root}rest/applications/{variantID}/installations/", root, variantID);
 
         return response;
     }
@@ -82,7 +83,7 @@ public final class InstallationUtils {
 
         Response response = RestAssured.given().contentType("application/json").cookies(cookies)
                 .header("Accept", "application/json")
-                .get(root + "rest/applications/" + variantID + "/installations/" + installationID);
+                .get("{root}rest/applications/{variantID}/installations/{installationID}", root, variantID, installationID);
 
         return response;
     }
@@ -104,7 +105,7 @@ public final class InstallationUtils {
 
         Response response = RestAssured.given().contentType("application/json").cookies(cookies)
                 .header("Accept", "application/json").body(jsonObject.toString())
-                .put(root + "rest/applications/" + variantID + "/installations/" + installationID);
+                .put("{root}rest/applications/{variantID}/installations/{installationID}");
 
         return response;
     }
@@ -116,7 +117,7 @@ public final class InstallationUtils {
         Response response = RestAssured.given()
                 // .contentType("application/json")
                 .cookies(cookies).header("Accept", "application/json")
-                .delete(root + "rest/applications/" + variantID + "/installations/" + installationID);
+                .delete("{root}rest/applications/{variantID}/installations/{installationID}", root, variantID, installationID);
 
         return response;
     }
