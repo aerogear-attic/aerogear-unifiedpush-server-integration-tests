@@ -64,6 +64,14 @@ public final class InstallationUtils {
         return response;
     }
 
+    public static Response unregisterInstallation(String variantID, String secret, String token, String root) {
+        assertNotNull(root);
+        Response response = RestAssured.given().contentType("application/json").auth().basic(variantID, secret)
+                .delete("{root}rest/registry/device/{token}", root, token);
+
+        return response;
+    }
+
     /* methods of the InstallationManagementEndpoint used by the Admin UI begin */
 
     public static Response findInstallations(String variantID, Map<String, ?> cookies, String root) {
