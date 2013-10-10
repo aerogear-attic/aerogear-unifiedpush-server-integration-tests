@@ -113,7 +113,7 @@ public final class InstallationUtils {
 
         Response response = RestAssured.given().contentType("application/json").cookies(cookies)
                 .header("Accept", "application/json").body(jsonObject.toString())
-                .put("{root}rest/applications/{variantID}/installations/{installationID}");
+                .put("{root}rest/applications/{variantID}/installations/{installationID}", root, variantID, installationID);
 
         return response;
     }
