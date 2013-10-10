@@ -310,7 +310,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         Response response = InstallationUtils.unregisterInstallation(getSimplePushVariantId(), getSimplePushSecret(),
                 SIMPLE_PUSH_DEVICE_TOKEN, getContextRoot());
         assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.getStatusCode());
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
     }
 
     @Test
@@ -319,6 +319,16 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
                 getSimplePushVariantId(), SIMPLE_PUSH_DEVICE_TOKEN);
         assertNull(installation);
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(118)
+    public void unauthorizedUnregisterInstallation() {
+        Response response = InstallationUtils.unregisterInstallation("", getSimplePushSecret(), SIMPLE_PUSH_DEVICE_TOKEN,
+                getContextRoot());
+        assertNotNull(response);
+        assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatusCode());
     }
 
     @RunAsClient
