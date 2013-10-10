@@ -47,7 +47,7 @@ public final class PushNotificationSenderUtils {
         jsonObject.put("category", categories);
 
         Response response = RestAssured.given().contentType("application/json").auth().basic(pushApplicationId, masterSecret)
-                .header("Accept", "application/json").body(jsonObject.toString()).post(root + "rest/sender");
+                .header("Accept", "application/json").body(jsonObject.toString()).post("{root}rest/sender", root);
 
         return response;
     }

@@ -54,7 +54,7 @@ public final class PushApplicationUtils {
         }
         return false;
     }
-    
+
     public static boolean nameExistsInList(String pushAppName, List<PushApplication> pushAppsList) {
         if (!StringUtils.isEmpty(pushAppName) && pushAppsList != null) {
             for (PushApplication pushApp : pushAppsList) {
@@ -78,7 +78,7 @@ public final class PushApplicationUtils {
 
         Response response = RestAssured.given().contentType(contentType == null ? "application/json" : contentType)
                 .header("Accept", "application/json").cookies(cookies).body(jsonObject.toString())
-                .post(root + "rest/applications");
+                .post("{root}rest/applications", root);
 
         return response;
     }
@@ -88,7 +88,7 @@ public final class PushApplicationUtils {
         assertNotNull(root);
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).get(root + "rest/applications");
+                .cookies(cookies).get("{root}rest/applications", root);
 
         return response;
     }
@@ -98,7 +98,7 @@ public final class PushApplicationUtils {
         assertNotNull(root);
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).get(root + "rest/applications/" + pushAppId);
+                .cookies(cookies).get("{root}rest/applications/{pushAppId}", root, pushAppId);
 
         return response;
     }
@@ -108,7 +108,7 @@ public final class PushApplicationUtils {
         assertNotNull(root);
 
         Response response = RestAssured.given().header("Accept", "application/json").cookies(cookies)
-                .delete(root + "rest/applications/" + pushApplicationId);
+                .delete("{root}rest/applications/{pushApplicationId}", root, pushApplicationId);
 
         return response;
     }

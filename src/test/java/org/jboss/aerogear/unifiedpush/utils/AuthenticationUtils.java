@@ -63,7 +63,7 @@ public final class AuthenticationUtils {
         jsonObject.put("password", passwordStr);
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .body(jsonObject.toJSONString()).post(root + "rest/auth/login");
+                .body(jsonObject.toJSONString()).post("{root}rest/auth/login", root);
 
         return response;
     }
@@ -80,7 +80,7 @@ public final class AuthenticationUtils {
         jsonObject.put("newPassword", newPasswd);
 
         Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString()).put(root + "rest/auth/update");
+                .cookies(cookies).body(jsonObject.toString()).put("{root}rest/auth/update", root);
 
         return response;
     }
@@ -109,7 +109,7 @@ public final class AuthenticationUtils {
     public static Response logout(Map<String, String> cookies, String root) {
 
         Response response = RestAssured.given().header("Accept", "application/json").cookies(cookies)
-                .post(root + "rest/auth/logout");
+                .post("{root}rest/auth/logout", root);
 
         return response;
     }
