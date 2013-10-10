@@ -119,7 +119,7 @@ public final class Deployments {
                 .resolver()
                 .loadPomFromFile("pom.xml")
                 .resolve("com.jayway.restassured:rest-assured", "org.mockito:mockito-core",
-                        "com.jayway.awaitility:awaitility-groovy").withTransitivity().asFile();
+                        "com.jayway.awaitility:awaitility").withTransitivity().asFile();
         war = war.addAsLibraries(libs);
 
         return war;
