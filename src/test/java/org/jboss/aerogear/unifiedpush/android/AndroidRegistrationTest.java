@@ -339,6 +339,16 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
+    @InSequence(115)
+    public void unauthorizedUnregisterInstallation() {
+        Response response = InstallationUtils.unregisterInstallation("", getAndroidSecret(), ANDROID_DEVICE_TOKEN,
+                getContextRoot());
+        assertNotNull(response);
+        assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatusCode());
+    }
+
+    @RunAsClient
+    @Test
     @InSequence(1000)
     public void removeAndroidVariant() {
         assertNotNull(getAuthCookies());

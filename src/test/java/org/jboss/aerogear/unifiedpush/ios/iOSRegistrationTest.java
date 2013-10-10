@@ -363,13 +363,13 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         assertNotNull(response);
         assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
     }
-    
+
     @RunAsClient
     @Test
     @InSequence(116)
     public void unregisterInstallation() {
-        Response response = InstallationUtils.unregisterInstallation(getiOSVariantId(), getiOSPushSecret(),
-                IOS_DEVICE_TOKEN, getContextRoot());
+        Response response = InstallationUtils.unregisterInstallation(getiOSVariantId(), getiOSPushSecret(), IOS_DEVICE_TOKEN,
+                getContextRoot());
         assertNotNull(response);
         assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
     }
@@ -377,9 +377,19 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(117)
     public void verifyInstallationRemoval() {
-        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
-                getiOSVariantId(), IOS_DEVICE_TOKEN);
+        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(getiOSVariantId(),
+                IOS_DEVICE_TOKEN);
         assertNull(installation);
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(118)
+    public void unauthorizedUnregisterInstallation() {
+        Response response = InstallationUtils
+                .unregisterInstallation("", getiOSPushSecret(), IOS_DEVICE_TOKEN, getContextRoot());
+        assertNotNull(response);
+        assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatusCode());
     }
 
     @RunAsClient
