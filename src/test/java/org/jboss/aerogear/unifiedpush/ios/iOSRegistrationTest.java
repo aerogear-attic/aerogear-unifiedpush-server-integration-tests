@@ -18,6 +18,7 @@ package org.jboss.aerogear.unifiedpush.ios;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -361,6 +362,24 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
         assertNotNull(response);
         assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+    }
+    
+    @RunAsClient
+    @Test
+    @InSequence(116)
+    public void unregisterInstallation() {
+        Response response = InstallationUtils.unregisterInstallation(getiOSVariantId(), getiOSPushSecret(),
+                IOS_DEVICE_TOKEN, getContextRoot());
+        assertNotNull(response);
+        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
+    }
+
+    @Test
+    @InSequence(117)
+    public void verifyInstallationRemoval() {
+        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
+                getiOSVariantId(), IOS_DEVICE_TOKEN);
+        assertNull(installation);
     }
 
     @RunAsClient
