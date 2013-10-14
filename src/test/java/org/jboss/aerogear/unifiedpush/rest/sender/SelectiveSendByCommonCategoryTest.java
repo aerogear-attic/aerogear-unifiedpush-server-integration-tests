@@ -214,7 +214,10 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
 
         assertNotNull(getPushApplicationId());
         assertNotNull(getMasterSecret());
-
+        
+        Sender.clear();
+        ApnsServiceImpl.clear();
+        
         String category = ANDROID_CATEGORY_X + 1;
 
         Map<String, Object> messages = new HashMap<String, Object>();
@@ -229,7 +232,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
 
     @Test
     @InSequence(17)
-    public void verifyPushnotifications() {
+    public void verifyPushNotifications() {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
             public Boolean call() throws Exception {
                 return Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().size() == 1
@@ -238,9 +241,9 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
         });
 
         assertTrue(Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_X + 1));
-        assertTrue(Sender.getGcmMessage() != null && Sender.getGcmMessage().getData() != null
-                && Sender.getGcmMessage().getData().get("alert") != null);
-        assertEquals(Sender.getGcmMessage().getData().get("alert"), NOTIFICATION_ALERT_MSG);
+        assertTrue(Sender.getGcmMessage() != null && Sender.getGcmMessage().getData() != null);
+        assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("alert"));
         assertTrue(ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN_X + 1));
+        assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
     }
 }
