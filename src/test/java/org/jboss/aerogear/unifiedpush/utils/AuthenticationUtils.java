@@ -34,9 +34,25 @@ public final class AuthenticationUtils {
 
     private static final String ADMIN_LOGIN_NAME = "admin";
 
+    private static final String DEVELOPER_LOGIN_NAME = "developer";
+
+    private static final String DEVELOPER_PASSWORD = "123";
+
     private static final String ADMIN_PASSWORD = "123";
 
     private static final String SECURE_ADMIN_NEW_PASSWORD = "aerogear";
+
+    public static String getDeveloperLoginName() {
+        return DEVELOPER_LOGIN_NAME;
+    }
+
+    public static String getDeveloperPassword() {
+        return DEVELOPER_PASSWORD;
+    }
+
+    public static String getDeveloperNewPassword() {
+        return NEWPASSWORD;
+    }
 
     public static String getAdminLoginName() {
         return ADMIN_LOGIN_NAME;
