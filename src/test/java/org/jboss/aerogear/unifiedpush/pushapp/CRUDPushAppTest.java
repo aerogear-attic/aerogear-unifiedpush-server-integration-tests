@@ -35,7 +35,7 @@ import org.junit.Test;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
-public class RegisterReadDeletePushAppTest extends GenericSimpleUnifiedPushTest {
+public class CRUDPushAppTest extends GenericSimpleUnifiedPushTest {
 
     @Override
     protected String getContextRoot() {
@@ -44,6 +44,8 @@ public class RegisterReadDeletePushAppTest extends GenericSimpleUnifiedPushTest 
 
     private static final String pushAppName = "My App";
     private static final String pushAppDesc = "Awesome App";
+    private static final String updatedPushAppName = "My Updated App";
+    private static final String updatedPushAppDesc = "Awesome Updated App";
 
     private static Map<String, String> authCookies;
     private static String pushAppId;
@@ -120,6 +122,40 @@ public class RegisterReadDeletePushAppTest extends GenericSimpleUnifiedPushTest 
 
     @Test
     @InSequence(5)
+    public void updatePushApplication() {
+
+        PushApplication pushApp = PushApplicationUtils.createPushApplication(updatedPushAppName, updatedPushAppDesc, pushAppId,
+                null, null);
+        Response response = PushApplicationUtils.updatePushApplication(pushApp, authCookies, "application/json",
+                getContextRoot());
+
+        assertNotNull(response);
+        assertEquals(response.statusCode(), Status.NO_CONTENT.getStatusCode());
+    }
+
+    @Test
+    @InSequence(6)
+    public void retrieveUpdatedApplication() {
+
+        assertNotNull(authCookies);
+        assertNotNull(pushAppId);
+        Response response = PushApplicationUtils.findPushApplicationById(authCookies, pushAppId, getContextRoot());
+        assertNotNull(response);
+        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+
+        JsonPath body = response.getBody().jsonPath();
+        assertNotNull(body);
+
+        Map<?, ?> pushApp = (Map<?, ?>) body.get();
+
+        assertNotNull(pushApp);
+        assertEquals(pushApp.get("pushApplicationID"), pushAppId);
+        assertEquals(pushApp.get("name"), updatedPushAppName);
+        assertEquals(pushApp.get("description"), updatedPushAppDesc);
+    }
+
+    @Test
+    @InSequence(7)
     public void deleteRegisteredApplication() {
 
         assertNotNull(authCookies);
