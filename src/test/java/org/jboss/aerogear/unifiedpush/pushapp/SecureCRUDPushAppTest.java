@@ -21,7 +21,7 @@ import org.junit.BeforeClass;
 
 import com.jayway.restassured.RestAssured;
 
-public class SecureRegisterReadDeletePushAppTest extends RegisterReadDeletePushAppTest {
+public class SecureCRUDPushAppTest extends CRUDPushAppTest {
 
     @BeforeClass
     public static void setup() {

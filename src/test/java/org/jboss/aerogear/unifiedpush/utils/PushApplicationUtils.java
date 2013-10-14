@@ -82,6 +82,23 @@ public final class PushApplicationUtils {
 
         return response;
     }
+    
+    @SuppressWarnings("unchecked")
+    public static Response updatePushApplication(PushApplication pushApp, Map<String, ?> cookies, String contentType,
+            String root) {
+
+        assertNotNull(root);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", pushApp.getName());
+        jsonObject.put("description", pushApp.getDescription());
+
+        Response response = RestAssured.given().contentType(contentType == null ? "application/json" : contentType)
+                .header("Accept", "application/json").cookies(cookies).body(jsonObject.toString())
+                .put("{root}rest/applications/{id}", root, pushApp.getPushApplicationID());
+
+        return response;
+    }
 
     public static Response listAllPushApplications(Map<String, ?> cookies, String root) {
 
