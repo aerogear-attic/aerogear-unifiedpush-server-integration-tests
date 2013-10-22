@@ -30,7 +30,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javaee6.bom.version>1.0.7.CR8</javaee6.bom.version>
+        <javaee6.bom.version>1.0.7.Final</javaee6.bom.version>
         <maven.compiler.argument.target>${maven.compiler.target}</maven.compiler.argument.target>
         <maven.compiler.argument.source>${maven.compiler.source}</maven.compiler.argument.source>
         <aerogear.security.version>1.2.1</aerogear.security.version>
