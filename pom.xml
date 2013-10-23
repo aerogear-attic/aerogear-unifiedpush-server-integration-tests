@@ -30,11 +30,21 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javaee6.bom.version>1.0.7.Final</javaee6.bom.version>
+        
+        
         <maven.compiler.argument.target>${maven.compiler.target}</maven.compiler.argument.target>
         <maven.compiler.argument.source>${maven.compiler.source}</maven.compiler.argument.source>
         <aerogear.security.version>1.2.1</aerogear.security.version>
         <aerogear.security.picketlink.version>1.2.2</aerogear.security.picketlink.version>
+        <org.jboss.spec.javaee6.version>3.0.2.Final</org.jboss.spec.javaee6.version>
+
+        <!-- Testing -->
+        <org.jboss.arquillian.version>1.1.1.Final</org.jboss.arquillian.version>
+        <com.jayway.restassured.version>1.8.1</com.jayway.restassured.version>
+        <org.jboss.arquillian.as7.version>7.1.3.Final</org.jboss.arquillian.as7.version>
+                
+
+        <!-- Code coverage -->
         <org.jacoco.ant.version>0.6.3.201306030806</org.jacoco.ant.version>
         <org.jacoco.agent.version>0.6.3.201306030806</org.jacoco.agent.version>
         <ant.contrib.version>20020829</ant.contrib.version>
@@ -50,11 +60,22 @@
             </dependency>
 
             <dependency>
-                <groupId>org.jboss.bom</groupId>
-                <artifactId>jboss-javaee-6.0-with-tools</artifactId>
-                <version>${javaee6.bom.version}</version>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>${org.jboss.arquillian.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.as</groupId>
+                <artifactId>jboss-as-arquillian-container-managed</artifactId>
+                <version>${org.jboss.arquillian.as7.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.as</groupId>
+                <artifactId>jboss-as-arquillian-container-remote</artifactId>
+                <version>${org.jboss.arquillian.as7.version}</version>
             </dependency>
 
             <!-- Arquillian APE for extra persistence testing, not present in any BOM so far -->
@@ -64,6 +85,13 @@
                 <version>1.0.0.Alpha6</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.jboss.spec</groupId>
+                <artifactId>jboss-javaee-6.0</artifactId>
+                <version>${org.jboss.spec.javaee6.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -190,7 +218,7 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>1.8.1</version>
+            <version>${com.jayway.restassured.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.jackson</groupId>
@@ -206,7 +234,7 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>json-path</artifactId>
-            <version>1.8.1</version>
+            <version>${com.jayway.restassured.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.jackson</groupId>
@@ -349,7 +377,7 @@
             </activation>
 
             <properties>
-                <javaee6.bom.version>1.0.4.Final-redhat-wfk-1</javaee6.bom.version>
+                <org.jboss.arquillian.as7.version>7.2.0.Final</org.jboss.arquillian.as7.version>
             </properties>
 
             <dependencies>
@@ -365,14 +393,10 @@
             </build>
         </profile>
 
+
+        <!-- This profile enrich test execution with code coverage. It must be used together with another container profile -->
         <profile>
             <id>code-coverage</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.jboss.as</groupId>
-                    <artifactId>jboss-as-arquillian-container-managed</artifactId>
-                </dependency>
-            </dependencies>
             <build>
                 <plugins>
                     <plugin>
