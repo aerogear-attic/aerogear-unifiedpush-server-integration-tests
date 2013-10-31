@@ -85,7 +85,7 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
         Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                messages, null, null, null, getContextRoot());
+                messages, null, null, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.OK.getStatusCode());

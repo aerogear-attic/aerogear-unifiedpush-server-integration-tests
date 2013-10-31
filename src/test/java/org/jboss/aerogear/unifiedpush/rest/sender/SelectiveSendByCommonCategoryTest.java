@@ -224,7 +224,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
         Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), null, null,
-                messages, null, null, category, getContextRoot());
+                messages, null, category, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.OK.getStatusCode());

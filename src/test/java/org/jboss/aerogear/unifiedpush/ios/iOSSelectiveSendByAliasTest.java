@@ -88,8 +88,8 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         messages.put("sound", NOTIFICATION_SOUND);
         messages.put("badge", NOTIFICATION_BADGE);
 
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                messages, null, null, null, getContextRoot());
+        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases,
+                null, messages, null, null, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.OK.getStatusCode());

@@ -50,5 +50,5 @@ public interface ApnsService {
     public Map<String, Date> getInactiveDevices();
 
     @SuppressWarnings("rawtypes")
-    public Collection push(Collection<String> tokens, String apnsMessage);
+    public Collection push(Collection<String> tokens, String apnsMessage, Date expiry);
 }

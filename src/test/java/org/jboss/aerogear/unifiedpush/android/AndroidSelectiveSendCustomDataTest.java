@@ -88,7 +88,7 @@ public class AndroidSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
         messages.put("test", CUSTOM_FIELD_DATA_MSG);
 
         Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                messages, null, null, null, getContextRoot());
+                messages, null, null, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.OK.getStatusCode());

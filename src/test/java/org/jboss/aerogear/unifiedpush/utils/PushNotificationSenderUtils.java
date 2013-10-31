@@ -33,8 +33,8 @@ public final class PushNotificationSenderUtils {
 
     @SuppressWarnings("unchecked")
     public static Response selectiveSend(String pushApplicationId, String masterSecret, List<String> aliases,
-            List<String> deviceTypes, Map<String, Object> messages, Map<String, String> simplePush, List<String> mobileOS,
-            String categories, String root) {
+            List<String> deviceTypes, Map<String, Object> messages, String simplePush, String categories,
+            String root) {
 
         assertNotNull(root);
 
@@ -43,10 +43,10 @@ public final class PushNotificationSenderUtils {
         jsonObject.put("deviceType", deviceTypes);
         jsonObject.put("message", messages);
         jsonObject.put("simple-push", simplePush);
-        jsonObject.put("mobileOperatingSystem", mobileOS);
         jsonObject.put("category", categories);
 
-        Response response = RestAssured.given().contentType("application/json").auth().basic(pushApplicationId, masterSecret)
+        Response response = RestAssured.given().contentType("application/json")
+                .auth().basic(pushApplicationId, masterSecret)
                 .header("Accept", "application/json").body(jsonObject.toString()).post("{root}rest/sender", root);
 
         return response;
