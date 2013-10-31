@@ -189,11 +189,10 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
-        Map<String, String> simplePushMessage = new HashMap<String, String>();
-        simplePushMessage.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION);
-
+        // TODO shouldn't we pass "SIMPLE_PUSH_CATEGORY" instead "null" as the last but one parameter
         Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                messages, simplePushMessage, null, null, getContextRoot());
+                messages, SIMPLE_PUSH_VERSION, null, getContextRoot());
+
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.OK.getStatusCode());

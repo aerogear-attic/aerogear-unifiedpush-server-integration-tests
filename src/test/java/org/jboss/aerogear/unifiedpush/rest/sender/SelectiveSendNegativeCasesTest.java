@@ -72,11 +72,8 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
-        Map<String, String> simplePushMessage = new HashMap<String, String>();
-        simplePushMessage.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION);
-
         Response response = PushNotificationSenderUtils.selectiveSend("", getMasterSecret(), aliases, null, messages,
-                simplePushMessage, null, null, getContextRoot());
+                SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());
@@ -98,12 +95,9 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
-        Map<String, String> simplePushMessage = new HashMap<String, String>();
-        simplePushMessage.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION);
-
         String wrongPushAppId = "random";
         Response response = PushNotificationSenderUtils.selectiveSend(wrongPushAppId, getMasterSecret(), aliases, null,
-                messages, simplePushMessage, null, null, getContextRoot());
+                messages, SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());
@@ -125,12 +119,9 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
-        Map<String, String> simplePushMessage = new HashMap<String, String>();
-        simplePushMessage.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION);
-
         String wrongMasterSecret = "random";
         Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), wrongMasterSecret, aliases, null,
-                messages, simplePushMessage, null, null, getContextRoot());
+                messages, SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());

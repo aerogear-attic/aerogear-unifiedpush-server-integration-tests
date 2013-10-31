@@ -70,7 +70,7 @@ public class ApnsServiceImpl implements ApnsService {
     }
 
     @SuppressWarnings("rawtypes")
-    public Collection push(Collection<String> tokens, String message) {
+    public Collection push(Collection<String> tokens, String message, Date expiry) {
         if (message != null) {
             String[] parts = message.split(",");
             for (String part : parts) {

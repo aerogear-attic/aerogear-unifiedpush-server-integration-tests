@@ -18,6 +18,7 @@ package org.jboss.aerogear.unifiedpush.test;
 
 import java.io.File;
 
+import com.notnoop.apns.*;
 import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -37,10 +38,6 @@ import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
-import com.notnoop.apns.APNS;
-import com.notnoop.apns.ApnsService;
-import com.notnoop.apns.ApnsServiceBuilder;
-import com.notnoop.apns.PayloadBuilder;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import com.notnoop.exceptions.NetworkIOException;
 
@@ -108,11 +105,12 @@ public final class Deployments {
                 MulticastResult.class, Message.class, Sender.class);
         war.addAsLibraries(jar);
 
+
         war.delete("/WEB-INF/lib/apns-0.2.3.jar");
 
         JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException.class,
                 ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
-                Constants.class, ServerSocketUtils.class);
+                Constants.class, ServerSocketUtils.class, ApnsNotification.class, EnhancedApnsNotification.class);
         war.addAsLibraries(apnsJar);
 
         File[] libs = Maven

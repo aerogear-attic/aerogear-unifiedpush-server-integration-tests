@@ -74,14 +74,11 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         List<String> deviceTypes = new ArrayList<String>();
         deviceTypes.add(SIMPLE_PUSH_DEVICE_TYPE);
 
-        Map<String, String> simplePush = new HashMap<String, String>();
-        simplePush.put(SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VERSION);
-
         Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                new HashMap<String, Object>(), simplePush, null, null, getContextRoot());
+                new HashMap<String, Object>(), SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
 
         assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        assertEquals(Status.OK.getStatusCode(), response.statusCode());
 
         ServerSocket socketServer = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
         assertNotNull(socketServer);
