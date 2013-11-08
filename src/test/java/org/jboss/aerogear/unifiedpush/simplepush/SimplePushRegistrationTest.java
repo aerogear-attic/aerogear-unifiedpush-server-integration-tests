@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.simplepush;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -27,8 +28,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
-
-import com.jayway.restassured.path.json.JsonPath;
 
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
@@ -48,6 +47,7 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
+import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
 public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
@@ -216,7 +216,8 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         assertEquals(UPDATED_SIMPLE_PUSH_CLIENT_ALIAS, installation.getAlias());
         assertEquals(UPDATED_SIMPLE_PUSH_NETWORK_URL, installation.getSimplePushEndpoint());
 
-        assertEquals(UPDATED_SIMPLE_PUSH_CATEGORY, installation.getCategories());
+        assertFalse("Device categories are not empty", installation.getCategories().isEmpty());
+        assertEquals("Device categories contains updated category", UPDATED_SIMPLE_PUSH_CATEGORY, installation.getCategories().iterator().next());
     }
 
     @RunAsClient
