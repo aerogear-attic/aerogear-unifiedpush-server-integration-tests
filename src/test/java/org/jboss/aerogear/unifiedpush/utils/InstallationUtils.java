@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.*;
 
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.jayway.restassured.RestAssured;
@@ -57,7 +58,15 @@ public final class InstallationUtils {
         jsonObject.put("operatingSystem", installation.getOperatingSystem());
         jsonObject.put("osVersion", installation.getOsVersion());
         jsonObject.put("alias", installation.getAlias());
-        jsonObject.put("categories", installation.getCategories());
+        
+        // JSONObject does not understand Set<String>
+        JSONArray array = new JSONArray();
+        for(String c: installation.getCategories()) {
+            array.add(c);
+        }        
+        jsonObject.put("categories", array);
+        
+        
         jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
         Response response = RestAssured.given().contentType("application/json").auth().basic(variantID, secret)
@@ -110,7 +119,14 @@ public final class InstallationUtils {
         jsonObject.put("operatingSystem", installation.getOperatingSystem());
         jsonObject.put("osVersion", installation.getOsVersion());
         jsonObject.put("alias", installation.getAlias());
-        jsonObject.put("categories", installation.getCategories());
+        
+        // JSONObject does not understand Set<String>
+        JSONArray array = new JSONArray();
+        for(String c: installation.getCategories()) {
+            array.add(c);
+        }        
+        jsonObject.put("categories", array);
+        
         jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
         Response response = RestAssured.given().contentType("application/json").cookies(cookies)

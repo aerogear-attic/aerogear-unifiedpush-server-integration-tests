@@ -101,7 +101,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
                     androidInstallation, getContextRoot());
 
             assertNotNull(response);
-            assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+            assertEquals(Status.OK.getStatusCode(), response.getStatusCode());
         }
     }
 
