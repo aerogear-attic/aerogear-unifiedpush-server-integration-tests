@@ -24,17 +24,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.service.AndroidVariantService;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
+import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
+import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -63,11 +67,11 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     }
 
     @Inject
-    private AndroidVariantService androidVariantService;
-
-    @Inject
     private ClientInstallationService clientInstallationService;
 
+    @Inject
+    private PushApplicationService pushAppService;
+    
     @RunAsClient
     @Test
     @InSequence(12)
@@ -111,11 +115,19 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(14)
     public void verifyInactiveTokensDeletion() {
-        assertNotNull(androidVariantService);
         assertNotNull(clientInstallationService);
 
-        List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.get(0) : null;
+        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
+                .getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
+
+        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();        
+        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
+        
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 androidVariant.getVariantID(), null, null, null);
 

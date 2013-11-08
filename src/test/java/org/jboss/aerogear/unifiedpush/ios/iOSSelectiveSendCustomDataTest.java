@@ -24,17 +24,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.iOSVariantService;
+import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
+import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -65,8 +69,8 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
     @Inject
-    private iOSVariantService iosVariantService;
-
+    private PushApplicationService pushAppService;
+    
     @Inject
     private ClientInstallationService clientInstallationService;
 
@@ -123,13 +127,23 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(14)
     public void verifyInactiveTokensDeletion() {
-        assertNotNull(iosVariantService);
         assertNotNull(clientInstallationService);
+        
+        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
+                .getAdminLoginName());
 
-        List<iOSVariant> iosVariants = iosVariantService.findAlliOSVariants();
-        iOSVariant iosVariant = iosVariants != null ? iosVariants.get(0) : null;
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+
+        PushApplication pushApp = pushApps.iterator().next();
+        
+        Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
+        assertTrue(iOSVariants != null && iOSVariants.size() == 1);
+
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
+        
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
-                iosVariant.getVariantID(), null, null, null);
+                iOSVariant.getVariantID(), null, null, null);
 
         assertNotNull(deviceTokens);
         assertTrue(!deviceTokens.contains(IOS_DEVICE_TOKEN));

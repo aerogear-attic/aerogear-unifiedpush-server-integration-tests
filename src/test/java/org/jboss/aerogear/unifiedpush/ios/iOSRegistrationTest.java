@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
@@ -32,7 +33,6 @@ import org.jboss.aerogear.unifiedpush.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
-import org.jboss.aerogear.unifiedpush.service.iOSVariantService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
@@ -79,9 +79,6 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Inject
     private ClientInstallationService clientInstallationService;
 
-    @Inject
-    private iOSVariantService iosVariantService;
-
     @RunAsClient
     @Test
     @InSequence(100)
@@ -102,10 +99,17 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(101)
     public void verifyUpdatePatch() {
-        assertNotNull(iosVariantService);
+        
+        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
+                .getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
@@ -135,10 +139,17 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(103)
     public void verifyiOSVariantUpdate() {
-        assertNotNull(iosVariantService);
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
+                .getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
+        
+        Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
@@ -153,23 +164,26 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     public void verifyRegistrations() {
 
         assertNotNull(pushAppService);
-        assertNotNull(iosVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
+        Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
 
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
 
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 iOSVariant.getVariantID(), null, null, null);
 
-        assertTrue(pushApps != null && pushApps.size() == 1
-                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
         assertEquals(IOS_VARIANT_NAME, iOSVariant.getName());
         assertNotNull(deviceTokens);
@@ -198,7 +212,6 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     public void verifyiOSInstallationUpdate() {
 
         assertNotNull(pushAppService);
-        assertNotNull(iosVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
@@ -207,10 +220,12 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         assertTrue(pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
+        PushApplication pushApp = pushApps.iterator().next();
+        
+        Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
         assertTrue(iOSVariants != null && iOSVariants.size() == 1);
 
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
 

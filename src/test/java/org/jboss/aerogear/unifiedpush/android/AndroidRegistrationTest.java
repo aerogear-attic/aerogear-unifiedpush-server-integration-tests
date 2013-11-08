@@ -23,15 +23,16 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.jayway.restassured.path.json.JsonPath;
+
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.service.AndroidVariantService;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
@@ -69,9 +70,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     private final static String UPDATED_ANDROID_DEVICE_OS_VERSION = "4.1.2";
 
     private final static String UPDATED_ANDROID_CLIENT_ALIAS = "upd_qa_android_1@aerogear";
-
-    @Inject
-    private AndroidVariantService androidVariantService;
 
     @Inject
     private PushApplicationService pushAppService;
@@ -119,15 +117,18 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     public void verifyRegistrations() {
 
         assertNotNull(pushAppService);
-        assertNotNull(androidVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
 
-        List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
-
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.get(0) : null;
+        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();        
+        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
 
         assertNotNull(androidVariant);
 
@@ -164,10 +165,18 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(104)
     public void verifyUpdate() {
-        assertNotNull(androidVariantService);
 
-        List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.get(0) : null;
+        
+        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
+                .getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
+
+        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();        
+        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
 
         assertNotNull(androidVariant);
         assertTrue(androidVariants != null && androidVariants.size() == 1 && androidVariant != null);
@@ -199,19 +208,18 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     public void verifyAndroidInstallationUpdate() {
 
         assertNotNull(pushAppService);
-        assertNotNull(androidVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
-
+        
         assertTrue(pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
 
-        List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
-        assertTrue(androidVariants != null && androidVariants.size() == 1);
-
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.get(0) : null;
+        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();        
+        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
 
         assertNotNull(androidVariant);
 

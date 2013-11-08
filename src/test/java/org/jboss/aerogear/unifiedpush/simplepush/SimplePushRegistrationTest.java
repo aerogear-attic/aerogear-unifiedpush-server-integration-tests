@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
@@ -34,7 +35,6 @@ import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
-import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
@@ -80,9 +80,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     private PushApplicationService pushAppService;
 
     @Inject
-    private SimplePushVariantService simplePushVariantService;
-
-    @Inject
     private ClientInstallationService clientInstallationService;
 
     @RunAsClient
@@ -107,20 +104,23 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public void verifyRegistrations() {
 
         assertNotNull(pushAppService);
-        assertNotNull(simplePushVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
 
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null;
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
+        
+        Set<SimplePushVariant> simplePushVariants = pushApp.getSimplePushVariants();
+        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
 
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 simplePushVariant.getVariantID(), null, null, null);
 
-        assertTrue(pushApps != null && pushApps.size() == 1
-                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
 
         assertTrue(simplePushVariants != null && simplePushVariants.size() == 1 && simplePushVariant != null);
 
@@ -152,11 +152,18 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(103)
     public void verifyUpdate() {
-        assertNotNull(simplePushVariantService);
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
+        
+        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils.getAdminLoginName());
+        
+        assertTrue(pushApps != null && pushApps.size() == 1
+                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        
+        PushApplication pushApp = pushApps.iterator().next();
+        
+        Set<SimplePushVariant> simplePushVariants = pushApp.getSimplePushVariants();
         assertTrue(simplePushVariants != null && simplePushVariants.size() == 1);
 
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null;
+        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
         assertNotNull(simplePushVariant);
         assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_NAME, simplePushVariant.getName());
         assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_DESC, simplePushVariant.getDescription());
@@ -184,7 +191,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public void verifySimplePushInstallationUpdate() {
 
         assertNotNull(pushAppService);
-        assertNotNull(simplePushVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
@@ -192,10 +198,12 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         assertTrue(pushApps != null && pushApps.size() == 1);
         assertTrue(PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
 
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
+        PushApplication pushApp = pushApps.iterator().next();
+        
+        Set<SimplePushVariant> simplePushVariants = pushApp.getSimplePushVariants();
         assertTrue(simplePushVariants != null && simplePushVariants.size() == 1);
 
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null;
+        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
         assertNotNull(simplePushVariant);
 
         InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(

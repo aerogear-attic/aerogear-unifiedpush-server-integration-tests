@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
@@ -17,11 +18,8 @@ import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
-import org.jboss.aerogear.unifiedpush.service.AndroidVariantService;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
-import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService;
-import org.jboss.aerogear.unifiedpush.service.iOSVariantService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
@@ -81,20 +79,12 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
     }
 
     @Inject
-    private AndroidVariantService androidVariantService;
-
-    @Inject
-    private iOSVariantService iOSVariantService;
-
-    @Inject
-    private SimplePushVariantService simplePushVariantService;
-
-    @Inject
     private PushApplicationService pushApplicationService;
 
     @Inject
     private ClientInstallationService clientInstallationService;
-
+    
+    
     @RunAsClient
     @Test
     @InSequence(12)
@@ -157,26 +147,29 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
     @InSequence(15)
     public void verifyRegistrations() {
         assertNotNull(pushApplicationService);
-        assertNotNull(androidVariantService);
-        assertNotNull(iOSVariantService);
-        assertNotNull(simplePushVariantService);
         assertNotNull(clientInstallationService);
 
         List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
-        List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
-        List<iOSVariant> iOSVariants = iOSVariantService.findAlliOSVariants();
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
-
+        
         assertTrue(pushApplications != null && pushApplications.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApplications));
+        
+        // get first & only push application
+        PushApplication pushApp = pushApplications.iterator().next();
+        
+        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();
+        Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
+        Set<SimplePushVariant> simplePushVariants = pushApp.getSimplePushVariants();
+
+        
         assertTrue(androidVariants != null && androidVariants.size() == 1);
         assertTrue(iOSVariants != null && iOSVariants.size() == 1);
         assertTrue(simplePushVariants != null && simplePushVariants.size() == 1);
 
-        AndroidVariant androidVariant = androidVariants.get(0);
-        iOSVariant iOSVariant = iOSVariants.get(0);
-        SimplePushVariant simplePushVariant = simplePushVariants.get(0);
+        AndroidVariant androidVariant = androidVariants.iterator().next();
+        iOSVariant iOSVariant = iOSVariants.iterator().next();
+        SimplePushVariant simplePushVariant = simplePushVariants.iterator().next();
 
         assertNotNull(androidVariant);
         assertEquals(androidVariant.getGoogleKey(), ANDROID_VARIANT_GOOGLE_KEY);

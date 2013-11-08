@@ -18,6 +18,7 @@ package org.jboss.aerogear.unifiedpush.utils;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Map;
 
@@ -117,7 +118,8 @@ public final class AuthenticationUtils {
             response = login(loginNameStr, newPassword, root);
         }
 
-        assertTrue(response.getStatusCode() == Status.OK.getStatusCode());
+        assertEquals("Unexpected status code", Status.OK.getStatusCode(), response.getStatusCode());
+        
 
         return response;
     }
