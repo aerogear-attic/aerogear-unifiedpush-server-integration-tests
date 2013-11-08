@@ -208,7 +208,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         assertEquals(UPDATED_SIMPLE_PUSH_CLIENT_ALIAS, installation.getAlias());
         assertEquals(UPDATED_SIMPLE_PUSH_NETWORK_URL, installation.getSimplePushEndpoint());
 
-        assertEquals(UPDATED_SIMPLE_PUSH_CATEGORY, installation.getCategory());
+        assertEquals(UPDATED_SIMPLE_PUSH_CATEGORY, installation.getCategories());
     }
 
     @RunAsClient

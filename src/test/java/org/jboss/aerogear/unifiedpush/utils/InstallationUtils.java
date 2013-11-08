@@ -18,7 +18,7 @@ package org.jboss.aerogear.unifiedpush.utils;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.util.Map;
+import java.util.*;
 
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.json.simple.JSONObject;
@@ -39,7 +39,9 @@ public final class InstallationUtils {
         installation.setOperatingSystem(operatingSystem);
         installation.setOsVersion(osVersion);
         installation.setAlias(alias);
-        installation.setCategory(category);
+		final Set<String> categories = new HashSet<String>();
+		categories.add(category);
+        installation.setCategories(categories);
         installation.setSimplePushEndpoint(simplePushEndpoint);
         return installation;
     }
@@ -55,7 +57,7 @@ public final class InstallationUtils {
         jsonObject.put("operatingSystem", installation.getOperatingSystem());
         jsonObject.put("osVersion", installation.getOsVersion());
         jsonObject.put("alias", installation.getAlias());
-        jsonObject.put("category", installation.getCategory());
+        jsonObject.put("categories", installation.getCategories());
         jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
         Response response = RestAssured.given().contentType("application/json").auth().basic(variantID, secret)
@@ -108,7 +110,7 @@ public final class InstallationUtils {
         jsonObject.put("operatingSystem", installation.getOperatingSystem());
         jsonObject.put("osVersion", installation.getOsVersion());
         jsonObject.put("alias", installation.getAlias());
-        jsonObject.put("category", installation.getCategory());
+        jsonObject.put("categories", installation.getCategories());
         jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
         Response response = RestAssured.given().contentType("application/json").cookies(cookies)
