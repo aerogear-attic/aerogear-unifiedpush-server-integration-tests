@@ -99,13 +99,13 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(101)
     public void verifyUpdatePatch() {
-        
+
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
-        
+
         assertTrue(pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
-        
+
         PushApplication pushApp = pushApps.iterator().next();
 
         Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
@@ -142,12 +142,12 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
-        
+
         assertTrue(pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
-        
+
         PushApplication pushApp = pushApps.iterator().next();
-        
+
         Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
         iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
@@ -168,10 +168,10 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
-        
+
         assertTrue(pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
-        
+
         PushApplication pushApp = pushApps.iterator().next();
 
         Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
@@ -183,7 +183,6 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 iOSVariant.getVariantID(), null, null, null);
 
-        
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
         assertEquals(IOS_VARIANT_NAME, iOSVariant.getName());
         assertNotNull(deviceTokens);
@@ -221,7 +220,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
 
         PushApplication pushApp = pushApps.iterator().next();
-        
+
         Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
         assertTrue(iOSVariants != null && iOSVariants.size() == 1);
 
@@ -386,7 +385,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         Response response = InstallationUtils.unregisterInstallation(getiOSVariantId(), getiOSPushSecret(), IOS_DEVICE_TOKEN,
                 getContextRoot());
         assertNotNull(response);
-        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
+        assertEquals("Unable to unregister installation", Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
     }
 
     @Test
@@ -394,7 +393,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     public void verifyInstallationRemoval() {
         InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(getiOSVariantId(),
                 IOS_DEVICE_TOKEN);
-        assertNull(installation);
+        assertNull("There is no installation for token " + IOS_DEVICE_TOKEN, installation);
     }
 
     @RunAsClient

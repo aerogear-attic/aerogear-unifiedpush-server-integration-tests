@@ -19,6 +19,7 @@ package org.jboss.aerogear.unifiedpush.ios;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,7 +71,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
     @Inject
     private PushApplicationService pushAppService;
-    
+
     @Inject
     private ClientInstallationService clientInstallationService;
 
@@ -128,7 +129,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
     @InSequence(14)
     public void verifyInactiveTokensDeletion() {
         assertNotNull(clientInstallationService);
-        
+
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
 
@@ -136,16 +137,16 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
 
         PushApplication pushApp = pushApps.iterator().next();
-        
+
         Set<iOSVariant> iOSVariants = pushApp.getIOSVariants();
         assertTrue(iOSVariants != null && iOSVariants.size() == 1);
 
         iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
-        
+
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 iOSVariant.getVariantID(), null, null, null);
 
         assertNotNull(deviceTokens);
-        assertTrue(!deviceTokens.contains(IOS_DEVICE_TOKEN));
+        assertFalse("iOS device token " + IOS_DEVICE_TOKEN + " was inactivated", deviceTokens.contains(IOS_DEVICE_TOKEN));
     }
 }

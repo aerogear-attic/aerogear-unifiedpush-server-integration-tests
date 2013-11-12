@@ -118,9 +118,6 @@ public final class AuthenticationUtils {
             response = login(loginNameStr, newPassword, root);
         }
 
-        assertEquals("Unexpected status code", Status.OK.getStatusCode(), response.getStatusCode());
-        
-
         return response;
     }
 

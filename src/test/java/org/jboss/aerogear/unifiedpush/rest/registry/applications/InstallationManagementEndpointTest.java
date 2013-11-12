@@ -123,7 +123,8 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         Response removeResponse = InstallationUtils.removeInstallation(getAndroidVariantId(), installationId, getAuthCookies(),
                 getContextRoot());
         assertNotNull(removeResponse);
-        assertEquals(removeResponse.statusCode(), Status.NO_CONTENT.getStatusCode());
+        assertEquals("Installation " + installationId + " was removed", Status.NO_CONTENT.getStatusCode(),
+                removeResponse.statusCode());
     }
 
     @RunAsClient

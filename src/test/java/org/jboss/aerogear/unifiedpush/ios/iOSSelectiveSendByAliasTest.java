@@ -19,6 +19,7 @@ package org.jboss.aerogear.unifiedpush.ios;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,7 +67,7 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     @Inject
     private PushApplicationService pushAppService;
-    
+
     @Inject
     private ClientInstallationService clientInstallationService;
 
@@ -92,8 +93,8 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         messages.put("sound", NOTIFICATION_SOUND);
         messages.put("badge", NOTIFICATION_BADGE);
 
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases,
-                null, messages, null, null, getContextRoot());
+        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
+                messages, null, null, getContextRoot());
 
         assertNotNull(response);
         assertEquals(response.statusCode(), Status.OK.getStatusCode());
@@ -123,7 +124,7 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
 
-        assertTrue(pushApps != null && pushApps.size() == 1
+        assertTrue("One push application is available for user", pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
 
         PushApplication pushApp = pushApps.iterator().next();
@@ -137,6 +138,6 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
                 iOSVariant.getVariantID(), null, null, null);
 
         assertNotNull(deviceTokens);
-        assertTrue(!deviceTokens.contains(IOS_DEVICE_TOKEN));
+        assertFalse("iOS device token " + IOS_DEVICE_TOKEN + " was inactivated", deviceTokens.contains(IOS_DEVICE_TOKEN));
     }
 }

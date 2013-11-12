@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.android;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -71,7 +72,7 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     @Inject
     private PushApplicationService pushAppService;
-    
+
     @RunAsClient
     @Test
     @InSequence(12)
@@ -119,20 +120,20 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
         List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
                 .getAdminLoginName());
-        
+
         assertTrue(pushApps != null && pushApps.size() == 1
                 && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
-        
+
         PushApplication pushApp = pushApps.iterator().next();
 
-        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();        
+        Set<AndroidVariant> androidVariants = pushApp.getAndroidVariants();
         AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
-        
+
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 androidVariant.getVariantID(), null, null, null);
 
         assertNotNull(deviceTokens);
-        assertTrue(!deviceTokens.contains(ANDROID_DEVICE_TOKEN) && !deviceTokens.contains(ANDROID_DEVICE_TOKEN_2));
+        assertFalse("Android device tokens " + ANDROID_DEVICE_TOKEN + " " + ANDROID_DEVICE_TOKEN_2 + " were inactivated",
+                deviceTokens.contains(ANDROID_DEVICE_TOKEN) || deviceTokens.contains(ANDROID_DEVICE_TOKEN_2));
     }
-
 }

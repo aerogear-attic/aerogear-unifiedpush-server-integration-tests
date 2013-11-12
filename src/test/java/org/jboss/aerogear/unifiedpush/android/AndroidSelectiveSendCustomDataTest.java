@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.android;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -135,6 +136,7 @@ public class AndroidSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
                 androidVariant.getVariantID(), null, null, null);
 
         assertNotNull(deviceTokens);
-        assertTrue(!deviceTokens.contains(ANDROID_DEVICE_TOKEN) && !deviceTokens.contains(ANDROID_DEVICE_TOKEN_2));
+        assertFalse("Android device tokens " + ANDROID_DEVICE_TOKEN + " " + ANDROID_DEVICE_TOKEN_2 + " were inactivated",
+                deviceTokens.contains(ANDROID_DEVICE_TOKEN) || deviceTokens.contains(ANDROID_DEVICE_TOKEN_2));
     }
 }
