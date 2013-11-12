@@ -70,7 +70,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, iOSRegistrationTest.class);
+        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, iOSRegistrationTest.class, SecureiOSRegistrationTest.class);
     }
 
     @Inject
