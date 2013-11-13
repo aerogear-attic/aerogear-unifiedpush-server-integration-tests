@@ -5,11 +5,13 @@ import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
@@ -34,6 +36,9 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     private static final String UPDATED_OS_VERSION = "10";
     private static final String UPDATED_ALIAS = "rh@qa.example.com";
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     public static String getInstallationId() {
         return installationId;
     }
@@ -42,13 +47,12 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         InstallationManagementEndpointTest.installationId = installationId;
     }
 
-    @Deployment(testable = true)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
                 InstallationManagementEndpointTest.class);
     }
 
-    @RunAsClient
     @Test
     @InSequence(12)
     public void findInstallations() {
@@ -57,7 +61,6 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         assertEquals(3, installations.size());
     }
 
-    @RunAsClient
     @Test
     @InSequence(13)
     public void findInstallation() {
@@ -71,7 +74,6 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
 
     }
 
-    @RunAsClient
     @Test
     @InSequence(14)
     public void updateInstallation() {
@@ -86,7 +88,6 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         InstallationUtils.updateInstallation(installation, getRegisteredAndroidVariant(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(15)
     public void verifyUpdatedInstallation() {
@@ -98,7 +99,6 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         InstallationUtils.checkEquality(registeredInstallation, installation);
     }
 
-    @RunAsClient
     @Test
     @InSequence(16)
     public void removeInstallation() {
@@ -107,12 +107,11 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         InstallationUtils.delete(registeredInstallation, getRegisteredAndroidVariant(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(17)
     public void verifyInstallationRemoval() {
         InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
-
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
         InstallationUtils.findById(registeredInstallation.getId(), getRegisteredAndroidVariant(), getSession());
     }
 }

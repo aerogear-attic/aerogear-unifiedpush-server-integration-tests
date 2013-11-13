@@ -19,23 +19,18 @@ package org.jboss.aerogear.unifiedpush.simplepush;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
-import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -59,19 +54,12 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Deployment(testable = true)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
                 SimplePushRegistrationTest.class);
     }
 
-    @Inject
-    private PushApplicationService pushApplicationService;
-
-    @Inject
-    private ClientInstallationService clientInstallationService;
-
-    @RunAsClient
     @Test
     @InSequence(100)
     public void registerSimplePushVariantMissingAuthCookies() {
@@ -83,35 +71,38 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(101)
     public void verifyRegistrations() {
-
-        assertNotNull(pushApplicationService);
-        assertNotNull(clientInstallationService);
-
-        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
-                getSession().getLoginName());
+        List<PushApplication> pushApplications = PushApplicationUtils.listAll(getSession());
 
         assertNotNull(pushApplications);
         assertEquals(1, pushApplications.size());
-        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
 
         PushApplication pushApplication = pushApplications.iterator().next();
+        PushApplicationUtils.checkEquality(getRegisteredPushApplication(), pushApplication);
 
-        Set<SimplePushVariant> simplePushVariants = pushApplication.getSimplePushVariants();
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
+        List<SimplePushVariant> simplePushVariants = SimplePushVariantUtils.listAll(pushApplication, getSession());
+        assertNotNull(simplePushVariants);
+        assertEquals(1, simplePushVariants.size());
 
-        List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
-                simplePushVariant.getVariantID(), null, null, null);
+        SimplePushVariant simplePushVariant = simplePushVariants.iterator().next();
+        SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
 
-        assertTrue(simplePushVariants != null && simplePushVariants.size() == 1 && simplePushVariant != null);
+        List<InstallationImpl> installations = InstallationUtils.listAll(simplePushVariant, getSession());
+        assertNotNull(installations);
+        assertEquals(getRegisteredSimplePushInstallations().size(), installations.size());
 
-        assertEquals(SIMPLE_PUSH_VARIANT_NAME, simplePushVariant.getName());
-
-        assertNotNull(deviceTokens);
-
-        assertTrue(deviceTokens.contains(SIMPLE_PUSH_DEVICE_TOKEN));
+        for (InstallationImpl installation : installations) {
+            boolean found = false;
+            for (InstallationImpl registeredInstallation : getRegisteredSimplePushInstallations()) {
+                if (!installation.getId().equals(registeredInstallation.getId())) {
+                    continue;
+                }
+                found = true;
+                InstallationUtils.checkEquality(registeredInstallation, installation);
+            }
+            assertTrue("Unknown installation!", found);
+        }
     }
 
-    @RunAsClient
     @Test
     @InSequence(102)
     public void updateSimplePushVariant() {
@@ -126,25 +117,12 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(103)
     public void verifyUpdate() {
-        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
-                getSession().getLoginName());
-
-        assertNotNull(pushApplications);
-        assertEquals(1, pushApplications.size());
-        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
-
-        PushApplication pushApplication = pushApplications.iterator().next();
-
-        Set<SimplePushVariant> simplePushVariants = pushApplication.getSimplePushVariants();
-        assertTrue(simplePushVariants != null && simplePushVariants.size() == 1);
-
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant()
+                .getVariantID(), getRegisteredPushApplication(), getSession());
         assertNotNull(simplePushVariant);
-        assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_NAME, simplePushVariant.getName());
-        assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_DESC, simplePushVariant.getDescription());
+        SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
     }
 
-    @RunAsClient
     @Test
     @InSequence(104)
     public void updateSimplePushInstallation() {
@@ -166,34 +144,15 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(105)
     public void verifySimplePushInstallationUpdate() {
+        InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
 
-        assertNotNull(pushApplicationService);
-        assertNotNull(clientInstallationService);
-
-        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
-                getSession().getLoginName());
-
-        assertNotNull(pushApplications);
-        assertEquals(1, pushApplications.size());
-        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
-
-        PushApplication pushApplication = pushApplications.iterator().next();
-
-        Set<SimplePushVariant> simplePushVariants = pushApplication.getSimplePushVariants();
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
-        assertNotNull(simplePushVariant);
-
-        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
-                simplePushVariant.getVariantID(), SIMPLE_PUSH_DEVICE_TOKEN);
+        InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
+                getRegisteredSimplePushVariant(), getSession());
 
         assertNotNull(installation);
-        assertEquals(UPDATED_SIMPLE_PUSH_DEVICE_TYPE, installation.getDeviceType());
-        assertEquals(UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM, installation.getOperatingSystem());
-        assertEquals(UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM_VERSION, installation.getOsVersion());
-        assertEquals(UPDATED_SIMPLE_PUSH_ALIAS, installation.getAlias());
+        InstallationUtils.checkEquality(registeredInstallation, installation);
     }
 
-    @RunAsClient
     @Test
     @InSequence(106)
     public void registerSimplePushVariantWithWrongPushApplication() {
@@ -203,7 +162,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         SimplePushVariantUtils.generateAndRegister(pushApplication, getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(107)
     public void listAllSimplePushVariants() {
@@ -211,10 +169,9 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
                 getSession());
 
         assertNotNull(simplePushVariants);
-        assertEquals(3, simplePushVariants.size());
+        assertEquals(1, simplePushVariants.size());
     }
 
-    @RunAsClient
     @Test
     @InSequence(108)
     public void findSimplePushVariant() {
@@ -225,16 +182,14 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
     }
 
-    @RunAsClient
     @Test
     @InSequence(109)
     public void findSimplePushVariantWithInvalidId() {
         thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
-        SimplePushVariantUtils.findById(getRegisteredSimplePushVariant().getVariantID(),
+        SimplePushVariantUtils.findById(UUID.randomUUID().toString(),
                 getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(110)
     public void updateSimplePushVariantWithInvalidId() {
@@ -246,7 +201,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         SimplePushVariantUtils.update(simplePushVariant, getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(111)
     public void removeSimplePushVariantWithInvalidId() {
@@ -258,7 +212,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         SimplePushVariantUtils.delete(simplePushVariant, getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(116)
     public void unregisterInstallation() {
@@ -270,14 +223,11 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(117)
     public void verifyInstallationRemoval() {
-        InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
-
-        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
-                getRegisteredSimplePushVariant().getVariantID(), registeredInstallation.getDeviceToken());
-        assertNull(installation);
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        InstallationUtils.findById(getRegisteredSimplePushInstallations().get(0).getId(),
+                getRegisteredSimplePushVariant(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(118)
     public void unauthorizedUnregisterInstallation() {
@@ -289,7 +239,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         InstallationUtils.unregister(registeredInstallation, generatedSimplePushVariant, getContextRoot());
     }
 
-    @RunAsClient
     @Test
     @InSequence(1000)
     public void removeSimplePushVariant() {

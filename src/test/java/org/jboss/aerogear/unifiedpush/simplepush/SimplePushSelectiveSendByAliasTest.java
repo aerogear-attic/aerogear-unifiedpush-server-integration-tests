@@ -78,13 +78,9 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         List<String> categories = new ArrayList<String>();
         categories.add(registeredInstallation.getCategories().iterator().next());
 
-        // FIXME add categories to params
         SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, deviceTypes, categories, null);
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("simple-push", SIMPLE_PUSH_VERSION);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, null);
 
         PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
 

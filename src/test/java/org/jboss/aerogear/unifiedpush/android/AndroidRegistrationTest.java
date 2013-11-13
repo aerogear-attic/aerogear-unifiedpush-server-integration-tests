@@ -19,22 +19,17 @@ package org.jboss.aerogear.unifiedpush.android;
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -58,22 +53,15 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     private final static String UPDATED_ANDROID_OPERATING_SYSTEM_VERSION = "4.1.2";
     private final static String UPDATED_ANDROID_ALIAS = "upd_qa_android_1@aerogear";
 
-    @Inject
-    private PushApplicationService pushAppService;
-
-    @Inject
-    private ClientInstallationService clientInstallationService;
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Deployment(testable = true)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
                 AndroidRegistrationTest.class);
     }
 
-    @RunAsClient
     @Test
     @InSequence(100)
     public void registerAndroidVariantMissingGooglekey() {
@@ -82,7 +70,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
                 getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(101)
     public void registerAndroidVariantMissingAuthCookies() {
@@ -94,36 +81,40 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(102)
     public void verifyRegistrations() {
-        assertNotNull(pushAppService);
-        assertNotNull(clientInstallationService);
 
-        List<PushApplication> pushApplications = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
-                .getAdminLoginName());
+        List<PushApplication> pushApplications = PushApplicationUtils.listAll(getSession());
 
         assertNotNull(pushApplications);
         assertEquals(1, pushApplications.size());
-        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
 
         PushApplication pushApplication = pushApplications.iterator().next();
+        PushApplicationUtils.checkEquality(getRegisteredPushApplication(), pushApplication);
 
-        Set<AndroidVariant> androidVariants = pushApplication.getAndroidVariants();
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
+        List<AndroidVariant> androidVariants = AndroidVariantUtils.listAll(pushApplication, getSession());
+        assertNotNull(androidVariants);
+        assertEquals(1, androidVariants.size());
 
-        assertNotNull(androidVariant);
+        AndroidVariant androidVariant = androidVariants.iterator().next();
 
-        List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
-                androidVariant.getVariantID(), null, null, null);
+        AndroidVariantUtils.checkEquality(getRegisteredAndroidVariant(), androidVariant);
 
-        assertTrue(pushApplication != null && pushApplications.size() == 1
-                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApplications));
-        assertTrue(androidVariants != null && androidVariants.size() == 1 && androidVariant != null);
-        assertEquals(ANDROID_VARIANT_GOOGLE_KEY, androidVariant.getGoogleKey());
-        assertNotNull(deviceTokens);
-        assertTrue(deviceTokens.contains(ANDROID_DEVICE_TOKEN) && deviceTokens.contains(ANDROID_DEVICE_TOKEN_2)
-                && deviceTokens.contains(ANDROID_DEVICE_TOKEN_3));
+        List<InstallationImpl> installations = InstallationUtils.listAll(androidVariant, getSession());
+        assertNotNull(installations);
+        assertEquals(getRegisteredAndroidInstallations().size(), installations.size());
+
+        for (InstallationImpl installation : installations) {
+            boolean found = false;
+            for (InstallationImpl registeredInstallation : getRegisteredAndroidInstallations()) {
+                if (!installation.getId().equals(registeredInstallation.getId())) {
+                    continue;
+                }
+                found = true;
+                InstallationUtils.checkEquality(registeredInstallation, installation);
+            }
+            assertTrue("Unknown installation!", found);
+        }
     }
 
-    @RunAsClient
     @Test
     @InSequence(103)
     public void updateAndroidVariant() {
@@ -139,25 +130,12 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(104)
     public void verifyUpdate() {
-        List<PushApplication> pushApplications = pushAppService.findAllPushApplicationsForDeveloper(getSession()
-                .getLoginName());
-        assertNotNull(pushApplications);
-        assertEquals(1, pushApplications.size());
-        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
-
-        PushApplication pushApplication = pushApplications.iterator().next();
-
-        Set<AndroidVariant> androidVariants = pushApplication.getAndroidVariants();
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
-
+        AndroidVariant androidVariant = AndroidVariantUtils.findById(getRegisteredAndroidVariant().getVariantID(),
+                getRegisteredPushApplication(), getSession());
         assertNotNull(androidVariant);
-        assertEquals(1, androidVariants.size());
-        assertEquals(UPDATED_ANDROID_VARIANT_NAME, androidVariant.getName());
-        assertEquals(UPDATED_ANDROID_VARIANT_DESC, androidVariant.getDescription());
-        assertEquals(UPDATED_ANDROID_VARIANT_GOOGLE_KEY, androidVariant.getGoogleKey());
+        AndroidVariantUtils.checkEquality(getRegisteredAndroidVariant(), androidVariant);
     }
 
-    @RunAsClient
     @Test
     @InSequence(105)
     public void updateAndroidInstallation() {
@@ -175,34 +153,15 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(106)
     public void verifyAndroidInstallationUpdate() {
 
-        assertNotNull(pushAppService);
-        assertNotNull(clientInstallationService);
+        InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
 
-        List<PushApplication> pushApplications = pushAppService.findAllPushApplicationsForDeveloper(getSession()
-                .getLoginName());
-
-        assertNotNull(pushApplications);
-        assertEquals(1, pushApplications.size());
-        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
-
-        PushApplication pushApplication = pushApplications.iterator().next();
-
-        Set<AndroidVariant> androidVariants = pushApplication.getAndroidVariants();
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.iterator().next() : null;
-
-        assertNotNull(androidVariant);
-
-        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
-                androidVariant.getVariantID(), ANDROID_DEVICE_TOKEN);
+        InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
+                getRegisteredAndroidVariant(), getSession());
 
         assertNotNull(installation);
-        assertEquals(UPDATED_ANDROID_DEVICE_TYPE, installation.getDeviceType());
-        assertEquals(UPDATED_ANDROID_OPERATING_SYSTEM, installation.getOperatingSystem());
-        assertEquals(UPDATED_ANDROID_OPERATING_SYSTEM_VERSION, installation.getOsVersion());
-        assertEquals(UPDATED_ANDROID_ALIAS, installation.getAlias());
+        InstallationUtils.checkEquality(registeredInstallation, installation);
     }
 
-    @RunAsClient
     @Test
     @InSequence(107)
     public void registerAndroidVariantWithWrongPushApplication() {
@@ -210,7 +169,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         AndroidVariantUtils.generateAndRegister(PushApplicationUtils.generate(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(108)
     public void listAllAndroidVariants() {
@@ -221,7 +179,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         assertEquals(1, androidVariants.size());
     }
 
-    @RunAsClient
     @Test
     @InSequence(109)
     public void findAndroidVariant() {
@@ -230,7 +187,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         AndroidVariantUtils.checkEquality(getRegisteredAndroidVariant(), androidVariant);
     }
 
-    @RunAsClient
     @Test
     @InSequence(110)
     public void findAndroidVariantWithInvalidId() {
@@ -238,7 +194,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         AndroidVariantUtils.findById(UUID.randomUUID().toString(), getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(111)
     public void updateAndroidVariantWithInvalidId() {
@@ -246,7 +201,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         AndroidVariantUtils.update(AndroidVariantUtils.generate(), getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(112)
     public void removeAndroidVariantWithInvalidId() {
@@ -254,7 +208,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         AndroidVariantUtils.delete(AndroidVariantUtils.generate(), getRegisteredPushApplication(), getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(113)
     public void unregisterInstallation() {
@@ -265,23 +218,19 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(114)
     public void verifyInstallationRemoval() {
-        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
-                getRegisteredAndroidVariant().getVariantID(), getRegisteredAndroidInstallations().get(0)
-                .getDeviceToken());
-        assertNull(installation);
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        InstallationUtils.findById(getRegisteredAndroidInstallations().get(0).getId(), getRegisteredAndroidVariant(),
+                getSession());
     }
 
-    @RunAsClient
     @Test
     @InSequence(115)
     public void unauthorizedUnregisterInstallation() {
         AndroidVariant variant = AndroidVariantUtils.generate();
-
         thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
         InstallationUtils.unregister(getRegisteredAndroidInstallations().get(1), variant, getContextRoot());
     }
 
-    @RunAsClient
     @Test
     @InSequence(1000)
     public void removeAndroidVariant() {

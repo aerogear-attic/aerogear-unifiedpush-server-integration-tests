@@ -26,12 +26,14 @@ import org.json.simple.JSONObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertNotNull;
 
 public final class PushNotificationSenderUtils {
+
+    private static final int DEFAULT_BADGE = -1;
+    private static final int DEFAULT_TTL = -1;
 
     private PushNotificationSenderUtils() {
     }
@@ -48,13 +50,24 @@ public final class PushNotificationSenderUtils {
     }
 
     public static UnifiedPushMessage createMessage(SendCriteria criteria, Map<String, Object> customData) {
-        return createMessage(criteria, null, null, null, -1, -1, customData);
+        return createMessage(criteria, null, customData);
+    }
+
+    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush,
+                                                   Map<String, Object> customData) {
+        return createMessage(criteria, simplePush, DEFAULT_TTL, customData);
+    }
+
+    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, int timeToLive,
+                                                   Map<String, Object> customData) {
+        return createMessage(criteria, simplePush, null, null, DEFAULT_BADGE, timeToLive, customData);
     }
 
     public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, String alert,
                                                    String sound, int badge, int timeToLive,
                                                    Map<String, Object> customData) {
-        Map<String, Object> messageMap = messageToMap(criteria, simplePush, alert, sound, badge, timeToLive, null);
+        Map<String, Object> messageMap = messageToMap(criteria, simplePush, alert, sound, badge, timeToLive,
+                customData);
 
         return createMessage(messageMap);
     }
@@ -87,7 +100,8 @@ public final class PushNotificationSenderUtils {
                 criteria.getVariants());
     }
 
-    private static Map<String, Object> criteriaToMap(List<String> aliases, List<String> deviceTypes, List<String> categories,
+    private static Map<String, Object> criteriaToMap(List<String> aliases, List<String> deviceTypes,
+                                                     List<String> categories,
                                                      List<String> variants) {
         Map<String, Object> data = new HashMap<String, Object>();
 
@@ -95,7 +109,6 @@ public final class PushNotificationSenderUtils {
         data.put("deviceType", deviceTypes);
         data.put("categories", categories);
         data.put("variants", variants);
-
         return data;
     }
 
@@ -109,17 +122,20 @@ public final class PushNotificationSenderUtils {
                                                     Map<String, Object> customData) {
         Map<String, Object> data = new HashMap<String, Object>();
 
-        data.putAll(criteriaToMap(criteria));
+        if(criteria != null) {
+            data.putAll(criteriaToMap(criteria));
+        }
 
         Map<String, Object> messageMap = new HashMap<String, Object>();
 
         messageMap.put("alert", alert);
         messageMap.put("sound", sound);
         messageMap.put("badge", badge);
-        messageMap.put("ttl", timeToLive);
-        messageMap.put("simple-push", simplePush);
-        messageMap.putAll(customData);
-
+        if (customData != null) {
+            messageMap.putAll(customData);
+        }
+        data.put("ttl", timeToLive);
+        data.put("simple-push", simplePush);
         data.put("message", messageMap);
 
         return data;

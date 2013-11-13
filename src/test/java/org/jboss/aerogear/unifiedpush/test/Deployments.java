@@ -16,18 +16,14 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import java.io.File;
-
+import com.google.android.gcm.server.Message;
+import com.google.android.gcm.server.MulticastResult;
+import com.google.android.gcm.server.Result;
+import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.*;
-import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
-import org.jboss.aerogear.unifiedpush.utils.ServerSocketUtils;
-import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
-import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
+import com.notnoop.apns.internal.ApnsServiceImpl;
+import com.notnoop.exceptions.NetworkIOException;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -35,12 +31,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
 
-import com.google.android.gcm.server.Message;
-import com.google.android.gcm.server.MulticastResult;
-import com.google.android.gcm.server.Result;
-import com.google.android.gcm.server.Sender;
-import com.notnoop.apns.internal.ApnsServiceImpl;
-import com.notnoop.exceptions.NetworkIOException;
+import java.io.File;
 
 public final class Deployments {
 
@@ -52,7 +43,8 @@ public final class Deployments {
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
                 "aerogear-unifiedpush-server/pom.xml");
 
-        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
+        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom)
+                .importBuildOutput()
                 .as(WebArchive.class);
 
         // replace original persistence.xml with testing one
@@ -67,7 +59,8 @@ public final class Deployments {
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
                 "aerogear-unifiedpush-server/pom.xml");
 
-        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
+        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom)
+                .importBuildOutput()
                 .as(WebArchive.class);
 
         war.delete("/WEB-INF/classes/META-INF/persistence.xml");
@@ -86,7 +79,8 @@ public final class Deployments {
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
                 "aerogear-unifiedpush-server/pom.xml");
 
-        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
+        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom)
+                .importBuildOutput()
                 .as(WebArchive.class);
 
         war.delete("/WEB-INF/lib/gcm-server-1.0.2.jar");
@@ -95,17 +89,20 @@ public final class Deployments {
         war.addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml");
 
         war.addClasses(AuthenticationUtils.class, PushApplicationUtils.class, AndroidVariantUtils.class,
-                SimplePushVariantUtils.class, InstallationUtils.class, iOSVariantUtils.class, PushNotificationSenderUtils.class);
+                SimplePushVariantUtils.class, InstallationUtils.class, iOSVariantUtils.class,
+                PushNotificationSenderUtils.class, ExpectedException.class, UnexpectedResponseException.class);
 
         war.addClasses(clazz);
 
-        JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "gcm-server-1.0.2.jar").addClasses(Result.class, Message.class,
+        JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "gcm-server-1.0.2.jar").addClasses(Result.class,
+                Message.class,
                 MulticastResult.class, Message.class, Sender.class);
         war.addAsLibraries(jar);
 
         war.delete("/WEB-INF/lib/apns-0.2.3.jar");
 
-        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException.class,
+        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException
+                .class,
                 ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
                 Constants.class, ServerSocketUtils.class, ApnsNotification.class, EnhancedApnsNotification.class);
         war.addAsLibraries(apnsJar);
