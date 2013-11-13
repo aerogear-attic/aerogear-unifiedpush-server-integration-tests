@@ -42,126 +42,71 @@ public class CRUDPushAppTest extends GenericSimpleUnifiedPushTest {
         return root.toExternalForm();
     }
 
-    private static final String pushAppName = "My App";
-    private static final String pushAppDesc = "Awesome App";
-    private static final String updatedPushAppName = "My Updated App";
-    private static final String updatedPushAppDesc = "Awesome Updated App";
-
-    private static Map<String, String> authCookies;
-    private static String pushAppId;
+    private static AuthenticationUtils.Session session;
+    private static PushApplication registeredPushApplication;
 
     @Test
     @InSequence(1)
-    public void Authenticate() {
+    public void authenticate() {
         assertNotNull(getContextRoot());
-        authCookies = AuthenticationUtils.adminLogin(getContextRoot()).getCookies();
-        assertTrue(authCookies != null);
+        session = AuthenticationUtils.completeDefaultLogin(getContextRoot());
+        assertNotNull(session);
+        assertTrue(session.isValid());
     }
 
     @Test
     @InSequence(2)
     public void registeringPushApplication() {
-
-        PushApplication pushApp = PushApplicationUtils.createPushApplication(pushAppName, pushAppDesc, null, null, null);
-
-        Response response = PushApplicationUtils.registerPushApplication(pushApp, authCookies, "application/json",
-                getContextRoot());
-        JsonPath body = response.getBody().jsonPath();
-        pushAppId = body.get("pushApplicationID");
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-        assertNotNull(body.get("pushApplicationID"));
-        assertNotNull(body.get("masterSecret"));
-        assertEquals(body.get("name"), pushAppName);
-        assertEquals(body.get("description"), pushAppDesc);
+        registeredPushApplication = PushApplicationUtils.generateAndRegister(session);
+        assertNotNull(registeredPushApplication);
     }
 
     @Test
     @InSequence(3)
     public void retrievePushApplications() {
+        List<PushApplication> pushApplications = PushApplicationUtils.listAll(session);
 
-        assertNotNull(authCookies);
-        Response response = PushApplicationUtils.listAllPushApplications(authCookies, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-
-        JsonPath body = response.getBody().jsonPath();
-        assertNotNull(body);
-
-        @SuppressWarnings("unchecked")
-        List<Map<?, ?>> pushAppsList = (List<Map<?, ?>>) body.get();
-
-        assertNotNull(pushAppsList);
-        assertEquals(pushAppsList.size(), 1);
-
-        assertEquals(pushAppId, (String) pushAppsList.get(0).get("pushApplicationID"));
-        assertEquals((String) pushAppsList.get(0).get("name"), pushAppName);
-        assertEquals((String) pushAppsList.get(0).get("description"), pushAppDesc);
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        PushApplicationUtils.checkEquality(registeredPushApplication, pushApplications.get(0));
     }
 
     @Test
     @InSequence(4)
     public void retrieveRegisteredApplication() {
+        PushApplication pushApplication = PushApplicationUtils.findById(registeredPushApplication.getPushApplicationID(),
+                session);
 
-        assertNotNull(authCookies);
-        assertNotNull(pushAppId);
-        Response response = PushApplicationUtils.findPushApplicationById(authCookies, pushAppId, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-
-        JsonPath body = response.getBody().jsonPath();
-        assertNotNull(body);
-
-        Map<?, ?> pushApp = (Map<?, ?>) body.get();
-
-        assertNotNull(pushApp);
-        assertEquals(pushApp.get("pushApplicationID"), pushAppId);
-        assertEquals(pushApp.get("name"), pushAppName);
+        assertNotNull(pushApplication);
+        PushApplicationUtils.checkEquality(registeredPushApplication, pushApplication);
     }
 
     @Test
     @InSequence(5)
     public void updatePushApplication() {
+        // Let the PushApplicationUtils generate name and description
+        PushApplication pushApplication = PushApplicationUtils.generate();
 
-        PushApplication pushApp = PushApplicationUtils.createPushApplication(updatedPushAppName, updatedPushAppDesc, pushAppId,
-                null, null);
-        Response response = PushApplicationUtils.updatePushApplication(pushApp, authCookies, "application/json",
-                getContextRoot());
+        // Use the generated values
+        registeredPushApplication.setName(pushApplication.getName());
+        registeredPushApplication.setDescription(pushApplication.getDescription());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.NO_CONTENT.getStatusCode());
+        PushApplicationUtils.update(registeredPushApplication, session);
     }
 
     @Test
     @InSequence(6)
     public void retrieveUpdatedApplication() {
+        PushApplication pushApplication = PushApplicationUtils.findById(registeredPushApplication.getPushApplicationID(),
+                session);
 
-        assertNotNull(authCookies);
-        assertNotNull(pushAppId);
-        Response response = PushApplicationUtils.findPushApplicationById(authCookies, pushAppId, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-
-        JsonPath body = response.getBody().jsonPath();
-        assertNotNull(body);
-
-        Map<?, ?> pushApp = (Map<?, ?>) body.get();
-
-        assertNotNull(pushApp);
-        assertEquals(pushApp.get("pushApplicationID"), pushAppId);
-        assertEquals(pushApp.get("name"), updatedPushAppName);
-        assertEquals(pushApp.get("description"), updatedPushAppDesc);
+        assertNotNull(pushApplication);
+        PushApplicationUtils.checkEquality(registeredPushApplication, pushApplication);
     }
 
     @Test
     @InSequence(7)
     public void deleteRegisteredApplication() {
-
-        assertNotNull(authCookies);
-        assertNotNull(pushAppId);
-        Response response = PushApplicationUtils.deletePushApplication(authCookies, pushAppId, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.NO_CONTENT.getStatusCode());
+        PushApplicationUtils.delete(registeredPushApplication, session);
     }
 }

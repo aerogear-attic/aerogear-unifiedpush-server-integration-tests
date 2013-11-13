@@ -16,38 +16,28 @@
  */
 package org.jboss.aerogear.unifiedpush.ios;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
-
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
-import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
-import org.jboss.aerogear.unifiedpush.service.iOSVariantService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Rule;
 import org.junit.Test;
 
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
+import javax.inject.Inject;
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.Assert.*;
 
 public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
@@ -60,52 +50,53 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     private static final String UPDATED_IOS_VARIANT_DESC = "awesome variant__2";
 
-    private static final String UPDATED_IOS_DEVICE_OS = "IOS6";
-
     private static final String UPDATED_IOS_DEVICE_TYPE = "IPhone";
-
-    private static final String UPDATED_IOS_DEVICE_OS_VERSION = "5";
-
-    private static final String UPDATED_IOS_CLIENT_ALIAS = "upd_qa_iOS_1@aerogear";
+    private static final String UPDATED_IOS_OPERATING_SYSTEM = "IOS6";
+    private static final String UPDATED_IOS_OPERATING_SYSTEM_VERSION = "5";
+    private static final String UPDATED_IOS_ALIAS = "upd_qa_iOS_1@aerogear";
 
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, iOSRegistrationTest.class);
+        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
+                iOSRegistrationTest.class, SecureiOSRegistrationTest.class);
     }
 
     @Inject
-    private PushApplicationService pushAppService;
+    private PushApplicationService pushApplicationService;
 
     @Inject
     private ClientInstallationService clientInstallationService;
 
-    @Inject
-    private iOSVariantService iosVariantService;
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @RunAsClient
     @Test
     @InSequence(100)
     public void updateIOSVariantPatchCase() {
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getAuthCookies());
+        iOSVariant generatedVariant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
+                false);
 
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.TRUE, null, null,
-                UPDATED_IOS_VARIANT_NAME, UPDATED_IOS_VARIANT_DESC);
-        Response response = iOSVariantUtils.updateIOsVariantPatch(getPushApplicationId(), (iOSApplicationUploadForm) form,
-                getAuthCookies(), getiOSVariantId(), getContextRoot());
+        getRegisteredIOSVariant().setName(generatedVariant.getName());
+        getRegisteredIOSVariant().setDescription(generatedVariant.getDescription());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.NO_CONTENT.getStatusCode());
+        iOSVariantUtils.updatePatch(getRegisteredIOSVariant(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(101)
     public void verifyUpdatePatch() {
-        assertNotNull(iosVariantService);
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
+
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<iOSVariant> iOSVariants = pushApplication.getIOSVariants();
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
@@ -119,26 +110,29 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(102)
     public void updateiOSVariant() {
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getAuthCookies());
+        iOSVariant generatedVariant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
+                false);
 
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.TRUE,
-                IOS_CERTIFICATE_PASS_PHRASE, null, IOS_VARIANT_NAME, IOS_VARIANT_DESC);
-        Response response = iOSVariantUtils.updateIOsVariant(getPushApplicationId(), (iOSApplicationUploadForm) form,
-                getAuthCookies(), IOS_CERTIFICATE_PATH, getiOSVariantId(), getContextRoot());
+        getRegisteredIOSVariant().setName(generatedVariant.getName());
+        getRegisteredIOSVariant().setDescription(generatedVariant.getDescription());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.NO_CONTENT.getStatusCode());
+        iOSVariantUtils.update(getRegisteredIOSVariant(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(103)
     public void verifyiOSVariantUpdate() {
-        assertNotNull(iosVariantService);
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
+
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<iOSVariant> iOSVariants = pushApplication.getIOSVariants();
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
@@ -152,24 +146,26 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(104)
     public void verifyRegistrations() {
 
-        assertNotNull(pushAppService);
-        assertNotNull(iosVariantService);
+        assertNotNull(pushApplicationService);
         assertNotNull(clientInstallationService);
 
-        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
-                .getAdminLoginName());
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
 
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<iOSVariant> iOSVariants = pushApplication.getIOSVariants();
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
 
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 iOSVariant.getVariantID(), null, null, null);
 
-        assertTrue(pushApps != null && pushApps.size() == 1
-                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
         assertTrue(iOSVariants != null && iOSVariants.size() == 1 && iOSVariant != null);
         assertEquals(IOS_VARIANT_NAME, iOSVariant.getName());
         assertNotNull(deviceTokens);
@@ -180,37 +176,34 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(105)
     public void updateiOSInstallation() {
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+        InstallationImpl installation = getRegisteredIOSInstallations().get(0);
 
-        InstallationImpl iOSInstallation = InstallationUtils.createInstallation(IOS_DEVICE_TOKEN, UPDATED_IOS_DEVICE_TYPE,
-                UPDATED_IOS_DEVICE_OS, UPDATED_IOS_DEVICE_OS_VERSION, UPDATED_IOS_CLIENT_ALIAS, null, null);
+        installation.setDeviceType(UPDATED_IOS_DEVICE_TYPE);
+        installation.setAlias(UPDATED_IOS_ALIAS);
+        installation.setOperatingSystem(UPDATED_IOS_OPERATING_SYSTEM);
+        installation.setOsVersion(UPDATED_IOS_OPERATING_SYSTEM_VERSION);
 
-        Response response = InstallationUtils.registerInstallation(getiOSVariantId(), getiOSPushSecret(), iOSInstallation,
-                getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        InstallationUtils.register(installation, getRegisteredIOSVariant(), getContextRoot());
     }
 
     @Test
     @InSequence(106)
     public void verifyiOSInstallationUpdate() {
 
-        assertNotNull(pushAppService);
-        assertNotNull(iosVariantService);
+        assertNotNull(pushApplicationService);
         assertNotNull(clientInstallationService);
 
-        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
-                .getAdminLoginName());
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
 
-        assertTrue(pushApps != null && pushApps.size() == 1
-                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
 
-        List<iOSVariant> iOSVariants = iosVariantService.findAlliOSVariants();
-        assertTrue(iOSVariants != null && iOSVariants.size() == 1);
+        PushApplication pushApplication = pushApplications.iterator().next();
 
-        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.get(0) : null;
+        Set<iOSVariant> iOSVariants = pushApplication.getIOSVariants();
+        iOSVariant iOSVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
 
         assertNotNull(iOSVariant);
 
@@ -219,166 +212,105 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
         assertNotNull(installation);
         assertEquals(UPDATED_IOS_DEVICE_TYPE, installation.getDeviceType());
-        assertEquals(UPDATED_IOS_DEVICE_OS, installation.getOperatingSystem());
-        assertEquals(UPDATED_IOS_DEVICE_OS_VERSION, installation.getOsVersion());
-        assertEquals(UPDATED_IOS_CLIENT_ALIAS, installation.getAlias());
+        assertEquals(UPDATED_IOS_OPERATING_SYSTEM, installation.getOperatingSystem());
+        assertEquals(UPDATED_IOS_OPERATING_SYSTEM_VERSION, installation.getOsVersion());
+        assertEquals(UPDATED_IOS_ALIAS, installation.getAlias());
     }
 
     @RunAsClient
     @Test
     @InSequence(107)
     public void registeriOSVariantWithWrongPushApplication() {
-        assertNotNull(getAuthCookies());
-
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
-                IOS_CERTIFICATE_PASS_PHRASE, null, IOS_VARIANT_NAME, IOS_VARIANT_DESC);
-
-        String nonExistentPushAppId = "this-will-never-exist";
-
-        Response response = iOSVariantUtils.registerIOsVariant(nonExistentPushAppId, form, getAuthCookies(),
-                IOS_CERTIFICATE_PATH, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        iOSVariantUtils.generateAndRegister(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false,
+                PushApplicationUtils.generate(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(108)
     public void registeriOSVariantWithWrongCertificate() {
-        assertNotNull(getAuthCookies());
-
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
-                IOS_CERTIFICATE_PASS_PHRASE + "-invalidation", null, IOS_VARIANT_NAME, IOS_VARIANT_DESC);
-
-        Response response = iOSVariantUtils.registerIOsVariant(getPushApplicationId(), form, getAuthCookies(),
-                IOS_CERTIFICATE_PATH, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.BAD_REQUEST);
+        iOSVariantUtils.generateAndRegister(IOS_CERTIFICATE_PATH, UUID.randomUUID().toString(), false,
+                getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(109)
     public void listAlliOSVariants() {
-        assertNotNull(getAuthCookies());
+        List<iOSVariant> iOSVariants = iOSVariantUtils.listAll(getRegisteredPushApplication(), getSession());
 
-        Response response = iOSVariantUtils.listAlliOSVariants(getPushApplicationId(), getAuthCookies(), getContextRoot());
-
-        JsonPath body = response.getBody().jsonPath();
-        List<Object> variants = body.getList("");
-
-        assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.statusCode());
-        assertEquals(1, variants.size());
+        assertNotNull(iOSVariants);
+        assertEquals(1, iOSVariants.size());
     }
 
     @RunAsClient
     @Test
     @InSequence(110)
     public void findiOSVariant() {
-        assertNotNull(getAuthCookies());
-
-        Response response = iOSVariantUtils.findiOSVariantById(getPushApplicationId(), getiOSVariantId(), getAuthCookies(),
-                getContextRoot());
-
-        JsonPath body = response.getBody().jsonPath();
-
-        assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.statusCode());
-        assertEquals(getiOSVariantId(), body.getString("variantID"));
-        assertEquals(IOS_VARIANT_NAME, body.getString("name"));
+        iOSVariant iOSVariant = iOSVariantUtils.findById(getRegisteredIOSVariant().getVariantID(),
+                getRegisteredPushApplication(), getSession());
+        iOSVariantUtils.checkEquality(getRegisteredIOSVariant(), iOSVariant);
     }
 
     @RunAsClient
     @Test
     @InSequence(111)
     public void findiOSVariantWithInvalidId() {
-        assertNotNull(getAuthCookies());
-
-        Response response = iOSVariantUtils.findiOSVariantById(getPushApplicationId(), getiOSVariantId() + "-invalidation",
-                getAuthCookies(), getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        iOSVariantUtils.findById(UUID.randomUUID().toString(), getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(112)
     public void updateiOSVariantPatchWithInvalidId() {
-        assertNotNull(getAuthCookies());
-
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE, null, null,
-                UPDATED_IOS_VARIANT_NAME + "-invalidation", UPDATED_IOS_VARIANT_DESC);
-        Response response = iOSVariantUtils.updateIOsVariantPatch(getPushApplicationId(), form, getAuthCookies(),
-                getiOSVariantId() + "-invalidation", getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        iOSVariantUtils.updatePatch(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
+                false), getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(113)
     public void updateiOSVariantWithInvalidId() {
-        assertNotNull(getAuthCookies());
-
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
-                IOS_CERTIFICATE_PASS_PHRASE, null, IOS_VARIANT_NAME + "-invalidation", IOS_VARIANT_DESC);
-        Response response = iOSVariantUtils.updateIOsVariant(getPushApplicationId(), form, getAuthCookies(),
-                IOS_CERTIFICATE_PATH, getiOSVariantId() + "-invalidation", getContextRoot());
-
-        assertNotNull(response);
-
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        iOSVariantUtils.update(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false),
+                getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(114)
     public void updateiOSVariantWithWrongCertificate() {
-        assertNotNull(getAuthCookies());
-
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
-                IOS_CERTIFICATE_PASS_PHRASE + "-invalidation", null, IOS_VARIANT_NAME + "-invalidation", IOS_VARIANT_DESC);
-        Response response = iOSVariantUtils.updateIOsVariant(getPushApplicationId(), form, getAuthCookies(),
-                IOS_CERTIFICATE_PATH, getiOSVariantId(), getContextRoot());
-
-        assertNotNull(response);
-
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.BAD_REQUEST);
+        iOSVariantUtils.update(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, UUID.randomUUID().toString(), false),
+                getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(115)
     public void removeiOSVariantWithInvalidId() {
-        assertNotNull(getAuthCookies());
-
-        Response response = iOSVariantUtils.deleteiOSVariant(getPushApplicationId(), getiOSVariantId() + "-invalidation",
-                getAuthCookies(), getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        iOSVariantUtils.delete(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false),
+                getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(116)
     public void unregisterInstallation() {
-        Response response = InstallationUtils.unregisterInstallation(getiOSVariantId(), getiOSPushSecret(), IOS_DEVICE_TOKEN,
+        InstallationUtils.unregister(getRegisteredIOSInstallations().get(0), getRegisteredIOSVariant(),
                 getContextRoot());
-        assertNotNull(response);
-        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
     }
 
     @Test
     @InSequence(117)
     public void verifyInstallationRemoval() {
-        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(getiOSVariantId(),
-                IOS_DEVICE_TOKEN);
+        InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
+                getRegisteredIOSVariant().getVariantID(), getRegisteredIOSInstallations().get(0).getDeviceToken());
         assertNull(installation);
     }
 
@@ -386,10 +318,9 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(118)
     public void unauthorizedUnregisterInstallation() {
-        Response response = InstallationUtils
-                .unregisterInstallation("", getiOSPushSecret(), IOS_DEVICE_TOKEN, getContextRoot());
-        assertNotNull(response);
-        assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatusCode());
+        iOSVariant variant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false);
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        InstallationUtils.unregister(getRegisteredIOSInstallations().get(1), variant, getContextRoot());
     }
 
     @RunAsClient
@@ -397,13 +328,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     // TODO this has to be the end of this test class, change it to be independent!!!
     @InSequence(1000)
     public void removeiOSVariant() {
-        assertNotNull(getAuthCookies());
-
-        Response response = iOSVariantUtils.deleteiOSVariant(getPushApplicationId(), getiOSVariantId(), getAuthCookies(),
-                getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NO_CONTENT.getStatusCode(), response.statusCode());
+        iOSVariantUtils.delete(getRegisteredIOSVariant(), getRegisteredPushApplication(), getSession());
     }
 
 }

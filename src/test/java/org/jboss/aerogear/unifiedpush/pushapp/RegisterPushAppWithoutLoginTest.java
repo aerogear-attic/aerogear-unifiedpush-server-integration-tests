@@ -16,33 +16,33 @@
  */
 package org.jboss.aerogear.unifiedpush.pushapp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.HashMap;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
+import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
+import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
+import org.junit.Rule;
+import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.junit.Test;
-
-import com.jayway.restassured.response.Response;
+import static org.junit.Assert.assertNotNull;
 
 public class RegisterPushAppWithoutLoginTest extends GenericSimpleUnifiedPushTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void registeringPushApplicationWithoutBeingLogged() {
         assertNotNull(getContextRoot());
         String pushAppName = "My App";
         String pushAppDesc = "Awesome App";
-        PushApplication pushApp = PushApplicationUtils.createPushApplication(pushAppName, pushAppDesc, null, null, null);
-        Response response = PushApplicationUtils.registerPushApplication(pushApp, new HashMap<String, String>(), null,
-                getContextRoot());
 
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.UNAUTHORIZED.getStatusCode());
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+
+        PushApplication pushApplication = PushApplicationUtils.generateAndRegister(
+                AuthenticationUtils.Session.forceCreateValidWithEmptyCookies(getContextRoot()));
     }
 
     @Override

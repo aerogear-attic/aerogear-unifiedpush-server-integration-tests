@@ -16,39 +16,29 @@
  */
 package org.jboss.aerogear.unifiedpush.simplepush;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashMap;
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
-
-import com.jayway.restassured.path.json.JsonPath;
-
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
 import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
-import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Rule;
 import org.junit.Test;
 
-import com.jayway.restassured.response.Response;
+import javax.inject.Inject;
+import javax.ws.rs.core.Response.Status;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.Assert.*;
 
 public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
@@ -58,29 +48,25 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     }
 
     private final static String UPDATED_SIMPLE_PUSH_VARIANT_NAME = "UPD_SimplePushVariant__1";
-
     private final static String UPDATED_SIMPLE_PUSH_VARIANT_DESC = "UPD_awesome variant__1";
 
     private final static String UPDATED_SIMPLE_PUSH_DEVICE_TYPE = "upd_web";
+    private final static String UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM = "UPD_MozillaOS";
+    private final static String UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM_VERSION = "UPD_MozillaOS";
+    private final static String[] UPDATED_SIMPLE_PUSH_CATEGORIES = { "12345" };
+    private final static String UPDATED_SIMPLE_PUSH_ALIAS = "upd_qa_simple_push_1@aerogear";
 
-    private final static String UPDATED_SIMPLE_PUSH_DEVICE_OS = "UPD_MozillaOS";
-
-    private final static String UPDATED_SIMPLE_PUSH_CATEGORY = "12345";
-
-    private final static String UPDATED_SIMPLE_PUSH_CLIENT_ALIAS = "upd_qa_simple_push_1@aerogear";
-
-    private final static String UPDATED_SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN;
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, SimplePushRegistrationTest.class);
+        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
+                SimplePushRegistrationTest.class);
     }
 
     @Inject
-    private PushApplicationService pushAppService;
-
-    @Inject
-    private SimplePushVariantService simplePushVariantService;
+    private PushApplicationService pushApplicationService;
 
     @Inject
     private ClientInstallationService clientInstallationService;
@@ -89,38 +75,32 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(100)
     public void registerSimplePushVariantMissingAuthCookies() {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getAuthCookies());
-
-        SimplePushVariant variant = SimplePushVariantUtils.createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME,
-                SIMPLE_PUSH_VARIANT_DESC, null, null, null);
-        Response response = SimplePushVariantUtils.registerSimplePushVariant(getPushApplicationId(), variant,
-                new HashMap<String, String>(), getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        SimplePushVariantUtils.generateAndRegister(getRegisteredPushApplication(),
+                AuthenticationUtils.Session.createInvalid(getContextRoot()));
     }
 
     @Test
     @InSequence(101)
     public void verifyRegistrations() {
 
-        assertNotNull(pushAppService);
-        assertNotNull(simplePushVariantService);
+        assertNotNull(pushApplicationService);
         assertNotNull(clientInstallationService);
 
-        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
-                .getAdminLoginName());
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
 
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null;
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
+
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<SimplePushVariant> simplePushVariants = pushApplication.getSimplePushVariants();
+        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
 
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 simplePushVariant.getVariantID(), null, null, null);
-
-        assertTrue(pushApps != null && pushApps.size() == 1
-                && PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
 
         assertTrue(simplePushVariants != null && simplePushVariants.size() == 1 && simplePushVariant != null);
 
@@ -135,28 +115,30 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(102)
     public void updateSimplePushVariant() {
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.generate();
 
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getSimplePushVariantId());
+        getRegisteredSimplePushVariant().setName(simplePushVariant.getName());
+        getRegisteredSimplePushVariant().setDescription(simplePushVariant.getDescription());
 
-        SimplePushVariant variant = SimplePushVariantUtils.createSimplePushVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME,
-                UPDATED_SIMPLE_PUSH_VARIANT_DESC, null, null, null);
-
-        Response response = SimplePushVariantUtils.updateSimplePushVariant(getPushApplicationId(), variant, getAuthCookies(),
-                getSimplePushVariantId(), getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.NO_CONTENT.getStatusCode());
+        SimplePushVariantUtils.update(getRegisteredSimplePushVariant(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(103)
     public void verifyUpdate() {
-        assertNotNull(simplePushVariantService);
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
+
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
+
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<SimplePushVariant> simplePushVariants = pushApplication.getSimplePushVariants();
         assertTrue(simplePushVariants != null && simplePushVariants.size() == 1);
 
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null;
+        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
         assertNotNull(simplePushVariant);
         assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_NAME, simplePushVariant.getName());
         assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_DESC, simplePushVariant.getDescription());
@@ -166,36 +148,39 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(104)
     public void updateSimplePushInstallation() {
-        assertNotNull(getSimplePushVariantId());
-        assertNotNull(getSimplePushSecret());
-        InstallationImpl simplePushInstallation = InstallationUtils.createInstallation(SIMPLE_PUSH_DEVICE_TOKEN,
-                UPDATED_SIMPLE_PUSH_DEVICE_TYPE, UPDATED_SIMPLE_PUSH_DEVICE_OS, "", UPDATED_SIMPLE_PUSH_CLIENT_ALIAS,
-                UPDATED_SIMPLE_PUSH_CATEGORY, UPDATED_SIMPLE_PUSH_NETWORK_URL);
+        InstallationImpl installation = getRegisteredSimplePushInstallations().get(0);
 
-        Response response = InstallationUtils.registerInstallation(getSimplePushVariantId(), getSimplePushSecret(),
-                simplePushInstallation, getContextRoot());
+        installation.setDeviceType(UPDATED_SIMPLE_PUSH_DEVICE_TYPE);
+        installation.setOperatingSystem(UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM);
+        installation.setOsVersion(UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM_VERSION);
+        HashSet<String> categories = new HashSet<String>();
+        for (String category : UPDATED_SIMPLE_PUSH_CATEGORIES) {
+            categories.add(category);
+        }
+        installation.setCategories(categories);
+        installation.setAlias(UPDATED_SIMPLE_PUSH_ALIAS);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        InstallationUtils.register(installation, getRegisteredSimplePushVariant(), getContextRoot());
     }
 
     @Test
     @InSequence(105)
     public void verifySimplePushInstallationUpdate() {
 
-        assertNotNull(pushAppService);
-        assertNotNull(simplePushVariantService);
+        assertNotNull(pushApplicationService);
         assertNotNull(clientInstallationService);
 
-        List<PushApplication> pushApps = pushAppService.findAllPushApplicationsForDeveloper(AuthenticationUtils
-                .getAdminLoginName());
-        assertTrue(pushApps != null && pushApps.size() == 1);
-        assertTrue(PushApplicationUtils.nameExistsInList(PUSH_APPLICATION_NAME, pushApps));
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
 
-        List<SimplePushVariant> simplePushVariants = simplePushVariantService.findAllSimplePushVariants();
-        assertTrue(simplePushVariants != null && simplePushVariants.size() == 1);
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
 
-        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.get(0) : null;
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<SimplePushVariant> simplePushVariants = pushApplication.getSimplePushVariants();
+        SimplePushVariant simplePushVariant = simplePushVariants != null ? simplePushVariants.iterator().next() : null;
         assertNotNull(simplePushVariant);
 
         InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
@@ -203,121 +188,92 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
         assertNotNull(installation);
         assertEquals(UPDATED_SIMPLE_PUSH_DEVICE_TYPE, installation.getDeviceType());
-        assertEquals(UPDATED_SIMPLE_PUSH_DEVICE_OS, installation.getOperatingSystem());
-
-        assertEquals(UPDATED_SIMPLE_PUSH_CLIENT_ALIAS, installation.getAlias());
-        assertEquals(UPDATED_SIMPLE_PUSH_NETWORK_URL, installation.getSimplePushEndpoint());
-
-        assertEquals(UPDATED_SIMPLE_PUSH_CATEGORY, installation.getCategory());
+        assertEquals(UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM, installation.getOperatingSystem());
+        assertEquals(UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM_VERSION, installation.getOsVersion());
+        assertEquals(UPDATED_SIMPLE_PUSH_ALIAS, installation.getAlias());
     }
 
     @RunAsClient
     @Test
     @InSequence(106)
     public void registerSimplePushVariantWithWrongPushApplication() {
-        assertNotNull(getAuthCookies());
+        PushApplication pushApplication = PushApplicationUtils.generate();
 
-        SimplePushVariant variant = SimplePushVariantUtils.createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME,
-                SIMPLE_PUSH_VARIANT_DESC, null, null, null);
-
-        String nonExistentPushAppId = "this-will-never-exist";
-
-        Response response = SimplePushVariantUtils.registerSimplePushVariant(nonExistentPushAppId, variant, getAuthCookies(),
-                getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        SimplePushVariantUtils.generateAndRegister(pushApplication, getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(107)
     public void listAllSimplePushVariants() {
-        assertNotNull(getAuthCookies());
+        List<SimplePushVariant> simplePushVariants = SimplePushVariantUtils.listAll(getRegisteredPushApplication(),
+                getSession());
 
-        Response response = SimplePushVariantUtils.listAllSimplePushVariants(getPushApplicationId(), getAuthCookies(),
-                getContextRoot());
-        JsonPath body = response.getBody().jsonPath();
-        List<Object> variants = body.getList("");
-
-        assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.statusCode());
-        assertEquals(1, variants.size());
+        assertNotNull(simplePushVariants);
+        assertEquals(3, simplePushVariants.size());
     }
 
     @RunAsClient
     @Test
     @InSequence(108)
     public void findSimplePushVariant() {
-        assertNotNull(getAuthCookies());
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant()
+                .getVariantID(), getRegisteredPushApplication(), getSession());
 
-        Response response = SimplePushVariantUtils.findSimplePushVariantById(getPushApplicationId(), getSimplePushVariantId(),
-                getAuthCookies(), getContextRoot());
-        JsonPath body = response.getBody().jsonPath();
-
-        assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.statusCode());
-        assertEquals(getSimplePushVariantId(), body.getString("variantID"));
-        assertEquals(UPDATED_SIMPLE_PUSH_VARIANT_NAME, body.getString("name"));
+        assertNotNull(simplePushVariant);
+        SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
     }
 
     @RunAsClient
     @Test
     @InSequence(109)
     public void findSimplePushVariantWithInvalidId() {
-        assertNotNull(getAuthCookies());
-
-        Response response = SimplePushVariantUtils.findSimplePushVariantById(getPushApplicationId(), getSimplePushVariantId()
-                + "-invalidation", getAuthCookies(), getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        SimplePushVariantUtils.findById(getRegisteredSimplePushVariant().getVariantID(),
+                getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(110)
     public void updateSimplePushVariantWithInvalidId() {
-        assertNotNull(getAuthCookies());
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.generate();
 
-        SimplePushVariant variant = SimplePushVariantUtils.createSimplePushVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME
-                + "-invalidation", UPDATED_SIMPLE_PUSH_VARIANT_DESC, null, null, null);
+        simplePushVariant.setVariantID(UUID.randomUUID().toString());
 
-        Response response = SimplePushVariantUtils.updateSimplePushVariant(getPushApplicationId(), variant, getAuthCookies(),
-                getSimplePushVariantId() + "invalidation", getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        SimplePushVariantUtils.update(simplePushVariant, getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(111)
     public void removeSimplePushVariantWithInvalidId() {
-        assertNotNull(getAuthCookies());
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.generate();
 
-        Response response = SimplePushVariantUtils.deleteSimplePushVariant(getPushApplicationId(), getSimplePushVariantId()
-                + "-invalidation", getAuthCookies(), getContextRoot());
+        simplePushVariant.setVariantID(UUID.randomUUID().toString());
 
-        assertNotNull(response);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.statusCode());
+        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        SimplePushVariantUtils.delete(simplePushVariant, getRegisteredPushApplication(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(116)
     public void unregisterInstallation() {
-        Response response = InstallationUtils.unregisterInstallation(getSimplePushVariantId(), getSimplePushSecret(),
-                SIMPLE_PUSH_DEVICE_TOKEN, getContextRoot());
-        assertNotNull(response);
-        assertEquals(Status.NO_CONTENT.getStatusCode(), response.getStatusCode());
+        InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
+
+        InstallationUtils.unregister(registeredInstallation, getRegisteredSimplePushVariant(), getContextRoot());
     }
 
     @Test
     @InSequence(117)
     public void verifyInstallationRemoval() {
+        InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
+
         InstallationImpl installation = clientInstallationService.findInstallationForVariantByDeviceToken(
-                getSimplePushVariantId(), SIMPLE_PUSH_DEVICE_TOKEN);
+                getRegisteredSimplePushVariant().getVariantID(), registeredInstallation.getDeviceToken());
         assertNull(installation);
     }
 
@@ -325,22 +281,18 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(118)
     public void unauthorizedUnregisterInstallation() {
-        Response response = InstallationUtils.unregisterInstallation("", getSimplePushSecret(), SIMPLE_PUSH_DEVICE_TOKEN,
-                getContextRoot());
-        assertNotNull(response);
-        assertEquals(Status.UNAUTHORIZED.getStatusCode(), response.getStatusCode());
+        SimplePushVariant generatedSimplePushVariant = SimplePushVariantUtils.generate();
+
+        InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
+
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        InstallationUtils.unregister(registeredInstallation, generatedSimplePushVariant, getContextRoot());
     }
 
     @RunAsClient
     @Test
     @InSequence(1000)
     public void removeSimplePushVariant() {
-        assertNotNull(getAuthCookies());
-
-        Response response = SimplePushVariantUtils.deleteSimplePushVariant(getPushApplicationId(), getSimplePushVariantId(),
-                getAuthCookies(), getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(Status.NO_CONTENT.getStatusCode(), response.statusCode());
+        SimplePushVariantUtils.delete(getRegisteredSimplePushVariant(), getRegisteredPushApplication(), getSession());
     }
 }

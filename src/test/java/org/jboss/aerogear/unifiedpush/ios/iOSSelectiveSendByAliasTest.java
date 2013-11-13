@@ -16,25 +16,20 @@
  */
 package org.jboss.aerogear.unifiedpush.ios;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
-
+import com.jayway.awaitility.Awaitility;
+import com.jayway.awaitility.Duration;
+import com.notnoop.apns.internal.ApnsServiceImpl;
+import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.iOSVariantService;
+import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -42,10 +37,11 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
-import com.jayway.restassured.response.Response;
-import com.notnoop.apns.internal.ApnsServiceImpl;
+import javax.inject.Inject;
+import java.util.*;
+import java.util.concurrent.Callable;
+
+import static org.junit.Assert.*;
 
 public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
@@ -61,38 +57,40 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
     @Inject
-    private iOSVariantService iosVariantService;
+    private PushApplicationService pushApplicationService;
 
     @Inject
     private ClientInstallationService clientInstallationService;
 
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, iOSSelectiveSendByAliasTest.class);
+        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
+                iOSSelectiveSendByAliasTest.class);
     }
 
     @RunAsClient
     @Test
     @InSequence(12)
     public void iOSCustomDataSelectiveSendByAliases() {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getMasterSecret());
-
         List<String> aliases = new ArrayList<String>();
-        aliases.add(IOS_CLIENT_ALIAS);
+        for (int i = 0; i < 2; i++) {
+            InstallationImpl installation = getRegisteredIOSInstallations().get(i);
+
+            aliases.add(installation.getAlias());
+        }
         ApnsServiceImpl.clear();
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
-        messages.put("sound", NOTIFICATION_SOUND);
-        messages.put("badge", NOTIFICATION_BADGE);
+        // FIXME This is way to repetitive and should be in PushNotificationSenderUtils
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("alert", NOTIFICATION_ALERT_MSG);
+        data.put("sound", NOTIFICATION_SOUND);
+        data.put("badge", NOTIFICATION_BADGE);
 
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases,
-                null, messages, null, null, getContextRoot());
+        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
+
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
     }
 
     @Test
@@ -100,11 +98,15 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     public void verifyiOSnotifications() {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
             public Boolean call() throws Exception {
-                return ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 1;
+                return ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 2;
             }
         });
 
-        assertTrue(ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN));
+        for (int i = 0; i < 2; i++) {
+            InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
+
+            assertTrue(ApnsServiceImpl.getTokensList().contains(installation.getDeviceToken()));
+        }
 
         assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
         assertEquals(NOTIFICATION_SOUND, ApnsServiceImpl.getSound());
@@ -114,11 +116,20 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(14)
     public void verifyInactiveTokensDeletion() {
-        assertNotNull(iosVariantService);
         assertNotNull(clientInstallationService);
 
-        List<iOSVariant> iosVariants = iosVariantService.findAlliOSVariants();
-        iOSVariant iosVariant = iosVariants != null ? iosVariants.get(0) : null;
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
+
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
+
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<iOSVariant> iOSVariants = pushApplication.getIOSVariants();
+
+        iOSVariant iosVariant = iOSVariants != null ? iOSVariants.iterator().next() : null;
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 iosVariant.getVariantID(), null, null, null);
 

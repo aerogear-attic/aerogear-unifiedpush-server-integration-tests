@@ -16,97 +16,87 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.security;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.Response.Status;
-
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
+import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.arquillian.junit.InSequence;
+import org.junit.Rule;
 import org.junit.Test;
 
-import com.jayway.restassured.response.Response;
+import java.util.UUID;
+
+import static org.junit.Assert.*;
 
 public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
+
+    private static AuthenticationUtils.Session session;
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Override
     protected String getContextRoot() {
         return root.toExternalForm();
     }
 
-    private static Map<String, String> authCookies;
-
     @Test
     @InSequence(1)
     public void loginDefaultCredentialsLeadsTo403() {
-        Response response = AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
-                AuthenticationUtils.getAdminPassword(), getContextRoot());
-        assertNotNull(response);
-        authCookies = response.getCookies();
-        assertNotNull(authCookies);
-        assertEquals(response.getStatusCode(), Status.FORBIDDEN.getStatusCode());
+        thrown.expect(AuthenticationUtils.ExpiredPasswordException.class);
+        AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
+                AuthenticationUtils.getAdminOldPassword(), getContextRoot());
     }
 
     @Test
     @InSequence(2)
     public void updatePasswordUsingWrongOldPasswordLeadsTo401() {
-        assertNotNull(authCookies);
-        String wrongOldPassword = "random";
-        Response response = AuthenticationUtils.updatePassword(AuthenticationUtils.getAdminLoginName(), wrongOldPassword,
-                AuthenticationUtils.getAdminNewPassword(), authCookies, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.UNAUTHORIZED.getStatusCode());
+        String wrongOldPassword = UUID.randomUUID().toString();
+        thrown.expect(AuthenticationUtils.InvalidPasswordException.class);
+
+        AuthenticationUtils.changePassword(AuthenticationUtils.getAdminLoginName(), wrongOldPassword,
+                AuthenticationUtils.getAdminNewPassword(), getContextRoot());
     }
 
     @Test
     @InSequence(3)
     public void updatePasswordLeadsTo200() {
-        assertNotNull(authCookies);
-        Response response = AuthenticationUtils.updatePassword(AuthenticationUtils.getAdminLoginName(),
-                AuthenticationUtils.getAdminPassword(), AuthenticationUtils.getAdminNewPassword(), authCookies,
-                getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        boolean passwordChanged = AuthenticationUtils.changePassword(AuthenticationUtils.getAdminLoginName(),
+                AuthenticationUtils.getAdminOldPassword(), AuthenticationUtils.getAdminNewPassword(), getContextRoot());
+
+        assertTrue(passwordChanged);
     }
 
     @Test
     @InSequence(4)
     public void incorrectLoginLeadsTo401() {
-        String wrongPassword = "random";
-        Response response = AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(), wrongPassword, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.UNAUTHORIZED.getStatusCode());
+        String wrongPassword = UUID.randomUUID().toString();
+        thrown.expect(AuthenticationUtils.InvalidPasswordException.class);
+        AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
+                wrongPassword, getContextRoot());
     }
 
     @Test
     @InSequence(5)
     public void properLoginLeadsTo200() {
-        Response response = AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
+        session = AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
                 AuthenticationUtils.getAdminNewPassword(), getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        authCookies = response.getCookies();
-        assertNotNull(authCookies);
+
+        assertNotNull(session);
+        assertTrue(session.isValid());
     }
-    
+
     @Test
     @InSequence(6)
     public void logoutLeadsTo200() {
-        assertNotNull(authCookies);
-        Response response = AuthenticationUtils.logout(authCookies, getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
+        AuthenticationUtils.logout(session);
+        assertFalse(session.isValid());
+        assertNull(session.getCookies());
+        assertNull(session.getRoot());
     }
-    
+
     @Test
     @InSequence(7)
     public void logoutWithoutBeingLoggedInLeadsTo401() {
-        Response response = AuthenticationUtils.logout(new HashMap<String, String>(), getContextRoot());
-        assertNotNull(response);
-        assertEquals(response.getStatusCode(), Status.UNAUTHORIZED.getStatusCode());
+        thrown.expect(IllegalStateException.class);
+        AuthenticationUtils.logout(AuthenticationUtils.Session.forceCreateValidWithEmptyCookies(getContextRoot()));
     }
 }

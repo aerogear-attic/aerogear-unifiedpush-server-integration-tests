@@ -16,40 +16,113 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-import java.util.Map;
-
-import org.json.simple.JSONObject;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.json.simple.JSONObject;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.junit.Assert.assertNotNull;
 
 public final class PushNotificationSenderUtils {
 
     private PushNotificationSenderUtils() {
     }
 
-    @SuppressWarnings("unchecked")
-    public static Response selectiveSend(String pushApplicationId, String masterSecret, List<String> aliases,
-            List<String> deviceTypes, Map<String, Object> messages, String simplePush, String categories,
-            String root) {
+    public static SendCriteria createCriteria(List<String> aliases, List<String> deviceTypes, List<String> categories,
+                                              List<String> variants) {
+        Map<String, Object> data = criteriaToMap(aliases, deviceTypes, categories, variants);
 
+        return new SendCriteria(data);
+    }
+
+    public static UnifiedPushMessage createMessage(SendCriteria criteria) {
+        return createMessage(criteria, null);
+    }
+
+    public static UnifiedPushMessage createMessage(SendCriteria criteria, Map<String, Object> customData) {
+        return createMessage(criteria, null, null, null, -1, -1, customData);
+    }
+
+    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, String alert,
+                                                   String sound, int badge, int timeToLive,
+                                                   Map<String, Object> customData) {
+        Map<String, Object> messageMap = messageToMap(criteria, simplePush, alert, sound, badge, timeToLive, null);
+
+        return createMessage(messageMap);
+    }
+
+    private static UnifiedPushMessage createMessage(Map<String, Object> messageMap) {
+        return new UnifiedPushMessage(messageMap);
+    }
+
+    public static void send(PushApplication pushApplication, UnifiedPushMessage message, String root) {
         assertNotNull(root);
+        assertNotNull(pushApplication);
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("alias", aliases);
-        jsonObject.put("deviceType", deviceTypes);
-        jsonObject.put("message", messages);
-        jsonObject.put("simple-push", simplePush);
-        jsonObject.put("category", categories);
 
-        Response response = RestAssured.given().contentType("application/json")
-                .auth().basic(pushApplicationId, masterSecret)
-                .header("Accept", "application/json").body(jsonObject.toString()).post("{root}rest/sender", root);
+        jsonObject.putAll(messageToMap(message));
 
-        return response;
+        Response response = RestAssured.given()
+                .contentType(ContentTypes.json())
+                .auth()
+                .basic(pushApplication.getPushApplicationID(), pushApplication.getMasterSecret())
+                .header(Headers.acceptJson())
+                .body(jsonObject)
+                .post("{root}rest/sender", root);
+
+        UnexpectedResponseException.verifyResponse(response, OK);
+    }
+
+    private static Map<String, Object> criteriaToMap(SendCriteria criteria) {
+        return criteriaToMap(criteria.getAliases(), criteria.getDeviceTypes(), criteria.getCategories(),
+                criteria.getVariants());
+    }
+
+    private static Map<String, Object> criteriaToMap(List<String> aliases, List<String> deviceTypes, List<String> categories,
+                                                     List<String> variants) {
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        data.put("alias", aliases);
+        data.put("deviceType", deviceTypes);
+        data.put("categories", categories);
+        data.put("variants", variants);
+
+        return data;
+    }
+
+    private static Map<String, Object> messageToMap(UnifiedPushMessage message) {
+        return messageToMap(message.getSendCriteria(), message.getSimplePush(), message.getAlert(),
+                message.getSound(), message.getBadge(), message.getTimeToLive(), message.getData());
+    }
+
+    private static Map<String, Object> messageToMap(SendCriteria criteria, String simplePush, String alert,
+                                                    String sound, int badge, int timeToLive,
+                                                    Map<String, Object> customData) {
+        Map<String, Object> data = new HashMap<String, Object>();
+
+        data.putAll(criteriaToMap(criteria));
+
+        Map<String, Object> messageMap = new HashMap<String, Object>();
+
+        messageMap.put("alert", alert);
+        messageMap.put("sound", sound);
+        messageMap.put("badge", badge);
+        messageMap.put("ttl", timeToLive);
+        messageMap.put("simple-push", simplePush);
+        messageMap.putAll(customData);
+
+        data.put("message", messageMap);
+
+        return data;
     }
 
 }

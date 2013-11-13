@@ -30,6 +30,9 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -64,30 +67,35 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(12)
     public void simplePushSelectiveSendByAliasesAndDeviceType() throws UnknownHostException, IOException {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getMasterSecret());
+        InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
 
         List<String> aliases = new ArrayList<String>();
-        aliases.add(SIMPLE_PUSH_CLIENT_ALIAS);
+        aliases.add(registeredInstallation.getAlias());
 
         List<String> deviceTypes = new ArrayList<String>();
-        deviceTypes.add(SIMPLE_PUSH_DEVICE_TYPE);
+        deviceTypes.add(registeredInstallation.getDeviceType());
 
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                new HashMap<String, Object>(), SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
+        List<String> categories = new ArrayList<String>();
+        categories.add(registeredInstallation.getCategories().iterator().next());
 
-        assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.statusCode());
+        // FIXME add categories to params
+        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, deviceTypes, categories, null);
 
-        ServerSocket socketServer = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
-        assertNotNull(socketServer);
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("simple-push", SIMPLE_PUSH_VERSION);
 
-        final String serverInput = ServerSocketUtils.readUntilMessageIsShown(socketServer, NOTIFICATION_ALERT_MSG);
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
+
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
+
+        ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
+        assertNotNull(serverSocket);
+
+        final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 
         assertNotNull(serverInput);
         assertTrue(serverInput.contains(SIMPLE_PUSH_VERSION));
-        assertTrue(serverInput.contains("PUT /endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN));
+        assertTrue(serverInput.contains("PUT /endpoint/" + registeredInstallation.getDeviceToken()));
     }
 
 }

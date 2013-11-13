@@ -18,3 +18,4 @@ pushapplication:
     name: "My App"
     description: "My Testing App"
     pushApplicationID: "123abc"
+    developer: "admin"

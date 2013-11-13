@@ -28,6 +28,7 @@ import javax.ws.rs.core.Response.Status;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
+import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.AfterClass;
@@ -48,7 +49,7 @@ public class RegisterPushAppTest extends GenericSimpleUnifiedPushTest {
         return root.toExternalForm();
     }
 
-    private static Map<String, String> authCookies;
+    private static AuthenticationUtils.Session session;
 
     @BeforeClass
     public static void setup() {
@@ -66,56 +67,43 @@ public class RegisterPushAppTest extends GenericSimpleUnifiedPushTest {
 
     @Test
     @InSequence(1)
-    public void Authenticate() {
+    public void authenticate() {
         assertNotNull(getContextRoot());
-        authCookies = AuthenticationUtils.adminLogin(getContextRoot()).getCookies();
-        assertTrue(authCookies != null);
+        session = AuthenticationUtils.completeDefaultLogin(getContextRoot());
+        assertNotNull(session);
+        assertTrue(session.isValid());
     }
 
     @Test
     @InSequence(2)
     public void registeringPushApplication() {
-
         String pushAppName = "My App";
         String pushAppDesc = "Awesome App";
-        PushApplication pushApp = PushApplicationUtils.createPushApplication(pushAppName, pushAppDesc, null, null, null);
 
-        Response response = PushApplicationUtils.registerPushApplication(pushApp, authCookies, "application/json",
-                getContextRoot());
-        JsonPath body = response.getBody().jsonPath();
+        PushApplication pushApplication = PushApplicationUtils.createAndRegister(pushAppName, pushAppDesc, session);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-        assertNotNull(body.get("pushApplicationID"));
-        assertNotNull(body.get("masterSecret"));
-        assertEquals(body.get("name"), pushAppName);
-        assertEquals(body.get("description"), pushAppDesc);
+        assertNotNull(pushApplication);
+        assertEquals(pushAppName, pushApplication.getName());
+        assertEquals(pushAppDesc, pushApplication.getDescription());
     }
 
     @Test
     @InSequence(3)
     public void registeringPushApplicationUTF8() {
-
         Map<String, String> nameTypeHM = new HashMap<String, String>();
-        nameTypeHM.put("AwesomeAppěščřžýáíéňľ", "application/json; charset=utf-8");
-        nameTypeHM.put("AwesomeAppவான்வழிe", "application/json; charset=utf-8");
-        nameTypeHM.put("AwesomeAppěščřžýáíéňľ_", "application/json");
-        nameTypeHM.put("AwesomeAppவான்வழிe_", "application/json");
+        nameTypeHM.put("AwesomeAppěščřžýáíéňľ", ContentTypes.jsonUTF8());
+        nameTypeHM.put("AwesomeAppவான்வழிe", ContentTypes.jsonUTF8());
+        nameTypeHM.put("AwesomeAppěščřžýáíéňľ_", ContentTypes.json());
+        nameTypeHM.put("AwesomeAppவான்வழிe_", ContentTypes.json());
 
         String pushAppDesc = "Awesome App";
-        for (String appName : nameTypeHM.keySet()) {
-            PushApplication pushApp = PushApplicationUtils.createPushApplication(appName, pushAppDesc, null, null, null);
-            Response response = PushApplicationUtils.registerPushApplication(pushApp, authCookies, nameTypeHM.get(appName),
-                    getContextRoot());
-            JsonPath body = response.getBody().jsonPath();
+        for (String pushAppName : nameTypeHM.keySet()) {
+            PushApplication pushApplication = PushApplicationUtils.create(pushAppName, pushAppDesc);
+            assertNotNull(pushApplication);
+            PushApplicationUtils.register(pushApplication, session, nameTypeHM.get(pushAppName));
 
-            assertNotNull(response);
-            assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-
-            assertNotNull(body.get("pushApplicationID"));
-            assertNotNull(body.get("masterSecret"));
-            assertEquals(body.get("name"), appName);
-            assertEquals(body.get("description"), pushAppDesc);
+            assertEquals(pushAppName, pushApplication.getName());
+            assertEquals(pushAppDesc, pushApplication.getDescription());
         }
     }
 }

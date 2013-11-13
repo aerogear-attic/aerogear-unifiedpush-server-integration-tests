@@ -16,25 +16,20 @@
  */
 package org.jboss.aerogear.unifiedpush.android;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
-
+import com.google.android.gcm.server.Sender;
+import com.jayway.awaitility.Awaitility;
+import com.jayway.awaitility.Duration;
 import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.service.AndroidVariantService;
+import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
+import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -42,10 +37,11 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import com.google.android.gcm.server.Sender;
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
-import com.jayway.restassured.response.Response;
+import javax.inject.Inject;
+import java.util.*;
+import java.util.concurrent.Callable;
+
+import static org.junit.Assert.*;
 
 public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
@@ -63,32 +59,33 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     }
 
     @Inject
-    private AndroidVariantService androidVariantService;
+    private ClientInstallationService clientInstallationService;
 
     @Inject
-    private ClientInstallationService clientInstallationService;
+    private PushApplicationService pushApplicationService;
 
     @RunAsClient
     @Test
     @InSequence(12)
     public void androidSelectiveSendByAliases() {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getMasterSecret());
-
         List<String> aliases = new ArrayList<String>();
-        aliases.add(ANDROID_CLIENT_ALIAS);
-        aliases.add(ANDROID_CLIENT_ALIAS_2);
+        for (int i = 0; i < 2; i++) {
+            InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
+
+            aliases.add(installation.getAlias());
+        }
+
         Sender.clear();
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
+        // FIXME This is way too repetitive and should be in PushNotificationSenderUtils
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("alert", NOTIFICATION_ALERT_MSG);
 
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                messages, null, null, getContextRoot());
+        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
+
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
     }
 
     @Test
@@ -100,8 +97,11 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
             }
         });
 
-        assertTrue(Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN)
-                && Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_2));
+        for (int i = 0; i < 2; i++) {
+            InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
+
+            assertTrue(Sender.getGcmRegIdsList().contains(installation.getDeviceToken()));
+        }
 
         assertNotNull(Sender.getGcmMessage());
         assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("alert"));
@@ -111,16 +111,28 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(14)
     public void verifyInactiveTokensDeletion() {
-        assertNotNull(androidVariantService);
         assertNotNull(clientInstallationService);
 
-        List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
-        AndroidVariant androidVariant = androidVariants != null ? androidVariants.get(0) : null;
+
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(
+                getSession().getLoginName());
+
+        assertNotNull(pushApplications);
+        assertEquals(1, pushApplications.size());
+        assertTrue(PushApplicationUtils.nameExistsInList(getRegisteredPushApplication().getName(), pushApplications));
+
+        PushApplication pushApplication = pushApplications.iterator().next();
+
+        Set<AndroidVariant> androidVariants = pushApplication.getAndroidVariants();
+        AndroidVariant androidVariant = androidVariants.iterator().next();
+
         List<String> deviceTokens = clientInstallationService.findAllDeviceTokenForVariantIDByCriteria(
                 androidVariant.getVariantID(), null, null, null);
 
         assertNotNull(deviceTokens);
-        assertTrue(!deviceTokens.contains(ANDROID_DEVICE_TOKEN) && !deviceTokens.contains(ANDROID_DEVICE_TOKEN_2));
+        assertFalse("Android device tokens " + ANDROID_DEVICE_TOKEN + " " + ANDROID_DEVICE_TOKEN_2 + " were " +
+                "inactivated", deviceTokens.contains(ANDROID_DEVICE_TOKEN) || deviceTokens.contains
+                (ANDROID_DEVICE_TOKEN_2));
     }
 
 }
