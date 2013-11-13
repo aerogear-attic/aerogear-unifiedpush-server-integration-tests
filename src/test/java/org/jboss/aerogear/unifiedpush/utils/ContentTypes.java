@@ -17,4 +17,8 @@ public class ContentTypes {
         return "multipart/form-data";
     }
 
+    public static String octetStream() {
+        return "application/octet-stream";
+    }
+
 }

@@ -136,8 +136,8 @@ public final class iOSVariantUtils {
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
-                .multiPart("certificate", "certificate.p12", iOSVariant.getCertificate(), "application/x-pkcs12")
-                .multiPart("production", iOSVariant.isProduction())
+                .multiPart("certificate", "certificate.p12", iOSVariant.getCertificate(), ContentTypes.octetStream())
+                .multiPart("production", String.valueOf(iOSVariant.isProduction()))
                 .multiPart("passphrase", iOSVariant.getPassphrase())
                 .multiPart("name", iOSVariant.getName())
                 .multiPart("description", iOSVariant.getDescription())
@@ -212,8 +212,8 @@ public final class iOSVariantUtils {
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
-                .multiPart("certificate", "certificate.p12", iOSVariant.getCertificate(), "applications/x-pkcs12")
-                .multiPart("production", iOSVariant.isProduction())
+                .multiPart("certificate", "certificate.p12", iOSVariant.getCertificate(), ContentTypes.octetStream())
+                .multiPart("production", String.valueOf(iOSVariant.isProduction()))
                 .multiPart("passphrase", iOSVariant.getPassphrase())
                 .multiPart("name", iOSVariant.getName())
                 .multiPart("description", iOSVariant.getDescription())
@@ -240,7 +240,7 @@ public final class iOSVariantUtils {
                 .patch("{root}rest/applications/{pushApplicationID}/iOS/{variantID}", session.getRoot(),
                         pushApplication.getPushApplicationID(), iOSVariant.getVariantID());
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
     }
 
     public static void delete(iOSVariant iOSVariant, PushApplication pushApplication,
@@ -278,8 +278,14 @@ public final class iOSVariantUtils {
     }
 
     public static void setFromJsonPath(JsonPath jsonPath, iOSVariant iOSVariant) {
-        jsonPath.prettyPrint();
-        throw new UnsupportedOperationException("Not implemented!");
+        iOSVariant.setId(jsonPath.getString("id"));
+        iOSVariant.setVariantID(jsonPath.getString("variantID"));
+        iOSVariant.setPassphrase(jsonPath.getString("passphrase"));
+        iOSVariant.setDeveloper(jsonPath.getString("developer"));
+        iOSVariant.setDescription(jsonPath.getString("description"));
+        iOSVariant.setName(jsonPath.getString("name"));
+        iOSVariant.setSecret(jsonPath.getString("secret"));
+        iOSVariant.setProduction(jsonPath.getBoolean("production"));
     }
 
     public static void checkEquality(iOSVariant expected, iOSVariant actual) {
@@ -305,7 +311,7 @@ public final class iOSVariantUtils {
         }
     }
 
-
+/*
     public static iOSApplicationUploadForm createiOSApplicationUploadForm(Boolean production, String passphrase,
                                                                           byte[] certificate, String name,
                                                                           String description) {
@@ -405,6 +411,6 @@ public final class iOSVariantUtils {
                 .delete("{root}rest/applications/{pushAppId}/iOS/{variantId}", root, pushAppid, variantId);
 
         return response;
-    }
+    }*/
 
 }

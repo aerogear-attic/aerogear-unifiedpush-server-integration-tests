@@ -8,6 +8,7 @@ import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
@@ -84,20 +85,23 @@ public abstract class GenericUnifiedPushTest {
     protected final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear";
 
     private static AuthenticationUtils.Session session;
+    private static String loginName;
 
     private static PushApplication registeredPushApplication;
+    private static String registeredPushApplicationName;
 
     private static AndroidVariant registeredAndroidVariant;
+    private static String registeredAndroidVariantID;
 
-    private static List<InstallationImpl> registeredAndroidInstallations;
+    private static ArrayList<InstallationImpl> registeredAndroidInstallations;
 
     private static iOSVariant registeredIOSVariant;
 
-    private static List<InstallationImpl> registeredIOSInstallations;
+    private static ArrayList<InstallationImpl> registeredIOSInstallations;
 
     private static SimplePushVariant registeredSimplePushVariant;
 
-    private static List<InstallationImpl> registeredSimplePushInstallations;
+    private static ArrayList<InstallationImpl> registeredSimplePushInstallations;
 
     @RunAsClient
     @Test
@@ -149,7 +153,7 @@ public abstract class GenericUnifiedPushTest {
 
         InstallationUtils.registerAll(iosInstallations, registeredIOSVariant, getContextRoot());
 
-        registeredIOSInstallations = iosInstallations;
+        registeredIOSInstallations = new ArrayList<InstallationImpl>(iosInstallations);
     }
 
 
@@ -161,7 +165,7 @@ public abstract class GenericUnifiedPushTest {
 
         InstallationUtils.registerAll(androidInstallations, registeredAndroidVariant, getContextRoot());
 
-        registeredAndroidInstallations = androidInstallations;
+        registeredAndroidInstallations = new ArrayList<InstallationImpl>(androidInstallations);
     }
 
     @RunAsClient
@@ -172,22 +176,30 @@ public abstract class GenericUnifiedPushTest {
 
         InstallationUtils.registerAll(simplePushInstallations, registeredSimplePushVariant, getContextRoot());
 
-        registeredSimplePushInstallations = simplePushInstallations;
+        registeredSimplePushInstallations = new ArrayList<InstallationImpl>(simplePushInstallations);
     }
 
     public static AuthenticationUtils.Session getSession() {
         return session;
     }
 
+    public static String getLoginName() {
+        return loginName;
+    }
+
     public static PushApplication getRegisteredPushApplication() {
         return registeredPushApplication;
+    }
+
+    public static String getRegisteredPushApplicationName() {
+        return registeredPushApplicationName;
     }
 
     public static AndroidVariant getRegisteredAndroidVariant() {
         return registeredAndroidVariant;
     }
 
-    public static List<InstallationImpl> getRegisteredAndroidInstallations() {
+    public static ArrayList<InstallationImpl> getRegisteredAndroidInstallations() {
         return registeredAndroidInstallations;
     }
 
@@ -195,7 +207,7 @@ public abstract class GenericUnifiedPushTest {
         return registeredIOSVariant;
     }
 
-    public static List<InstallationImpl> getRegisteredIOSInstallations() {
+    public static ArrayList<InstallationImpl> getRegisteredIOSInstallations() {
         return registeredIOSInstallations;
     }
 
@@ -203,7 +215,7 @@ public abstract class GenericUnifiedPushTest {
         return registeredSimplePushVariant;
     }
 
-    public static List<InstallationImpl> getRegisteredSimplePushInstallations() {
+    public static ArrayList<InstallationImpl> getRegisteredSimplePushInstallations() {
         return registeredSimplePushInstallations;
     }
 

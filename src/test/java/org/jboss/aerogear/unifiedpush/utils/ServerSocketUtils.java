@@ -39,6 +39,7 @@ public final class ServerSocketUtils {
         BufferedReader input = null;
         StringBuffer response = new StringBuffer();
         try {
+            providerSocket.setSoTimeout(10000);
             connection = providerSocket.accept();
             connection.setSoTimeout(2000);
             input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -52,7 +53,7 @@ public final class ServerSocketUtils {
                 }
             }
         } catch (Exception ex) {
-            // ex.printStackTrace();
+            ex.printStackTrace();
         } finally {
             try {
                 input.close();

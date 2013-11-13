@@ -122,11 +122,10 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("alert", NOTIFICATION_ALERT_MSG);
-        data.put("simple-push", SIMPLE_PUSH_VERSION);
 
         SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
 
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, data);
 
         PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
 
@@ -155,8 +154,8 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
                     ApnsServiceImpl.getTokensList().contains(installation.getDeviceToken()));
         }
 
-        assertTrue(Sender.getGcmMessage() != null
-                && NOTIFICATION_ALERT_MSG.equals(Sender.getGcmMessage().getData().get("alert")));
+        assertNotNull(Sender.getGcmMessage());
+        assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("alert"));
         assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
     }
 }

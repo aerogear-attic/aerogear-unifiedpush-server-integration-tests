@@ -258,7 +258,7 @@ public final class InstallationUtils {
                 .delete("{root}rest/applications/{variantID}/installations/{installationID}", session.getRoot(),
                         variant.getVariantID(), installation.getId());
 
-        UnexpectedResponseException.verifyResponse(response, NOT_FOUND);
+        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
     }
 
     public static JSONObject toJSONObject(InstallationImpl installation) {
@@ -276,6 +276,7 @@ public final class InstallationUtils {
             categories.add(category);
         }
         jsonObject.put("categories", categories);
+
         jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
         return jsonObject;
@@ -303,6 +304,14 @@ public final class InstallationUtils {
         installation.setDeviceType(jsonPath.getString("deviceType"));
         installation.setDeviceToken(jsonPath.getString("deviceToken"));
         installation.setSimplePushEndpoint(jsonPath.getString("simplePushEndpoint"));
+        HashSet<String> categories = new HashSet<String>();
+        List<String> jsonCategories = jsonPath.getList("categories");
+        if(jsonCategories != null) {
+            for(String category : jsonCategories) {
+                categories.add(category);
+            }
+        }
+        installation.setCategories(categories);
     }
 
     public static void checkEquality(InstallationImpl expected, InstallationImpl actual) {
