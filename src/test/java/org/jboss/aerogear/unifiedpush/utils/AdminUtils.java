@@ -1,8 +1,10 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import static org.junit.Assert.assertNotNull;
+import static javax.ws.rs.core.Response.Status.OK;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.jboss.aerogear.unifiedpush.users.Developer;
 import org.json.simple.JSONObject;
@@ -15,7 +17,7 @@ public final class AdminUtils {
     private AdminUtils() {
     }
 
-    public static Developer createDeveloper(String loginName, String password) {
+    public static Developer create(String loginName, String password) {
         Developer developer = new Developer();
 
         developer.setLoginName(loginName);
@@ -24,17 +26,43 @@ public final class AdminUtils {
         return developer;
     }
 
-    @SuppressWarnings("unchecked")
-    public static Response enrollDeveloper(Developer developer, Map<String, String> cookies, String root) {
+    public static Developer createAndEnroll(String loginName, String password, AuthenticationUtils.Session session) {
+        Developer developer = create(loginName, password);
 
-        assertNotNull(root);
+        enroll(developer, session);
 
+        return developer;
+    }
+
+    public static Developer generate() {
+        String loginName = UUID.randomUUID().toString();
+        String password = UUID.randomUUID().toString();
+
+        return create(loginName, password);
+    }
+
+    public static Developer generateAndEnroll(AuthenticationUtils.Session session) {
+        Developer developer = generate();
+
+        enroll(developer, session);
+
+        return developer;
+    }
+
+    public static Response enroll(Developer developer, AuthenticationUtils.Session session) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("loginName", developer.getLoginName());
         jsonObject.put("password", developer.getPassword());
 
-        Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString()).post("{root}rest/auth/enroll", root);
+        Response response = RestAssured.given()
+                .contentType(ContentTypes.json())
+                .header(Headers.acceptJson())
+                .cookies(session.getCookies())
+                .body(jsonObject.toJSONString())
+                .post("{root}rest/auth/enroll", session.getRoot());
+
+        UnexpectedResponseException.verifyResponse(response, OK);
+
         return response;
     }
 }

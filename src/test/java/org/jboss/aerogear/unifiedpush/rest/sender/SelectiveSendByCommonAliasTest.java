@@ -16,22 +16,13 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.sender;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import javax.ws.rs.core.Response.Status;
-
+import com.google.android.gcm.server.Sender;
+import com.jayway.awaitility.Awaitility;
+import com.jayway.awaitility.Duration;
+import com.notnoop.apns.internal.ApnsServiceImpl;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -44,11 +35,13 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import com.google.android.gcm.server.Sender;
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
-import com.jayway.restassured.response.Response;
-import com.notnoop.apns.internal.ApnsServiceImpl;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.concurrent.Callable;
+
+import static org.junit.Assert.*;
 
 public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
@@ -59,6 +52,11 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
+    private static final String COMMON_ALIAS = UUID.randomUUID().toString();
+
+    private static List<InstallationImpl> installationsWithCommonAlias = new ArrayList<InstallationImpl>();
+    private static InstallationImpl simplePushInstallation;
+
     @Override
     protected String getContextRoot() {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
@@ -68,147 +66,82 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, SelectiveSendByCommonAliasTest.class);
+        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
+                SelectiveSendByCommonAliasTest.class);
     }
 
     @RunAsClient
     @Test
     @InSequence(12)
     public void registeriOSInstallation() {
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+        InstallationImpl generatedInstallation = InstallationUtils.generateIos();
 
-        InstallationImpl iOSInstallation = InstallationUtils.createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getiOSVariantId(), getiOSPushSecret(), iOSInstallation,
-                getContextRoot());
+        generatedInstallation.setAlias(COMMON_ALIAS);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        InstallationUtils.register(generatedInstallation, getRegisteredIOSVariant(), getContextRoot());
+
+        installationsWithCommonAlias.add(generatedInstallation);
     }
 
     @RunAsClient
     @Test
     @InSequence(13)
-    public void registerSecondiOSInstallation() {
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+    public void registerAndroidInstallation() {
+        InstallationImpl generatedInstallation = InstallationUtils.generateAndroid();
 
-        InstallationImpl iOSInstallation = InstallationUtils.createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_SIMPLE_PUSH_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getiOSVariantId(), getiOSPushSecret(), iOSInstallation,
-                getContextRoot());
+        generatedInstallation.setAlias(COMMON_ALIAS);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        InstallationUtils.register(generatedInstallation, getRegisteredAndroidVariant(), getContextRoot());
+
+        installationsWithCommonAlias.add(generatedInstallation);
     }
 
     @RunAsClient
     @Test
     @InSequence(14)
-    public void registerAndroidInstallation() {
+    public void registerSimplePushInstallation() {
+        InstallationImpl generatedInstallation = InstallationUtils.generateSimplePush();
 
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
+        generatedInstallation.setAlias(COMMON_ALIAS);
 
-        InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                androidInstallation, getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredSimplePushVariant(), getContextRoot());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        // FIXME SimplePush should be also done the same way Sender and ApnsServiceImpl are done
+        simplePushInstallation = generatedInstallation;
+        // installationsWithCommonAlias.add(generatedInstallation);
     }
 
     @RunAsClient
     @Test
     @InSequence(15)
-    public void registerSecondAndroidInstallation() {
-
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
-
-        InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN_2,
-                ANDROID_DEVICE_TYPE_2, ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null, null);
-        Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                androidInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-    }
-
-    @RunAsClient
-    @Test
-    @InSequence(16)
-    public void registerThirdAndroidInstallation() {
-
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
-
-        InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN_3,
-                ANDROID_DEVICE_TYPE, ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_SIMPLE_PUSH_CLIENT_ALIAS,
-                null, null);
-        Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                androidInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-    }
-
-    @RunAsClient
-    @Test
-    @InSequence(17)
-    public void registerSimplePushInstallation() {
-
-        assertNotNull(getSimplePushVariantId());
-        assertNotNull(getSimplePushSecret());
-
-        InstallationImpl simplePushInstallation = InstallationUtils.createInstallation(SIMPLE_PUSH_DEVICE_TOKEN,
-                SIMPLE_PUSH_DEVICE_TYPE, SIMPLE_PUSH_DEVICE_OS, "", COMMON_IOS_ANDROID_SIMPLE_PUSH_CLIENT_ALIAS,
-                SIMPLE_PUSH_CATEGORY, SIMPLE_PUSH_VARIANT_NETWORK_URL);
-        Response response = InstallationUtils.registerInstallation(getSimplePushVariantId(), getSimplePushSecret(),
-                simplePushInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-    }
-
-    @RunAsClient
-    @Test
-    @InSequence(18)
     public void selectiveSendByCommonAlias() throws UnknownHostException, IOException {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getMasterSecret());
-
         List<String> aliases = new ArrayList<String>();
-        aliases.add(COMMON_IOS_ANDROID_SIMPLE_PUSH_CLIENT_ALIAS);
+        aliases.add(COMMON_ALIAS);
         ApnsServiceImpl.clear();
         Sender.clear();
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("alert", NOTIFICATION_ALERT_MSG);
+        data.put("simple-push", SIMPLE_PUSH_VERSION);
 
-        // TODO shouldn't we pass "SIMPLE_PUSH_CATEGORY" instead "null" as the last but one parameter
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), aliases, null,
-                messages, SIMPLE_PUSH_VERSION, null, getContextRoot());
+        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
 
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
 
-        ServerSocket socketServer = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
-        assertNotNull(socketServer);
+        ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
+        assertNotNull(serverSocket);
 
-        final String serverInput = ServerSocketUtils.readUntilMessageIsShown(socketServer, NOTIFICATION_ALERT_MSG);
+        final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 
         assertNotNull(serverInput);
         assertTrue(serverInput.contains(SIMPLE_PUSH_VERSION));
-        assertTrue(serverInput.contains("PUT /endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN));
+        assertTrue(serverInput.contains("PUT /endpoint/" + simplePushInstallation.getDeviceToken()));
     }
 
     @Test
-    @InSequence(19)
+    @InSequence(16)
     public void verifyGCMandAPNnotifications() {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
             public Boolean call() throws Exception {
@@ -217,10 +150,13 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
             }
         });
 
-        assertTrue(Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_3));
+        for (InstallationImpl installation : installationsWithCommonAlias) {
+            assertTrue(Sender.getGcmRegIdsList().contains(installation.getDeviceToken()) ||
+                    ApnsServiceImpl.getTokensList().contains(installation.getDeviceToken()));
+        }
+
         assertTrue(Sender.getGcmMessage() != null
                 && NOTIFICATION_ALERT_MSG.equals(Sender.getGcmMessage().getData().get("alert")));
-        assertTrue(ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN_2));
         assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
     }
 }

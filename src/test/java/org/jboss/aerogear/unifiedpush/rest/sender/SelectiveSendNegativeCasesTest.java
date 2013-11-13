@@ -19,21 +19,24 @@ package org.jboss.aerogear.unifiedpush.rest.sender;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.jboss.aerogear.unifiedpush.message.sender.PushNotificationSender;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.android.gcm.server.Sender;
@@ -51,6 +54,9 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
 
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, SelectiveSendNegativeCasesTest.class);
@@ -60,35 +66,27 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(12)
     public void selectiveSendEmptyPushAppId() {
-
-        assertNotNull(getMasterSecret());
-
-        List<String> aliases = new ArrayList<String>();
-        aliases.add(ANDROID_CLIENT_ALIAS);
-        aliases.add(ANDROID_CLIENT_ALIAS_2);
         ApnsServiceImpl.clear();
         Sender.clear();
 
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
-        Response response = PushNotificationSenderUtils.selectiveSend("", getMasterSecret(), aliases, null, messages,
-                SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
+        PushApplication generatedPushApplication = PushApplicationUtils.generate();
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());
+        generatedPushApplication.setPushApplicationID("");
+        generatedPushApplication.setMasterSecret(getRegisteredPushApplication().getMasterSecret());
+
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
+
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
     }
 
     @RunAsClient
     @Test
     @InSequence(13)
     public void selectiveSendWrongPushAppId() {
-
-        assertNotNull(getMasterSecret());
-
-        List<String> aliases = new ArrayList<String>();
-        aliases.add(ANDROID_CLIENT_ALIAS);
-        aliases.add(ANDROID_CLIENT_ALIAS_2);
         ApnsServiceImpl.clear();
         Sender.clear();
 
@@ -96,35 +94,37 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
         String wrongPushAppId = "random";
-        Response response = PushNotificationSenderUtils.selectiveSend(wrongPushAppId, getMasterSecret(), aliases, null,
-                messages, SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());
+        PushApplication generatedPushApplication = PushApplicationUtils.generate();
+
+        generatedPushApplication.setPushApplicationID(UUID.randomUUID().toString());
+        generatedPushApplication.setMasterSecret(getRegisteredPushApplication().getMasterSecret());
+
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
+
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
     }
 
     @RunAsClient
     @Test
     @InSequence(14)
     public void selectiveSendWrongMasterSecret() {
-
-        assertNotNull(getPushApplicationId());
-
-        List<String> aliases = new ArrayList<String>();
-        aliases.add(ANDROID_CLIENT_ALIAS);
-        aliases.add(ANDROID_CLIENT_ALIAS_2);
         ApnsServiceImpl.clear();
         Sender.clear();
 
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
 
-        String wrongMasterSecret = "random";
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), wrongMasterSecret, aliases, null,
-                messages, SIMPLE_PUSH_VERSION, SIMPLE_PUSH_CATEGORY, getContextRoot());
+        PushApplication generatedPushApplication = PushApplicationUtils.generate();
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.UNAUTHORIZED.getStatusCode());
+        generatedPushApplication.setPushApplicationID(getRegisteredPushApplication().getPushApplicationID());
+        generatedPushApplication.setMasterSecret(UUID.randomUUID().toString());
+
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
+
+        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
     }
 
 }

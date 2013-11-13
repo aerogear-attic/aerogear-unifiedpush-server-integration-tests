@@ -1,13 +1,6 @@
 package org.jboss.aerogear.unifiedpush.rest.registry.applications;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response.Status;
-
+import com.jayway.restassured.response.Response;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
@@ -19,7 +12,12 @@ import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import com.jayway.restassured.response.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
 
@@ -54,85 +52,67 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(12)
     public void findInstallations() {
-        Response androidInstallationsResponse = InstallationUtils.findInstallations(getAndroidVariantId(), getAuthCookies(),
-                getContextRoot());
-        assertNotNull(androidInstallationsResponse);
-        assertEquals(androidInstallationsResponse.statusCode(), Status.OK.getStatusCode());
-
-        List<Map<String, String>> androidInstallations = androidInstallationsResponse.getBody().jsonPath().getList("");
-        assertNotNull(androidInstallations);
-        assertEquals(androidInstallations.size(), 3);
-
-        String installationId = androidInstallations.get(0).get("id");
-        assertNotNull(installationId);
-        setInstallationId(installationId);
+        List<InstallationImpl> installations = InstallationUtils.listAll(getRegisteredAndroidVariant(), getSession());
+        assertNotNull(installations);
+        assertEquals(3, installations.size());
     }
 
     @RunAsClient
     @Test
     @InSequence(13)
     public void findInstallation() {
-        Response androidInstallationResponse = InstallationUtils.findInstallation(getAndroidVariantId(), installationId,
-                getAuthCookies(), getContextRoot());
-        assertNotNull(androidInstallationResponse);
-        assertEquals(androidInstallationResponse.statusCode(), Status.OK.getStatusCode());
+        InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
 
-        Map<String, String> androidInstallation = androidInstallationResponse.getBody().jsonPath().get();
-        assertNotNull(androidInstallation);
-        assertEquals(androidInstallation.get("id"), installationId);
+        InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
+                getRegisteredAndroidVariant(), getSession());
+
+        assertNotNull(installation);
+        InstallationUtils.checkEquality(registeredInstallation, installation);
+
     }
 
     @RunAsClient
     @Test
     @InSequence(14)
     public void updateInstallation() {
+        // Let's generate token and alias
+        InstallationImpl generatedInstallation = InstallationUtils.generateAndroid();
 
-        InstallationImpl updatedInstallation = InstallationUtils.createInstallation(UPDATED_DEVICE_TOKEN, UPDATED_DEVICE_TYPE,
-                UPDATED_OS, UPDATED_OS_VERSION, UPDATED_ALIAS, null, null);
+        InstallationImpl installation = getRegisteredAndroidInstallations().get(0);
 
-        Response updateResponse = InstallationUtils.updateInstallation(getAndroidVariantId(), installationId,
-                updatedInstallation, getAuthCookies(), getContextRoot());
-        assertNotNull(updateResponse);
-        assertEquals(updateResponse.statusCode(), Status.NO_CONTENT.getStatusCode());
+        installation.setDeviceToken(generatedInstallation.getDeviceToken());
+        installation.setAlias(generatedInstallation.getAlias());
+
+        InstallationUtils.updateInstallation(installation, getRegisteredAndroidVariant(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(15)
     public void verifyUpdatedInstallation() {
+        InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
 
-        Response androidInstallationResponse = InstallationUtils.findInstallation(getAndroidVariantId(), installationId,
-                getAuthCookies(), getContextRoot());
-        assertNotNull(androidInstallationResponse);
-        assertEquals(androidInstallationResponse.statusCode(), Status.OK.getStatusCode());
+        InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(), getRegisteredAndroidVariant(), getSession());
 
-        Map<String, String> androidInstallation = androidInstallationResponse.getBody().jsonPath().get();
-        assertNotNull(androidInstallation);
-        assertEquals(installationId, androidInstallation.get("id"));
-        assertEquals(UPDATED_DEVICE_TOKEN, androidInstallation.get("deviceToken"));
-        assertEquals(UPDATED_DEVICE_TYPE, androidInstallation.get("deviceType"));
-        assertEquals(UPDATED_OS, androidInstallation.get("operatingSystem"));
-        assertEquals(UPDATED_OS_VERSION, androidInstallation.get("osVersion"));
-        assertEquals(UPDATED_ALIAS, androidInstallation.get("alias"));
+        assertNotNull(installation);
+        InstallationUtils.checkEquality(registeredInstallation, installation);
     }
 
     @RunAsClient
     @Test
     @InSequence(16)
     public void removeInstallation() {
-        Response removeResponse = InstallationUtils.removeInstallation(getAndroidVariantId(), installationId, getAuthCookies(),
-                getContextRoot());
-        assertNotNull(removeResponse);
-        assertEquals(removeResponse.statusCode(), Status.NO_CONTENT.getStatusCode());
+        InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
+
+        InstallationUtils.delete(registeredInstallation, getRegisteredAndroidVariant(), getSession());
     }
 
     @RunAsClient
     @Test
     @InSequence(17)
     public void verifyInstallationRemoval() {
-        Response androidInstallationResponse = InstallationUtils.findInstallation(getAndroidVariantId(), installationId,
-                getAuthCookies(), getContextRoot());
-        assertNotNull(androidInstallationResponse);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), androidInstallationResponse.statusCode());
+        InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
+
+        InstallationUtils.findById(registeredInstallation.getId(), getRegisteredAndroidVariant(), getSession());
     }
 }

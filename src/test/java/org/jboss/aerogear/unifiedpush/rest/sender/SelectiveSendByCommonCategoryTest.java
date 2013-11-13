@@ -1,45 +1,27 @@
 package org.jboss.aerogear.unifiedpush.rest.sender;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
-
-import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
-import org.jboss.aerogear.unifiedpush.model.iOSVariant;
-import org.jboss.aerogear.unifiedpush.service.AndroidVariantService;
-import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
-import org.jboss.aerogear.unifiedpush.service.SimplePushVariantService;
-import org.jboss.aerogear.unifiedpush.service.iOSVariantService;
+import com.google.android.gcm.server.Sender;
+import com.jayway.awaitility.Awaitility;
+import com.jayway.awaitility.Duration;
+import com.notnoop.apns.internal.ApnsServiceImpl;
+import org.jboss.aerogear.unifiedpush.model.*;
+import org.jboss.aerogear.unifiedpush.service.*;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import com.google.android.gcm.server.Sender;
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
-import com.jayway.restassured.response.Response;
-import com.notnoop.apns.internal.ApnsServiceImpl;
+import javax.inject.Inject;
+import java.util.*;
+import java.util.concurrent.Callable;
+
+import static org.junit.Assert.*;
 
 public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
 
@@ -74,20 +56,17 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
 
     private static final String NOTIFICATION_ALERT_MSG = "TEST ALERT";
 
+
+    private static final String COMMON_CATEGORY = UUID.randomUUID().toString();
+
+    private static List<InstallationImpl> installationsWithCommonCategory = new ArrayList<InstallationImpl>();
+    private static InstallationImpl simplePushInstallation;
+
     @Deployment(testable = true)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
                 SelectiveSendByCommonCategoryTest.class);
     }
-
-    @Inject
-    private AndroidVariantService androidVariantService;
-
-    @Inject
-    private iOSVariantService iOSVariantService;
-
-    @Inject
-    private SimplePushVariantService simplePushVariantService;
 
     @Inject
     private PushApplicationService pushApplicationService;
@@ -99,70 +78,59 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(12)
     public void registerAndroidInstallation() {
+        InstallationImpl generatedInstallation = InstallationUtils.generateAndroid();
 
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
+        HashSet<String> categories = new HashSet<String>();
+        categories.add(COMMON_CATEGORY);
+        generatedInstallation.setCategories(categories);
 
-        for (int x = 1; x <= ANDROID_DEVICE_LENGTH; x++) {
-            InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN_X + x,
-                    ANDROID_DEVICE_TYPE, ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_X + x,
-                    ANDROID_CATEGORY_X + x, null);
-            Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                    androidInstallation, getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredAndroidVariant(), getContextRoot());
 
-            assertNotNull(response);
-            assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        }
+        installationsWithCommonCategory.add(generatedInstallation);
     }
 
     @RunAsClient
     @Test
     @InSequence(13)
     public void registeriOSInstallation() {
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+        InstallationImpl generatedInstallation = InstallationUtils.generateIos();
 
-        for (int x = 1; x <= IOS_DEVICE_LENGTH; x++) {
-            InstallationImpl iOSInstallation = InstallationUtils.createInstallation(IOS_DEVICE_TOKEN_X + x, IOS_DEVICE_TYPE,
-                    IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS_X + x, IOS_CATEGORY_X + x, null);
-            Response response = InstallationUtils.registerInstallation(getiOSVariantId(), getiOSPushSecret(), iOSInstallation,
-                    getContextRoot());
+        HashSet<String> categories = new HashSet<String>();
+        categories.add(COMMON_CATEGORY);
+        generatedInstallation.setCategories(categories);
 
-            assertNotNull(response);
-            assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        }
+        InstallationUtils.register(generatedInstallation, getRegisteredIOSVariant(), getContextRoot());
+
+        installationsWithCommonCategory.add(generatedInstallation);
     }
 
     @RunAsClient
     @Test
     @InSequence(14)
     public void registerSimplePushInstallation() {
+        InstallationImpl generatedInstallation = InstallationUtils.generateSimplePush();
 
-        assertNotNull(getSimplePushSecret());
-        assertNotNull(getSimplePushVariantId());
+        HashSet<String> categories = new HashSet<String>();
+        categories.add(COMMON_CATEGORY);
+        generatedInstallation.setCategories(categories);
 
-        for (int x = 1; x <= SIMPLE_PUSH_DEVICE_LENGTH; x++) {
-            InstallationImpl simplePushInstallation = InstallationUtils.createInstallation(SIMPLE_PUSH_DEVICE_TOKEN_X + x,
-                    SIMPLE_PUSH_DEVICE_TYPE, SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS_X + x, SIMPLE_PUSH_CATEGORY_X
-                            + x, SIMPLE_PUSH_NETWORK_URL + SIMPLE_PUSH_DEVICE_TOKEN_X + x);
-            Response response = InstallationUtils.registerInstallation(getSimplePushVariantId(), getSimplePushSecret(),
-                    simplePushInstallation, getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredSimplePushVariant(), getContextRoot());
 
-            assertNotNull(response);
-            assertEquals(response.getStatusCode(), Status.OK.getStatusCode());
-        }
+        // FIXME SimplePush should be also done the same way Sender and ApnsServiceImpl are done
+        simplePushInstallation = generatedInstallation;
+        // installationsWithCommonCategory.add(generatedInstallation);
     }
 
+    // FIXME do we need to verify this or is it verified elsewhere already?
+    /*
     @Test
     @InSequence(15)
     public void verifyRegistrations() {
         assertNotNull(pushApplicationService);
-        assertNotNull(androidVariantService);
-        assertNotNull(iOSVariantService);
-        assertNotNull(simplePushVariantService);
         assertNotNull(clientInstallationService);
 
-        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper(AuthenticationUtils
+        List<PushApplication> pushApplications = pushApplicationService.findAllPushApplicationsForDeveloper
+                (AuthenticationUtils
                 .getAdminLoginName());
         List<AndroidVariant> androidVariants = androidVariantService.findAllAndroidVariants();
         List<iOSVariant> iOSVariants = iOSVariantService.findAlliOSVariants();
@@ -205,29 +173,26 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
 
         Sender.clear();
         ApnsServiceImpl.clear();
-    }
+    }*/
 
     @RunAsClient
     @Test
     @InSequence(16)
-    public void selectiveSendByCommonAlias() {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getMasterSecret());
-        
+    public void selectiveSendByCommonCategory() {
         Sender.clear();
         ApnsServiceImpl.clear();
-        
-        String category = ANDROID_CATEGORY_X + 1;
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
+        List<String> categories = new ArrayList<String>();
+        categories.add(COMMON_CATEGORY);
 
-        Response response = PushNotificationSenderUtils.selectiveSend(getPushApplicationId(), getMasterSecret(), null, null,
-                messages, null, category, getContextRoot());
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("alert", NOTIFICATION_ALERT_MSG);
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(null, null, categories, null);
+
+        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
+
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
     }
 
     @Test
@@ -240,10 +205,13 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
             }
         });
 
-        assertTrue(Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().contains(ANDROID_DEVICE_TOKEN_X + 1));
+        for (InstallationImpl installation : installationsWithCommonCategory) {
+            assertTrue(Sender.getGcmRegIdsList().contains(installation.getDeviceToken()) || ApnsServiceImpl
+                    .getTokensList().contains(installation.getDeviceToken()));
+        }
+
         assertTrue(Sender.getGcmMessage() != null && Sender.getGcmMessage().getData() != null);
         assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("alert"));
-        assertTrue(ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().contains(IOS_DEVICE_TOKEN_X + 1));
         assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
     }
 }

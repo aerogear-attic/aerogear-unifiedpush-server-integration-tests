@@ -32,6 +32,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
 
 import com.google.android.gcm.server.Message;
@@ -74,9 +75,6 @@ public final class Deployments {
 
         war.addClasses(clazz);
 
-        File[] asm = Maven.resolver().resolve("org.ow2.asm:asm:4.1").withoutTransitivity().asFile();
-        war = war.addAsLibraries(asm);
-
         File[] libs = Maven.resolver().loadPomFromFile("pom.xml").resolve("org.mockito:mockito-core").withTransitivity()
                 .asFile();
         war = war.addAsLibraries(libs);
@@ -105,7 +103,6 @@ public final class Deployments {
                 MulticastResult.class, Message.class, Sender.class);
         war.addAsLibraries(jar);
 
-
         war.delete("/WEB-INF/lib/apns-0.2.3.jar");
 
         JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException.class,
@@ -113,11 +110,13 @@ public final class Deployments {
                 Constants.class, ServerSocketUtils.class, ApnsNotification.class, EnhancedApnsNotification.class);
         war.addAsLibraries(apnsJar);
 
-        File[] libs = Maven
-                .resolver()
-                .loadPomFromFile("pom.xml")
-                .resolve("com.jayway.restassured:rest-assured", "org.mockito:mockito-core",
-                        "com.jayway.awaitility:awaitility").withTransitivity().asFile();
+        PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
+
+        // here we resolve mockito transitively, other artifact without transitivity
+        File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
+                .withoutTransitivity().asFile();
+        war.addAsLibraries(libs);
+        libs = resolver.resolve("org.mockito:mockito-core").withTransitivity().asFile();
         war = war.addAsLibraries(libs);
 
         return war;

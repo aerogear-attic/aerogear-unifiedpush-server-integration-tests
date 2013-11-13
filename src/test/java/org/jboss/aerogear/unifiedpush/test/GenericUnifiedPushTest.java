@@ -1,32 +1,17 @@
 package org.jboss.aerogear.unifiedpush.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Map;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
-import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm;
-import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
-import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
+import org.jboss.aerogear.unifiedpush.model.*;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
+import java.util.List;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(Arquillian.class)
 public abstract class GenericUnifiedPushTest {
@@ -67,7 +52,8 @@ public abstract class GenericUnifiedPushTest {
 
     protected final static String SIMPLE_PUSH_DEVICE_TYPE = "web";
 
-    protected final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN;
+    protected final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" +
+            SIMPLE_PUSH_DEVICE_TOKEN;
 
     protected final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS";
 
@@ -75,7 +61,7 @@ public abstract class GenericUnifiedPushTest {
 
     protected final static String IOS_VARIANT_DESC = "awesome variant__1";
 
-    protected final static String IOS_DEVICE_TOKEN = "abcd123456";
+    protected final static String IOS_DEVICE_TOKEN = "abcd123456"; // Can be only HEX number
 
     protected final static String IOS_DEVICE_TOKEN_2 = "abcd456789";
 
@@ -97,289 +83,128 @@ public abstract class GenericUnifiedPushTest {
 
     protected final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear";
 
-    private static Map<String, String> authCookies;
+    private static AuthenticationUtils.Session session;
 
-    private static String pushApplicationId;
+    private static PushApplication registeredPushApplication;
 
-    private static String masterSecret;
+    private static AndroidVariant registeredAndroidVariant;
 
-    private static String androidVariantId;
+    private static List<InstallationImpl> registeredAndroidInstallations;
 
-    private static String androidSecret;
+    private static iOSVariant registeredIOSVariant;
 
-    private static String simplePushVariantId;
+    private static List<InstallationImpl> registeredIOSInstallations;
 
-    private static String simplePushSecret;
+    private static SimplePushVariant registeredSimplePushVariant;
 
-    private static String iOSVariantId;
-
-    private static String iOSPushSecret;
+    private static List<InstallationImpl> registeredSimplePushInstallations;
 
     @RunAsClient
     @Test
     @InSequence(1)
-    public void Authenticate() {
-        setAuthCookies(AuthenticationUtils.adminLogin(getContextRoot()).getCookies());
-        assertTrue(getAuthCookies() != null);
+    public void authenticate() {
+        session = AuthenticationUtils.completeDefaultLogin(getContextRoot());
+        assertNotNull(session);
+        assertTrue(session.isValid());
     }
 
     @RunAsClient
     @Test
     @InSequence(2)
     public void registerPushApplication() {
-        assertNotNull(getAuthCookies());
-        PushApplication pushApp = PushApplicationUtils.createPushApplication(PUSH_APPLICATION_NAME, PUSH_APPLICATION_DESC,
-                null, null, null);
-        Response response = PushApplicationUtils.registerPushApplication(pushApp, authCookies, null, getContextRoot());
-        JsonPath body = response.getBody().jsonPath();
-        setPushApplicationId((String) body.get("pushApplicationID"));
-        setMasterSecret((String) body.get("masterSecret"));
-
-        assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getMasterSecret());
-        assertEquals(body.get("name"), PUSH_APPLICATION_NAME);
+        registeredPushApplication = PushApplicationUtils.generateAndRegister(session);
+        assertNotNull(registeredPushApplication);
     }
 
     @RunAsClient
     @Test
     @InSequence(3)
     public void registerAndroidVariant() {
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getAuthCookies());
-        AndroidVariant variant = AndroidVariantUtils.createAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC, null,
-                null, null, ANDROID_VARIANT_GOOGLE_KEY);
-        Response response = AndroidVariantUtils.registerAndroidVariant(getPushApplicationId(), variant, getAuthCookies(),
-                getContextRoot());
-        JsonPath body = response.getBody().jsonPath();
-        setAndroidVariantId((String) body.get("variantID"));
-        setAndroidSecret((String) body.get("secret"));
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
+        registeredAndroidVariant = AndroidVariantUtils.generateAndRegister(registeredPushApplication, session);
+        assertNotNull(registeredAndroidVariant);
     }
 
     @RunAsClient
     @Test
     @InSequence(4)
     public void registerSimplePushVariant() {
-
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getAuthCookies());
-
-        SimplePushVariant variant = SimplePushVariantUtils.createSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME,
-                SIMPLE_PUSH_VARIANT_DESC, null, null, null);
-        Response response = SimplePushVariantUtils.registerSimplePushVariant(getPushApplicationId(), variant, getAuthCookies(),
-                getContextRoot());
-
-        JsonPath body = response.getBody().jsonPath();
-        setSimplePushVariantId((String) body.get("variantID"));
-        setSimplePushSecret((String) body.get("secret"));
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-
-        assertNotNull(getSimplePushVariantId());
-        assertNotNull(getSimplePushSecret());
+        registeredSimplePushVariant = SimplePushVariantUtils.generateAndRegister(registeredPushApplication, session);
+        assertNotNull(registeredSimplePushVariant);
     }
 
     @RunAsClient
     @Test
     @InSequence(5)
     public void registerIOSVariant() {
-        assertNotNull(getPushApplicationId());
-        assertNotNull(getAuthCookies());
-
-        iOSApplicationUploadForm form = iOSVariantUtils.createiOSApplicationUploadForm(Boolean.FALSE,
-                IOS_CERTIFICATE_PASS_PHRASE, null, IOS_VARIANT_NAME, IOS_VARIANT_DESC);
-        Response response = iOSVariantUtils.registerIOsVariant(getPushApplicationId(), (iOSApplicationUploadForm) form,
-                getAuthCookies(), IOS_CERTIFICATE_PATH, getContextRoot());
-
-        JsonPath body = response.getBody().jsonPath();
-        setiOSVariantId((String) body.get("variantID"));
-        setiOSPushSecret((String) body.get("secret"));
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.CREATED.getStatusCode());
-
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+        registeredIOSVariant = iOSVariantUtils.generateAndRegister(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
+                false, registeredPushApplication, session);
+        assertNotNull(registeredIOSVariant);
     }
 
     @RunAsClient
     @Test
     @InSequence(6)
-    public void registeriOSInstallation() {
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+    public void registeriOSInstallations() {
+        List<InstallationImpl> iosInstallations = InstallationUtils.generateIos(3);
 
-        InstallationImpl iOSInstallation = InstallationUtils.createInstallation(IOS_DEVICE_TOKEN, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, IOS_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getiOSVariantId(), getiOSPushSecret(), iOSInstallation,
-                getContextRoot());
+        InstallationUtils.registerAll(iosInstallations, registeredIOSVariant, getContextRoot());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        registeredIOSInstallations = iosInstallations;
     }
+
 
     @RunAsClient
     @Test
     @InSequence(7)
-    public void registerSecondiOSInstallation() {
-        assertNotNull(getiOSVariantId());
-        assertNotNull(getiOSPushSecret());
+    public void registerAndroidInstallations() {
+        List<InstallationImpl> androidInstallations = InstallationUtils.generateAndroid(3);
 
-        InstallationImpl iOSInstallation = InstallationUtils.createInstallation(IOS_DEVICE_TOKEN_2, IOS_DEVICE_TYPE,
-                IOS_DEVICE_OS, IOS_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getiOSVariantId(), getiOSPushSecret(), iOSInstallation,
-                getContextRoot());
+        InstallationUtils.registerAll(androidInstallations, registeredAndroidVariant, getContextRoot());
 
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        registeredAndroidInstallations = androidInstallations;
     }
 
     @RunAsClient
     @Test
     @InSequence(8)
-    public void registerAndroidInstallation() {
-
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
-
-        InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN, ANDROID_DEVICE_TYPE,
-                ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                androidInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-    }
-
-    @RunAsClient
-    @Test
-    @InSequence(9)
-    public void registerSecondAndroidInstallation() {
-
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
-
-        InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN_2,
-                ANDROID_DEVICE_TYPE_2, ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, ANDROID_CLIENT_ALIAS_2, null, null);
-        Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                androidInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-    }
-
-    @RunAsClient
-    @Test
-    @InSequence(10)
-    public void registerThirdAndroidInstallation() {
-
-        assertNotNull(getAndroidVariantId());
-        assertNotNull(getAndroidSecret());
-
-        InstallationImpl androidInstallation = InstallationUtils.createInstallation(ANDROID_DEVICE_TOKEN_3,
-                ANDROID_DEVICE_TYPE, ANDROID_DEVICE_OS, ANDROID_DEVICE_OS_VERSION, COMMON_IOS_ANDROID_CLIENT_ALIAS, null, null);
-        Response response = InstallationUtils.registerInstallation(getAndroidVariantId(), getAndroidSecret(),
-                androidInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
-    }
-
-    @RunAsClient
-    @Test
-    @InSequence(11)
     public void registerSimplePushInstallation() {
+        List<InstallationImpl> simplePushInstallations = InstallationUtils.generateSimplePush(3);
 
-        assertNotNull(getSimplePushVariantId());
-        assertNotNull(getSimplePushSecret());
+        InstallationUtils.registerAll(simplePushInstallations, registeredSimplePushVariant, getContextRoot());
 
-        InstallationImpl simplePushInstallation = InstallationUtils.createInstallation(SIMPLE_PUSH_DEVICE_TOKEN,
-                SIMPLE_PUSH_DEVICE_TYPE, SIMPLE_PUSH_DEVICE_OS, "", SIMPLE_PUSH_CLIENT_ALIAS, SIMPLE_PUSH_CATEGORY,
-                SIMPLE_PUSH_NETWORK_URL);
-        Response response = InstallationUtils.registerInstallation(getSimplePushVariantId(), getSimplePushSecret(),
-                simplePushInstallation, getContextRoot());
-
-        assertNotNull(response);
-        assertEquals(response.statusCode(), Status.OK.getStatusCode());
+        registeredSimplePushInstallations = simplePushInstallations;
     }
 
-    public static Map<String, String> getAuthCookies() {
-        return authCookies;
+    public static AuthenticationUtils.Session getSession() {
+        return session;
     }
 
-    public static void setAuthCookies(Map<String, String> authCookies) {
-        GenericUnifiedPushTest.authCookies = authCookies;
+    public static PushApplication getRegisteredPushApplication() {
+        return registeredPushApplication;
     }
 
-    public static String getPushApplicationId() {
-        return pushApplicationId;
+    public static AndroidVariant getRegisteredAndroidVariant() {
+        return registeredAndroidVariant;
     }
 
-    public static void setPushApplicationId(String pushApplicationId) {
-        GenericUnifiedPushTest.pushApplicationId = pushApplicationId;
+    public static List<InstallationImpl> getRegisteredAndroidInstallations() {
+        return registeredAndroidInstallations;
     }
 
-    public static String getMasterSecret() {
-        return masterSecret;
+    public static iOSVariant getRegisteredIOSVariant() {
+        return registeredIOSVariant;
     }
 
-    public static void setMasterSecret(String masterSecret) {
-        GenericUnifiedPushTest.masterSecret = masterSecret;
+    public static List<InstallationImpl> getRegisteredIOSInstallations() {
+        return registeredIOSInstallations;
     }
 
-    public static String getAndroidVariantId() {
-        return androidVariantId;
+    public static SimplePushVariant getRegisteredSimplePushVariant() {
+        return registeredSimplePushVariant;
     }
 
-    public static void setAndroidVariantId(String androidVariantId) {
-        GenericUnifiedPushTest.androidVariantId = androidVariantId;
-    }
-
-    public static String getAndroidSecret() {
-        return androidSecret;
-    }
-
-    public static void setAndroidSecret(String androidSecret) {
-        GenericUnifiedPushTest.androidSecret = androidSecret;
-    }
-
-    public static String getSimplePushVariantId() {
-        return simplePushVariantId;
-    }
-
-    public static void setSimplePushVariantId(String simplePushVariantId) {
-        GenericUnifiedPushTest.simplePushVariantId = simplePushVariantId;
-    }
-
-    public static String getSimplePushSecret() {
-        return simplePushSecret;
-    }
-
-    public static void setSimplePushSecret(String simplePushSecret) {
-        GenericUnifiedPushTest.simplePushSecret = simplePushSecret;
-    }
-
-    public static String getiOSVariantId() {
-        return iOSVariantId;
-    }
-
-    public static void setiOSVariantId(String iOSVariantId) {
-        GenericUnifiedPushTest.iOSVariantId = iOSVariantId;
-    }
-
-    public static String getiOSPushSecret() {
-        return iOSPushSecret;
-    }
-
-    public static void setiOSPushSecret(String iOSPushSecret) {
-        GenericUnifiedPushTest.iOSPushSecret = iOSPushSecret;
+    public static List<InstallationImpl> getRegisteredSimplePushInstallations() {
+        return registeredSimplePushInstallations;
     }
 
     protected abstract String getContextRoot();
