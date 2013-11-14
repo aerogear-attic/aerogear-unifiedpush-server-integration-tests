@@ -90,7 +90,8 @@ public final class Deployments {
 
         war.addClasses(AuthenticationUtils.class, PushApplicationUtils.class, AndroidVariantUtils.class,
                 SimplePushVariantUtils.class, InstallationUtils.class, iOSVariantUtils.class,
-                PushNotificationSenderUtils.class, ExpectedException.class, UnexpectedResponseException.class);
+                PushNotificationSenderUtils.class, ExpectedException.class, UnexpectedResponseException.class,
+                SenderStatisticsEndpoint.class);
 
         war.addClasses(clazz);
 

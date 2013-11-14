@@ -57,13 +57,12 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    @Deployment(testable = true)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
                 SimplePushSelectiveSendByAliasTest.class);
     }
 
-    @RunAsClient
     @Test
     @InSequence(12)
     public void simplePushSelectiveSendByAliasesAndDeviceType() throws UnknownHostException, IOException {
