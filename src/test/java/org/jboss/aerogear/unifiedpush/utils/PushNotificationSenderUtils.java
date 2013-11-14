@@ -16,6 +16,8 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
+import com.jayway.awaitility.Awaitility;
+import com.jayway.awaitility.Duration;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
@@ -26,8 +28,11 @@ import org.json.simple.JSONObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public final class PushNotificationSenderUtils {
@@ -95,6 +100,67 @@ public final class PushNotificationSenderUtils {
         UnexpectedResponseException.verifyResponse(response, OK);
     }
 
+    public static List<String> getNotifiedDeviceTokens(AuthenticationUtils.Session session) {
+
+        Response response = RestAssured.given()
+                .contentType(ContentTypes.json())
+                .header(Headers.acceptJson())
+                .cookies(session.getCookies())
+                .get("{root}rest/senderStats", session.getRoot());
+
+        UnexpectedResponseException.verifyResponse(response, OK);
+
+        return response.jsonPath().getList("");
+    }
+
+    public static void resetNotifiedDeviceTokensState(AuthenticationUtils.Session session) {
+
+        Response response = RestAssured.given()
+                .contentType(ContentTypes.json())
+                .header(Headers.acceptJson())
+                .cookies(session.getCookies())
+                .delete("{root}rest/senderStats", session.getRoot());
+
+        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+
+    }
+
+    public static List<String> getNotifiedDeviceTokensAndReset(AuthenticationUtils.Session session) {
+        List<String> deviceTokens = getNotifiedDeviceTokens(session);
+
+        resetNotifiedDeviceTokensState(session);
+
+        return deviceTokens;
+    }
+
+    public static List<String> waitNotifiedDeviceTokens(final int expectedCount,
+                                                        final AuthenticationUtils.Session session) {
+        Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                List<String> deviceTokens = getNotifiedDeviceTokens(session);
+
+                return deviceTokens.size() == expectedCount;
+            }
+        });
+
+        List<String> deviceTokens = getNotifiedDeviceTokens(session);
+
+        assertNotNull(deviceTokens);
+        assertEquals(expectedCount, deviceTokens.size());
+
+        return deviceTokens;
+    }
+
+    public static List<String> waitNotifiedDeviceTokensAndReset(int expectedCount,
+                                                                AuthenticationUtils.Session session) {
+        List<String> deviceTokens = waitNotifiedDeviceTokens(expectedCount, session);
+
+        resetNotifiedDeviceTokensState(session);
+
+        return deviceTokens;
+    }
+
     private static Map<String, Object> criteriaToMap(SendCriteria criteria) {
         return criteriaToMap(criteria.getAliases(), criteria.getDeviceTypes(), criteria.getCategories(),
                 criteria.getVariants());
@@ -122,7 +188,7 @@ public final class PushNotificationSenderUtils {
                                                     Map<String, Object> customData) {
         Map<String, Object> data = new HashMap<String, Object>();
 
-        if(criteria != null) {
+        if (criteria != null) {
             data.putAll(criteriaToMap(criteria));
         }
 
