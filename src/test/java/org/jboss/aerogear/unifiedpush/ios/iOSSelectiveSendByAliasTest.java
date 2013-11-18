@@ -26,10 +26,7 @@ import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -86,18 +83,17 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(13)
     public void verifyiOSnotifications() {
-        List<String> deviceTokens = PushNotificationSenderUtils.waitNotifiedDeviceTokensAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
 
         for (int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredIOSInstallations().get(i);
 
-            assertTrue(deviceTokens.contains(installation.getDeviceToken()));
+            assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));
         }
 
-        // FIXME should we check the content of the message?
-        // assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
-        // assertEquals(NOTIFICATION_SOUND, ApnsServiceImpl.getSound());
-        // assertEquals(NOTIFICATION_BADGE, ApnsServiceImpl.getBadge());
+        assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.apnsAlert);
+        assertEquals(NOTIFICATION_SOUND, senderStatistics.apnsSound);
+        assertEquals(NOTIFICATION_BADGE, senderStatistics.apnsBadge);
     }
 
     @Test

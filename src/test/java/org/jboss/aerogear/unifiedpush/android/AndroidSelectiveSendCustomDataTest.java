@@ -85,18 +85,18 @@ public class AndroidSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(13)
     public void verifyGCMnotifications() {
-        List<String> deviceTokens = PushNotificationSenderUtils.waitNotifiedDeviceTokensAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
 
         for(int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
 
-            assertTrue(deviceTokens.contains(installation.getDeviceToken()));
+            assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));
         }
 
-        // FIXME should we check the content of the message?
-        //assertNotNull(Sender.getGcmMessage());
-        //assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("custom"));
-        //assertEquals(CUSTOM_FIELD_DATA_MSG, Sender.getGcmMessage().getData().get("test"));
+
+        assertNotNull(senderStatistics.gcmMessage);
+        assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.gcmMessage.getData().get("custom"));
+        assertEquals(CUSTOM_FIELD_DATA_MSG, senderStatistics.gcmMessage.getData().get("test"));
     }
 
     // The GCM Sender returns the tokens as inactive so they should have been deleted

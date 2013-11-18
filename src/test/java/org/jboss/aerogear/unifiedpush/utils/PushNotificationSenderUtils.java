@@ -16,9 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
+import com.google.android.gcm.server.Message;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
@@ -100,7 +102,7 @@ public final class PushNotificationSenderUtils {
         UnexpectedResponseException.verifyResponse(response, OK);
     }
 
-    public static List<String> getNotifiedDeviceTokens(AuthenticationUtils.Session session) {
+    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatistics(AuthenticationUtils.Session session) {
 
         Response response = RestAssured.given()
                 .contentType(ContentTypes.json())
@@ -110,10 +112,39 @@ public final class PushNotificationSenderUtils {
 
         UnexpectedResponseException.verifyResponse(response, OK);
 
-        return response.jsonPath().getList("");
+        JsonPath jsonPath = response.jsonPath();
+
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = new SenderStatisticsEndpoint.SenderStatistics();
+
+        if(jsonPath.getJsonObject("gcmMessage") != null) {
+            Message.Builder gcmMessageBuilder = new Message.Builder();
+
+            if (jsonPath.get("gcmMessage.delayWhileIdle") != null) {
+                gcmMessageBuilder.delayWhileIdle(jsonPath.getBoolean("gcmMessage.delayWhileIdle"));
+            }
+            if(jsonPath.get("gcmMessage.collapseKey") != null) {
+                gcmMessageBuilder.collapseKey(jsonPath.getString("gcmMessage.collapseKey"));
+            }
+            if(jsonPath.get("gcmMessage.timeToLive") != null) {
+                gcmMessageBuilder.timeToLive(jsonPath.getInt("gcmMessage.timeToLive"));
+            }
+            Map<String, String> gcmMessageData = jsonPath.getJsonObject("gcmMessage.data");
+            for (String key : gcmMessageData.keySet()) {
+                gcmMessageBuilder.addData(key, gcmMessageData.get(key));
+            }
+            senderStatistics.gcmMessage = gcmMessageBuilder.build();
+        }
+
+        senderStatistics.deviceTokens = jsonPath.getList("deviceTokens");
+        senderStatistics.apnsAlert = jsonPath.getString("apnsAlert");
+        senderStatistics.apnsBadge = jsonPath.getInt("apnsBadge");
+        senderStatistics.apnsCustomFields = jsonPath.getString("apnsCustomFields");
+        senderStatistics.apnsSound = jsonPath.getString("apnsSound");
+
+        return senderStatistics;
     }
 
-    public static void resetNotifiedDeviceTokensState(AuthenticationUtils.Session session) {
+    public static void resetSenderStatistics(AuthenticationUtils.Session session) {
 
         Response response = RestAssured.given()
                 .contentType(ContentTypes.json())
@@ -125,40 +156,45 @@ public final class PushNotificationSenderUtils {
 
     }
 
-    public static List<String> getNotifiedDeviceTokensAndReset(AuthenticationUtils.Session session) {
-        List<String> deviceTokens = getNotifiedDeviceTokens(session);
+    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatisticsAndReset(AuthenticationUtils.Session
+                                                                                                session) {
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = getSenderStatistics(session);
 
-        resetNotifiedDeviceTokensState(session);
+        resetSenderStatistics(session);
 
-        return deviceTokens;
+        return senderStatistics;
     }
 
-    public static List<String> waitNotifiedDeviceTokens(final int expectedCount,
-                                                        final AuthenticationUtils.Session session) {
+    public static SenderStatisticsEndpoint.SenderStatistics waitSenderStatistics(final int expectedTokenCount,
+                                                                                 final AuthenticationUtils.Session
+                                                                                         session) {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                List<String> deviceTokens = getNotifiedDeviceTokens(session);
+                SenderStatisticsEndpoint.SenderStatistics senderStatistics = getSenderStatistics(session);
 
-                return deviceTokens.size() == expectedCount;
+                return senderStatistics.deviceTokens != null && senderStatistics.deviceTokens.size() ==
+                        expectedTokenCount;
             }
         });
 
-        List<String> deviceTokens = getNotifiedDeviceTokens(session);
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = getSenderStatistics(session);
 
-        assertNotNull(deviceTokens);
-        assertEquals(expectedCount, deviceTokens.size());
+        assertNotNull(senderStatistics);
+        assertNotNull(senderStatistics.deviceTokens);
+        assertEquals(expectedTokenCount, senderStatistics.deviceTokens.size());
 
-        return deviceTokens;
+        return senderStatistics;
     }
 
-    public static List<String> waitNotifiedDeviceTokensAndReset(int expectedCount,
-                                                                AuthenticationUtils.Session session) {
-        List<String> deviceTokens = waitNotifiedDeviceTokens(expectedCount, session);
+    public static SenderStatisticsEndpoint.SenderStatistics waitSenderStatisticsAndReset(int expectedTokenCount,
+                                                                                         AuthenticationUtils.Session
+                                                                                                 session) {
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = waitSenderStatistics(expectedTokenCount, session);
 
-        resetNotifiedDeviceTokensState(session);
+        resetSenderStatistics(session);
 
-        return deviceTokens;
+        return senderStatistics;
     }
 
     private static Map<String, Object> criteriaToMap(SendCriteria criteria) {

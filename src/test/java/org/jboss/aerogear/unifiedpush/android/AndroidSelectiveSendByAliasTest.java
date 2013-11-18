@@ -28,10 +28,7 @@ import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
@@ -85,17 +82,16 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(13)
     public void verifyGCMnotifications() {
-        List<String> deviceTokens = PushNotificationSenderUtils.waitNotifiedDeviceTokensAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
 
         for(int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
 
-            assertTrue(deviceTokens.contains(installation.getDeviceToken()));
+            assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));
         }
 
-        // FIXME should we check the content of the message?
-        //assertNotNull(Sender.getGcmMessage());
-        //assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("alert"));
+        assertNotNull(senderStatistics.gcmMessage);
+        assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.gcmMessage.getData().get("alert"));
     }
 
     // The GCM Sender returns the tokens as inactive so they should have been deleted
