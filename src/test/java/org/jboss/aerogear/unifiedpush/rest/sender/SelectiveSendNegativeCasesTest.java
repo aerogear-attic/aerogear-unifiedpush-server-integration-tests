@@ -57,12 +57,11 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Deployment(testable = true)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, SelectiveSendNegativeCasesTest.class);
     }
 
-    @RunAsClient
     @Test
     @InSequence(12)
     public void selectiveSendEmptyPushAppId() {
@@ -83,7 +82,6 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
     }
 
-    @RunAsClient
     @Test
     @InSequence(13)
     public void selectiveSendWrongPushAppId() {
@@ -106,7 +104,6 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
     }
 
-    @RunAsClient
     @Test
     @InSequence(14)
     public void selectiveSendWrongMasterSecret() {

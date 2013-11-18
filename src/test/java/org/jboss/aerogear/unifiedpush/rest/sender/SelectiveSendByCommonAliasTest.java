@@ -17,20 +17,14 @@
 package org.jboss.aerogear.unifiedpush.rest.sender;
 
 import com.google.android.gcm.server.Sender;
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
-import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
-import org.jboss.aerogear.unifiedpush.utils.ServerSocketUtils;
+import org.jboss.aerogear.unifiedpush.utils.*;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
@@ -39,7 +33,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static org.junit.Assert.*;
 
@@ -54,7 +47,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
     private static final String COMMON_ALIAS = UUID.randomUUID().toString();
 
-    private static List<InstallationImpl> installationsWithCommonAlias = new ArrayList<InstallationImpl>();
+    private static List<InstallationImpl> installationsWithCommonAlias;
     private static InstallationImpl simplePushInstallation;
 
     @Override
@@ -64,16 +57,18 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
     private final static String COMMON_IOS_ANDROID_SIMPLE_PUSH_CLIENT_ALIAS = "qa_ios_android_simplepush@aerogear";
 
-    @Deployment(testable = true)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
                 SelectiveSendByCommonAliasTest.class);
     }
 
-    @RunAsClient
     @Test
     @InSequence(12)
     public void registeriOSInstallation() {
+        // FIXME this will work only if this test is first in sequence!
+        installationsWithCommonAlias = new ArrayList<InstallationImpl>();
+
         InstallationImpl generatedInstallation = InstallationUtils.generateIos();
 
         generatedInstallation.setAlias(COMMON_ALIAS);
@@ -83,7 +78,6 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         installationsWithCommonAlias.add(generatedInstallation);
     }
 
-    @RunAsClient
     @Test
     @InSequence(13)
     public void registerAndroidInstallation() {
@@ -96,7 +90,6 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         installationsWithCommonAlias.add(generatedInstallation);
     }
 
-    @RunAsClient
     @Test
     @InSequence(14)
     public void registerSimplePushInstallation() {
@@ -111,7 +104,6 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         // installationsWithCommonAlias.add(generatedInstallation);
     }
 
-    @RunAsClient
     @Test
     @InSequence(15)
     public void selectiveSendByCommonAlias() throws UnknownHostException, IOException {
@@ -142,20 +134,15 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(16)
     public void verifyGCMandAPNnotifications() {
-        Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
-            public Boolean call() throws Exception {
-                return Sender.getGcmRegIdsList() != null && Sender.getGcmRegIdsList().size() == 1
-                        && ApnsServiceImpl.getTokensList() != null && ApnsServiceImpl.getTokensList().size() == 1;
-            }
-        });
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils
+                .waitSenderStatisticsAndReset(installationsWithCommonAlias.size(), getSession());
 
         for (InstallationImpl installation : installationsWithCommonAlias) {
-            assertTrue(Sender.getGcmRegIdsList().contains(installation.getDeviceToken()) ||
-                    ApnsServiceImpl.getTokensList().contains(installation.getDeviceToken()));
+            assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));
         }
 
-        assertNotNull(Sender.getGcmMessage());
-        assertEquals(NOTIFICATION_ALERT_MSG, Sender.getGcmMessage().getData().get("alert"));
-        assertEquals(NOTIFICATION_ALERT_MSG, ApnsServiceImpl.getAlert());
+        assertNotNull(senderStatistics.gcmMessage);
+        assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.gcmMessage.getData().get("alert"));
+        assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.apnsAlert);
     }
 }
