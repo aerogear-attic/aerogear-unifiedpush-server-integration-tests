@@ -16,17 +16,16 @@
  */
 package org.jboss.aerogear.unifiedpush.pushapp;
 
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import static org.junit.Assert.assertNotNull;
+
+import javax.ws.rs.core.Response.Status;
+
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-
-import static org.junit.Assert.assertNotNull;
 
 public class RegisterPushAppWithoutLoginTest extends GenericSimpleUnifiedPushTest {
 
@@ -36,13 +35,11 @@ public class RegisterPushAppWithoutLoginTest extends GenericSimpleUnifiedPushTes
     @Test
     public void registeringPushApplicationWithoutBeingLogged() {
         assertNotNull(getContextRoot());
-        String pushAppName = "My App";
-        String pushAppDesc = "Awesome App";
 
         thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
 
-        PushApplication pushApplication = PushApplicationUtils.generateAndRegister(
-                AuthenticationUtils.Session.forceCreateValidWithEmptyCookies(getContextRoot()));
+        PushApplicationUtils
+                .generateAndRegister(AuthenticationUtils.Session.forceCreateValidWithEmptyCookies(getContextRoot()));
     }
 
     @Override

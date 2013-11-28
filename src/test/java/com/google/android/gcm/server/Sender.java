@@ -61,7 +61,7 @@ public class Sender {
         if (message != null) {
             gcmMessage = message;
         }
-        
+
         if (regIds != null && !regIds.isEmpty()) {
             gcmRegIdsList = new ArrayList<String>();
             gcmRegIdsList.addAll(regIds);

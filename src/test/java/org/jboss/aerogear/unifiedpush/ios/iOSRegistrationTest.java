@@ -16,24 +16,31 @@
  */
 package org.jboss.aerogear.unifiedpush.ios;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.UUID;
+
+import javax.ws.rs.core.Response.Status;
+
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.*;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
+import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.Assert.*;
 
 public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
@@ -42,10 +49,6 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    private static final String UPDATED_IOS_VARIANT_NAME = "IOS_Variant__2";
-
-    private static final String UPDATED_IOS_VARIANT_DESC = "awesome variant__2";
-
     private static final String UPDATED_IOS_DEVICE_TYPE = "IPhone";
     private static final String UPDATED_IOS_OPERATING_SYSTEM = "IOS6";
     private static final String UPDATED_IOS_OPERATING_SYSTEM_VERSION = "5";
@@ -53,8 +56,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                iOSRegistrationTest.class, SecureiOSRegistrationTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Rule

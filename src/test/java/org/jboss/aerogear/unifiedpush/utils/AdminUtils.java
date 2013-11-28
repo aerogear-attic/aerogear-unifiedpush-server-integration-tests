@@ -1,9 +1,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static org.junit.Assert.assertNotNull;
 import static javax.ws.rs.core.Response.Status.OK;
 
-import java.util.Map;
 import java.util.UUID;
 
 import org.jboss.aerogear.unifiedpush.users.Developer;

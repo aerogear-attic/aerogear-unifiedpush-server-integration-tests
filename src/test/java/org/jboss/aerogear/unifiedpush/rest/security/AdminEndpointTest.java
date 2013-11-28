@@ -6,8 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.ws.rs.core.Response.Status;
-
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.users.Developer;
 import org.jboss.aerogear.unifiedpush.utils.AdminUtils;
@@ -15,8 +13,6 @@ import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
-
-import com.jayway.restassured.response.Response;
 
 public class AdminEndpointTest extends GenericSimpleUnifiedPushTest {
 

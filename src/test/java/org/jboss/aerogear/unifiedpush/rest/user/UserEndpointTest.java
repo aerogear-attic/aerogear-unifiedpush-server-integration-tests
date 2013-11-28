@@ -1,9 +1,11 @@
 package org.jboss.aerogear.unifiedpush.rest.user;
 
-import java.util.List;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import javax.ws.rs.core.Response.Status;
+import java.util.List;
 
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
@@ -12,11 +14,6 @@ import org.jboss.aerogear.unifiedpush.utils.UserEndpointUtils;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
 import org.picketlink.idm.model.basic.User;
-
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
-
-import static org.junit.Assert.*;
 
 public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
 
@@ -28,11 +25,6 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     private static AuthenticationUtils.Session session;
     private static User adminUser;
     private static User developerUser;
-
-    private static final String UPD_USER_FIRST_NAME = "aerogear-qa";
-    private static final String UPD_USER_LAST_NAME = "redhat";
-    private static final String UPD_USER_EMAIL = "qa@example.com";
-    private static final String UPD_USER_LOGIN_NAME = "qa";
 
     @Test
     @InSequence(1)

@@ -16,14 +16,12 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.sender;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.jboss.aerogear.unifiedpush.message.sender.PushNotificationSender;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
@@ -33,14 +31,12 @@ import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.android.gcm.server.Sender;
-import com.jayway.restassured.response.Response;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
@@ -50,8 +46,6 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    private final static String SIMPLE_PUSH_VERSION = "version=15";
-
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
     @Rule
@@ -59,7 +53,7 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class, SelectiveSendNegativeCasesTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test
@@ -90,8 +84,6 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
 
         Map<String, Object> messages = new HashMap<String, Object>();
         messages.put("alert", NOTIFICATION_ALERT_MSG);
-
-        String wrongPushAppId = "random";
 
         PushApplication generatedPushApplication = PushApplicationUtils.generate();
 

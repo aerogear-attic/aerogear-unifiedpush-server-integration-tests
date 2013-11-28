@@ -16,30 +16,38 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.sender;
 
-import com.google.android.gcm.server.Sender;
-import com.notnoop.apns.internal.ApnsServiceImpl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.*;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
+import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
+import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
+import org.jboss.aerogear.unifiedpush.utils.ServerSocketUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
-import java.util.*;
-
-import static org.junit.Assert.*;
+import com.google.android.gcm.server.Sender;
+import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
-
-    private final static String SIMPLE_PUSH_VARIANT_NETWORK_URL = "http://localhost:" + Constants.SOCKET_SERVER_PORT
-            + "/endpoint/" + SIMPLE_PUSH_DEVICE_TOKEN;
 
     private final static String SIMPLE_PUSH_VERSION = "version=15";
 
@@ -55,12 +63,9 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    private final static String COMMON_IOS_ANDROID_SIMPLE_PUSH_CLIENT_ALIAS = "qa_ios_android_simplepush@aerogear";
-
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                SelectiveSendByCommonAliasTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test
@@ -134,8 +139,8 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(16)
     public void verifyGCMandAPNnotifications() {
-        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils
-                .waitSenderStatisticsAndReset(installationsWithCommonAlias.size(), getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(
+                installationsWithCommonAlias.size(), getSession());
 
         for (InstallationImpl installation : installationsWithCommonAlias) {
             assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));
