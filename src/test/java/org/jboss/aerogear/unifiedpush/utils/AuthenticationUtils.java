@@ -16,18 +16,20 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Response;
-import org.json.simple.JSONObject;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static javax.ws.rs.core.Response.Status.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.json.simple.JSONObject;
+
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.Response;
 
 
 public final class AuthenticationUtils {

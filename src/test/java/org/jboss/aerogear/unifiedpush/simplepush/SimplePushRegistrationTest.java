@@ -42,9 +42,6 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    private final static String UPDATED_SIMPLE_PUSH_VARIANT_NAME = "UPD_SimplePushVariant__1";
-    private final static String UPDATED_SIMPLE_PUSH_VARIANT_DESC = "UPD_awesome variant__1";
-
     private final static String UPDATED_SIMPLE_PUSH_DEVICE_TYPE = "upd_web";
     private final static String UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM = "UPD_MozillaOS";
     private final static String UPDATED_SIMPLE_PUSH_OPERATING_SYSTEM_VERSION = "UPD_MozillaOS";
@@ -56,8 +53,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                SimplePushRegistrationTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test
@@ -117,8 +113,8 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(103)
     public void verifyUpdate() {
-        SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant()
-                .getVariantID(), getRegisteredPushApplication(), getSession());
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant().getVariantID(),
+                getRegisteredPushApplication(), getSession());
         assertNotNull(simplePushVariant);
         SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
     }
@@ -175,8 +171,8 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(108)
     public void findSimplePushVariant() {
-        SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant()
-                .getVariantID(), getRegisteredPushApplication(), getSession());
+        SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant().getVariantID(),
+                getRegisteredPushApplication(), getSession());
 
         assertNotNull(simplePushVariant);
         SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
@@ -186,8 +182,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(109)
     public void findSimplePushVariantWithInvalidId() {
         thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
-        SimplePushVariantUtils.findById(UUID.randomUUID().toString(),
-                getRegisteredPushApplication(), getSession());
+        SimplePushVariantUtils.findById(UUID.randomUUID().toString(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
@@ -224,8 +219,8 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(117)
     public void verifyInstallationRemoval() {
         thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
-        InstallationUtils.findById(getRegisteredSimplePushInstallations().get(0).getId(),
-                getRegisteredSimplePushVariant(), getSession());
+        InstallationUtils.findById(getRegisteredSimplePushInstallations().get(0).getId(), getRegisteredSimplePushVariant(),
+                getSession());
     }
 
     @Test

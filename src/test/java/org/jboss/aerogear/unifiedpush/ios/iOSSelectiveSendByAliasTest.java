@@ -16,26 +16,30 @@
  */
 package org.jboss.aerogear.unifiedpush.ios;
 
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
-import com.notnoop.apns.internal.ApnsServiceImpl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.*;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
+import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
+import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import java.util.*;
-import java.util.concurrent.Callable;
-
-import static org.junit.Assert.*;
+import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
@@ -52,8 +56,7 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                iOSSelectiveSendByAliasTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test
@@ -83,7 +86,8 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(13)
     public void verifyiOSnotifications() {
-        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(
+                2, getSession());
 
         for (int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredIOSInstallations().get(i);
