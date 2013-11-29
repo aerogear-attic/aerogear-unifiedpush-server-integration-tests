@@ -123,11 +123,11 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, data);
-
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
-
+        
         ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
         assertNotNull(serverSocket);
+        
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
 
         final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 
