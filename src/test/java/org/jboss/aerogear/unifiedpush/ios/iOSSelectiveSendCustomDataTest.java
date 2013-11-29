@@ -16,10 +16,16 @@
  */
 package org.jboss.aerogear.unifiedpush.ios;
 
-import com.notnoop.apns.internal.ApnsServiceImpl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
@@ -29,18 +35,11 @@ import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
+import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
@@ -61,8 +60,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                iOSSelectiveSendCustomDataTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test
@@ -95,7 +93,8 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
     @InSequence(13)
     public void verifyiOSnotifications() {
 
-        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(
+                2, getSession());
 
         for (int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredIOSInstallations().get(i);
@@ -108,7 +107,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
         assertEquals(NOTIFICATION_BADGE, senderStatistics.apnsBadge);
 
         // assertTrue(ApnsServiceImpl.getCustomFields() != null
-        //        && ApnsServiceImpl.getCustomFields().contains(CUSTOM_FIELD_DATA_KEY + "=" + CUSTOM_FIELD_DATA_MSG));
+        // && ApnsServiceImpl.getCustomFields().contains(CUSTOM_FIELD_DATA_KEY + "=" + CUSTOM_FIELD_DATA_MSG));
     }
 
     @Test

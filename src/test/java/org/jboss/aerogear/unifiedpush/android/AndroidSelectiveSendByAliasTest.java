@@ -16,30 +16,30 @@
  */
 package org.jboss.aerogear.unifiedpush.android;
 
-import com.google.android.gcm.server.Sender;
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
-import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.service.ClientInstallationService;
-import org.jboss.aerogear.unifiedpush.service.PushApplicationService;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.*;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
+import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
+import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import javax.inject.Inject;
-import java.util.*;
-import java.util.concurrent.Callable;
-
-import static org.junit.Assert.*;
+import com.google.android.gcm.server.Sender;
 
 public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
@@ -52,8 +52,7 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                AndroidSelectiveSendByAliasTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test

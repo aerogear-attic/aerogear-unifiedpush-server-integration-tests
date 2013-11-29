@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.jayway.restassured.path.json.JsonPath;
 import org.json.simple.JSONObject;
 import org.picketlink.idm.model.basic.User;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
 public final class UserEndpointUtils {

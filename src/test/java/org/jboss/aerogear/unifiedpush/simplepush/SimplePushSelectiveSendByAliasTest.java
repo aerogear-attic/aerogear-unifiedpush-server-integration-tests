@@ -16,7 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.simplepush;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -24,11 +23,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response.Status;
 
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
@@ -39,19 +34,16 @@ import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.aerogear.unifiedpush.utils.ServerSocketUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
-import com.jayway.restassured.response.Response;
-
 public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
-    
+
     private final static String SIMPLE_PUSH_VERSION = "version=15";
-    
+
     @Override
     protected String getContextRoot() {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
@@ -59,8 +51,7 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                SimplePushSelectiveSendByAliasTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test

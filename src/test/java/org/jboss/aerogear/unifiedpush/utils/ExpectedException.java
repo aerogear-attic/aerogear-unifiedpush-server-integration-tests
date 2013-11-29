@@ -1,12 +1,11 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
+import javax.ws.rs.core.Response;
+
 import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
-import javax.ws.rs.core.Response;
 
 /**
  * @author <a href="mailto:tkriz@redhat.com">Tadeas Kriz</a>

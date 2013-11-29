@@ -1,6 +1,12 @@
 package org.jboss.aerogear.unifiedpush.rest.registry.applications;
 
-import com.jayway.restassured.response.Response;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
@@ -8,18 +14,10 @@ import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
 
@@ -29,12 +27,6 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     }
 
     private static String installationId = null;
-
-    private static final String UPDATED_DEVICE_TOKEN = "MyDeviceToken_123";
-    private static final String UPDATED_DEVICE_TYPE = "SmartPhone";
-    private static final String UPDATED_OS = "AndroidOS";
-    private static final String UPDATED_OS_VERSION = "10";
-    private static final String UPDATED_ALIAS = "rh@qa.example.com";
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -49,8 +41,7 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                InstallationManagementEndpointTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test

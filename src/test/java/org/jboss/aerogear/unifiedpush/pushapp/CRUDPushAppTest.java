@@ -21,9 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response.Status;
 
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
@@ -31,9 +28,6 @@ import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
-
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
 
 public class CRUDPushAppTest extends GenericSimpleUnifiedPushTest {
 

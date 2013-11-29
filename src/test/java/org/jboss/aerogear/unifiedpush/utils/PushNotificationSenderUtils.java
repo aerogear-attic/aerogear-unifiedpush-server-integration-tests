@@ -16,26 +16,38 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.jboss.aerogear.unifiedpush.JavaSender;
+import org.jboss.aerogear.unifiedpush.SenderClient;
+import org.jboss.aerogear.unifiedpush.message.MessageResponseCallback;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
+import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.mockito.Mockito;
+
 import com.google.android.gcm.server.Message;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
-import org.json.simple.JSONObject;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public final class PushNotificationSenderUtils {
 
@@ -46,7 +58,7 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SendCriteria createCriteria(List<String> aliases, List<String> deviceTypes, List<String> categories,
-                                              List<String> variants) {
+            List<String> variants) {
         Map<String, Object> data = criteriaToMap(aliases, deviceTypes, categories, variants);
 
         return new SendCriteria(data);
@@ -60,21 +72,18 @@ public final class PushNotificationSenderUtils {
         return createMessage(criteria, null, customData);
     }
 
-    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush,
-                                                   Map<String, Object> customData) {
+    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, Map<String, Object> customData) {
         return createMessage(criteria, simplePush, DEFAULT_TTL, customData);
     }
 
     public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, int timeToLive,
-                                                   Map<String, Object> customData) {
+            Map<String, Object> customData) {
         return createMessage(criteria, simplePush, null, null, DEFAULT_BADGE, timeToLive, customData);
     }
 
-    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, String alert,
-                                                   String sound, int badge, int timeToLive,
-                                                   Map<String, Object> customData) {
-        Map<String, Object> messageMap = messageToMap(criteria, simplePush, alert, sound, badge, timeToLive,
-                customData);
+    public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, String alert, String sound,
+            int badge, int timeToLive, Map<String, Object> customData) {
+        Map<String, Object> messageMap = messageToMap(criteria, simplePush, alert, sound, badge, timeToLive, customData);
 
         return createMessage(messageMap);
     }
@@ -83,21 +92,110 @@ public final class PushNotificationSenderUtils {
         return new UnifiedPushMessage(messageMap);
     }
 
+    private static boolean isEmpty(String s) {
+        return s == null || "".equals(s);
+    }
+
+    private static boolean isEmpty(Collection<?> s) {
+        return s == null || s.isEmpty();
+    }
+
+    private static boolean isEmpty(Map<?, ?> s) {
+        return s == null || s.isEmpty();
+    }
+
+    // TODO: better implementation
+    private static UnifiedMessage createUnifiedMessage(UnifiedPushMessage message, PushApplication pushApplication) {
+        UnifiedMessage.Builder unifiedMessage = new UnifiedMessage.Builder()
+                .pushApplicationId(pushApplication.getPushApplicationID())
+                .masterSecret(pushApplication.getMasterSecret());
+
+        if (!isEmpty(message.getData())) {
+            unifiedMessage.attributes(message.getData());
+        }
+
+        if (!isEmpty(message.getAlert())) {
+            unifiedMessage.alert(message.getAlert());
+        }
+
+        if (message.getSendCriteria() != null && !isEmpty(message.getSendCriteria().getAliases())) {
+            unifiedMessage.aliases(message.getSendCriteria().getAliases());
+        }
+
+        if (message.getBadge() != -1) {
+            unifiedMessage.badge(Integer.toString(message.getBadge()));
+        }
+
+        if (message.getTimeToLive() != -1) {
+            unifiedMessage.timeToLive(message.getTimeToLive());
+        }
+
+        if (message.getSendCriteria() != null && !isEmpty(message.getSendCriteria().getCategories())) {
+            unifiedMessage.categories(new HashSet<String>(message.getSendCriteria().getCategories()));
+        }
+
+        if (message.getSendCriteria() != null && !isEmpty(message.getSendCriteria().getDeviceTypes())) {
+            unifiedMessage.deviceType(message.getSendCriteria().getDeviceTypes());
+        }
+
+        if (!isEmpty(message.getSimplePush())) {
+            unifiedMessage.simplePush(message.getSimplePush());
+        }
+
+        if (!isEmpty(message.getSound())) {
+            unifiedMessage.sound(message.getSound());
+        }
+
+        if (message.getSendCriteria() != null && !isEmpty(message.getSendCriteria().getVariants())) {
+            unifiedMessage.variants(message.getSendCriteria().getVariants());
+        }
+
+        return unifiedMessage.build();
+    }
+
     public static void send(PushApplication pushApplication, UnifiedPushMessage message, String root) {
         assertNotNull(root);
         assertNotNull(pushApplication);
 
-        JSONObject jsonObject = new JSONObject();
+        JavaSender sender = new SenderClient(Constants.INSECURE_AG_PUSH_ENDPOINT);
 
-        jsonObject.putAll(messageToMap(message));
+        final CountDownLatch latch = new CountDownLatch(1);
+        final List<Integer> returnedStatusList = new ArrayList<Integer>(1);
+        final AtomicBoolean onFailCalled = new AtomicBoolean(false);
 
-        Response response = RestAssured.given()
-                .contentType(ContentTypes.json())
-                .auth()
-                .basic(pushApplication.getPushApplicationID(), pushApplication.getMasterSecret())
-                .header(Headers.acceptJson())
-                .body(jsonObject)
-                .post("{root}rest/sender", root);
+        MessageResponseCallback callback = new MessageResponseCallback() {
+            @Override
+            public void onComplete(int statusCode) {
+                returnedStatusList.add(statusCode);
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                onFailCalled.set(true);
+                latch.countDown();
+            }
+        };
+
+        sender.send(createUnifiedMessage(message, pushApplication), callback);
+
+        try {
+            latch.await(5000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+        }
+
+        assertFalse(onFailCalled.get());
+
+        // The aerogear-unifiedpush-java-client send method receives a MessageResponseCallback which exposes the HTTP status
+        // code for the request made. In order to continue using the UnexpectedResponseException.verifyResponse, I had to mock
+        // the restassured Response since there is not an available constructor to use for creating an instance. An alternative
+        // solution would be to modify the UnexpectedResponseException and add a method which receives and verifies an HTTP
+        // status. However, both solutions are ugly. The best practice would be to avoid carrying the restassured Response
+        // outside the sender classes.
+        // TODO: Create a custom Value Object which will wrap the restassured Response and will be used as a data
+        // transfer object inside the integration suite.
+        Response response = Mockito.mock(Response.class);
+        Mockito.when(response.statusCode()).thenReturn(returnedStatusList.get(0));
 
         UnexpectedResponseException.verifyResponse(response, OK);
     }
@@ -116,16 +214,16 @@ public final class PushNotificationSenderUtils {
 
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = new SenderStatisticsEndpoint.SenderStatistics();
 
-        if(jsonPath.getJsonObject("gcmMessage") != null) {
+        if (jsonPath.getJsonObject("gcmMessage") != null) {
             Message.Builder gcmMessageBuilder = new Message.Builder();
 
             if (jsonPath.get("gcmMessage.delayWhileIdle") != null) {
                 gcmMessageBuilder.delayWhileIdle(jsonPath.getBoolean("gcmMessage.delayWhileIdle"));
             }
-            if(jsonPath.get("gcmMessage.collapseKey") != null) {
+            if (jsonPath.get("gcmMessage.collapseKey") != null) {
                 gcmMessageBuilder.collapseKey(jsonPath.getString("gcmMessage.collapseKey"));
             }
-            if(jsonPath.get("gcmMessage.timeToLive") != null) {
+            if (jsonPath.get("gcmMessage.timeToLive") != null) {
                 gcmMessageBuilder.timeToLive(jsonPath.getInt("gcmMessage.timeToLive"));
             }
             Map<String, String> gcmMessageData = jsonPath.getJsonObject("gcmMessage.data");
@@ -146,18 +244,14 @@ public final class PushNotificationSenderUtils {
 
     public static void resetSenderStatistics(AuthenticationUtils.Session session) {
 
-        Response response = RestAssured.given()
-                .contentType(ContentTypes.json())
-                .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .delete("{root}rest/senderStats", session.getRoot());
+        Response response = RestAssured.given().contentType(ContentTypes.json()).header(Headers.acceptJson())
+                .cookies(session.getCookies()).delete("{root}rest/senderStats", session.getRoot());
 
         UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
 
     }
 
-    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatisticsAndReset(AuthenticationUtils.Session
-                                                                                                session) {
+    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatisticsAndReset(AuthenticationUtils.Session session) {
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = getSenderStatistics(session);
 
         resetSenderStatistics(session);
@@ -166,15 +260,13 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SenderStatisticsEndpoint.SenderStatistics waitSenderStatistics(final int expectedTokenCount,
-                                                                                 final AuthenticationUtils.Session
-                                                                                         session) {
+            final AuthenticationUtils.Session session) {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 SenderStatisticsEndpoint.SenderStatistics senderStatistics = getSenderStatistics(session);
 
-                return senderStatistics.deviceTokens != null && senderStatistics.deviceTokens.size() ==
-                        expectedTokenCount;
+                return senderStatistics.deviceTokens != null && senderStatistics.deviceTokens.size() == expectedTokenCount;
             }
         });
 
@@ -188,8 +280,7 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SenderStatisticsEndpoint.SenderStatistics waitSenderStatisticsAndReset(int expectedTokenCount,
-                                                                                         AuthenticationUtils.Session
-                                                                                                 session) {
+            AuthenticationUtils.Session session) {
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = waitSenderStatistics(expectedTokenCount, session);
 
         resetSenderStatistics(session);
@@ -198,13 +289,11 @@ public final class PushNotificationSenderUtils {
     }
 
     private static Map<String, Object> criteriaToMap(SendCriteria criteria) {
-        return criteriaToMap(criteria.getAliases(), criteria.getDeviceTypes(), criteria.getCategories(),
-                criteria.getVariants());
+        return criteriaToMap(criteria.getAliases(), criteria.getDeviceTypes(), criteria.getCategories(), criteria.getVariants());
     }
 
-    private static Map<String, Object> criteriaToMap(List<String> aliases, List<String> deviceTypes,
-                                                     List<String> categories,
-                                                     List<String> variants) {
+    private static Map<String, Object> criteriaToMap(List<String> aliases, List<String> deviceTypes, List<String> categories,
+            List<String> variants) {
         Map<String, Object> data = new HashMap<String, Object>();
 
         data.put("alias", aliases);
@@ -215,13 +304,12 @@ public final class PushNotificationSenderUtils {
     }
 
     private static Map<String, Object> messageToMap(UnifiedPushMessage message) {
-        return messageToMap(message.getSendCriteria(), message.getSimplePush(), message.getAlert(),
-                message.getSound(), message.getBadge(), message.getTimeToLive(), message.getData());
+        return messageToMap(message.getSendCriteria(), message.getSimplePush(), message.getAlert(), message.getSound(),
+                message.getBadge(), message.getTimeToLive(), message.getData());
     }
 
-    private static Map<String, Object> messageToMap(SendCriteria criteria, String simplePush, String alert,
-                                                    String sound, int badge, int timeToLive,
-                                                    Map<String, Object> customData) {
+    private static Map<String, Object> messageToMap(SendCriteria criteria, String simplePush, String alert, String sound,
+            int badge, int timeToLive, Map<String, Object> customData) {
         Map<String, Object> data = new HashMap<String, Object>();
 
         if (criteria != null) {

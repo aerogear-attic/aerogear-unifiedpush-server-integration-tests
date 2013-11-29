@@ -16,14 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
-import org.apache.commons.io.IOUtils;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.iOSVariant;
-import org.jboss.aerogear.unifiedpush.rest.util.iOSApplicationUploadForm;
-import org.json.simple.JSONObject;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,9 +31,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.apache.commons.io.IOUtils;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.model.iOSVariant;
+import org.json.simple.JSONObject;
+
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.path.json.JsonPath;
+import com.jayway.restassured.response.Response;
 
 public final class iOSVariantUtils {
 

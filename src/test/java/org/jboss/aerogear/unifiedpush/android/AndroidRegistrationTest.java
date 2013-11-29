@@ -41,13 +41,6 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    private final static String UPDATED_ANDROID_VARIANT_GOOGLE_KEY = "UPD_IDDASDASDSAQ__1";
-
-    private final static String UPDATED_ANDROID_VARIANT_NAME = "UPD_AndroidVariant__1";
-
-    private final static String UPDATED_ANDROID_VARIANT_DESC = "UPD_awesome variant__1";
-
-
     private final static String UPDATED_ANDROID_OPERATING_SYSTEM = "AndroidOS";
     private final static String UPDATED_ANDROID_DEVICE_TYPE = "AndroidPhone";
     private final static String UPDATED_ANDROID_OPERATING_SYSTEM_VERSION = "4.1.2";
@@ -58,8 +51,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
     @Deployment(testable = false)
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses(GenericUnifiedPushTest.class,
-                AndroidRegistrationTest.class);
+        return Deployments.customUnifiedPushServerWithClasses();
     }
 
     @Test
@@ -172,8 +164,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(108)
     public void listAllAndroidVariants() {
-        List<AndroidVariant> androidVariants = AndroidVariantUtils.listAll(getRegisteredPushApplication(),
-                getSession());
+        List<AndroidVariant> androidVariants = AndroidVariantUtils.listAll(getRegisteredPushApplication(), getSession());
 
         assertNotNull(androidVariants);
         assertEquals(1, androidVariants.size());
