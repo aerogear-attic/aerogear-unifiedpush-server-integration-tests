@@ -58,6 +58,10 @@ public class Sender {
         MulticastResult multicatResult = mock(MulticastResult.class);
         ArrayList<Result> resultList = new ArrayList<Result>();
 
+        if (message != null) {
+            gcmMessage = message;
+        }
+
         if (regIds != null && !regIds.isEmpty()) {
             gcmRegIdsList = new ArrayList<String>();
             gcmRegIdsList.addAll(regIds);
@@ -67,9 +71,6 @@ public class Sender {
                 when(result.getErrorCodeName()).thenReturn(Constants.ERROR_INVALID_REGISTRATION);
                 resultList.add(result);
             }
-        }
-        if (message != null) {
-            gcmMessage = message;
         }
 
         when(multicatResult.getResults()).thenReturn(resultList);

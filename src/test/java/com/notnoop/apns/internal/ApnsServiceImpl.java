@@ -70,12 +70,7 @@ public class ApnsServiceImpl implements ApnsService {
     }
 
     @SuppressWarnings("rawtypes")
-    public Collection push(Collection<String> tokens, String message) {
-        if (tokens != null) {
-            tokensList = new ArrayList<String>();
-            tokensList.addAll(tokens);
-        }
-
+    public Collection push(Collection<String> tokens, String message, Date expiry) {
         if (message != null) {
             String[] parts = message.split(",");
             for (String part : parts) {
@@ -89,6 +84,10 @@ public class ApnsServiceImpl implements ApnsService {
                 else if ("customFields".equals(subparts[0]))
                     customFields = subparts[1];
             }
+        }
+        if (tokens != null) {
+            tokensList = new ArrayList<String>();
+            tokensList.addAll(tokens);
         }
         return null;
     }

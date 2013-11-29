@@ -2,7 +2,7 @@
 
 This project contains the integration tests for the [aerogear-unified-push-server](https://github.com/aerogear/aerogear-unified-push-server) project.
 
-The [Arquillian](http://arquillian.org/) testing platform is used to enable the testing automation. Arquillian integrates with the testing framework which is [Spock](https://code.google.com/p/spock/wiki/SpockBasics) in this case. Spock lets you write specifications that describe expected features (properties, aspects) exhibited by a system of interest.
+The [Arquillian](http://arquillian.org/) testing platform is used to enable the testing automation. Arquillian integrates with the testing framework which is JUnit in this case.
 
 ## Integration Tests Content
 Each Test defines the three core aspects needed for the execution of an [Arquillian](http://arquillian.org/) test case:
@@ -20,6 +20,12 @@ Navigate to the project's root folder and execute:
 
     ./jboss-as-conf/setup.sh
 
+This step does the following:
+
+* Grabs AS 7.1.1 installation from jboss.org site
+* Adds HTTPS connector to server configuration
+* Clones repository of aerogear-unifiedpush-server into aerogear-unifiedpush-server directory
+
 Navigate to the project's root folder and setup the `JBOSS_HOME` environment variable:
 
     export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
@@ -27,6 +33,10 @@ Navigate to the project's root folder and setup the `JBOSS_HOME` environment var
 The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
     mvn test
+
+Note, if you need to run tests against different directory, just specify following:
+
+    mvn test -Dunified.push.server.location=/path/to/pom.xml/that/should/be/build/instead
 
 ## Documentation
 
