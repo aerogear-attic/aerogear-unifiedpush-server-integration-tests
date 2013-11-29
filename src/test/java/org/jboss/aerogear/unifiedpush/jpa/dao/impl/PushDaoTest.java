@@ -32,7 +32,6 @@ import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.jpa.PersistentObject;
 import org.jboss.aerogear.unifiedpush.jpa.dao.PushApplicationDao;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.persistence.UsingDataSet;
@@ -51,7 +50,7 @@ public class PushDaoTest {
     @Deployment
     public static Archive<?> testArchive() {
         JavaArchive jar = ShrinkWrap.create(JavaArchive.class)
-                .addClasses(PushApplicationDao.class, PushApplicationDaoImpl.class, AuthenticationUtils.class)
+                .addClasses(PushApplicationDao.class, PushApplicationDaoImpl.class)
                 .addPackage(PushApplication.class.getPackage()).addPackage(PersistentObject.class.getPackage())
                 .addPackage(Variant.class.getPackage()).addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence-pushee-only.xml", "persistence.xml");
