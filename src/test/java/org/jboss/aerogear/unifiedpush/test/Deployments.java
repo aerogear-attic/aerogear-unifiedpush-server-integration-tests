@@ -49,7 +49,7 @@ public final class Deployments {
     public static WebArchive unifiedPushServer() {
 
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                "aerogear-unifiedpush-server/pom.xml");
+                "aerogear-unifiedpush-server/server/pom.xml");
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
                 .as(WebArchive.class);
@@ -64,7 +64,7 @@ public final class Deployments {
     public static WebArchive unifiedPushServerWithClasses(Class<?>... clazz) {
 
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                "aerogear-unifiedpush-server/pom.xml");
+                "aerogear-unifiedpush-server/server/pom.xml");
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
                 .as(WebArchive.class);
@@ -83,7 +83,7 @@ public final class Deployments {
 
     public static WebArchive customUnifiedPushServerWithClasses(Class<?>... clazz) {
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                "aerogear-unifiedpush-server/pom.xml");
+                "aerogear-unifiedpush-server/server/pom.xml");
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
                 .as(WebArchive.class);
