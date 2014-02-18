@@ -485,7 +485,7 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <property name="source-folder" location="${project.basedir}/aerogear-unifiedpush-server" />
+                                        <property name="source-folder" location="${project.basedir}/aerogear-unifiedpush-server/server" />
                                         <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask"
                                             classpathref="maven.plugin.classpath" />
                                         <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties" />
