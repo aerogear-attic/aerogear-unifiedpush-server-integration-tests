@@ -18,12 +18,11 @@ package org.jboss.aerogear.unifiedpush.pushapp;
 
 import static org.junit.Assert.assertNotNull;
 
-import javax.ws.rs.core.Response.Status;
-
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
+import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,10 +35,10 @@ public class RegisterPushAppWithoutLoginTest extends GenericSimpleUnifiedPushTes
     public void registeringPushApplicationWithoutBeingLogged() {
         assertNotNull(getContextRoot());
 
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
 
         PushApplicationUtils
-                .generateAndRegister(AuthenticationUtils.Session.forceCreateValidWithEmptyCookies(getContextRoot()));
+                .generateAndRegister(Session.forceCreateValidWithEmptyCookies(getContextRoot()));
     }
 
     @Override

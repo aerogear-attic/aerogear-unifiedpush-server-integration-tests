@@ -59,7 +59,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
         categories.add(COMMON_CATEGORY);
         generatedInstallation.setCategories(categories);
 
-        InstallationUtils.register(generatedInstallation, getRegisteredAndroidVariant(), getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredAndroidVariant(), getSession());
 
         installationsWithCommonCategory.add(generatedInstallation);
     }
@@ -73,7 +73,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
         categories.add(COMMON_CATEGORY);
         generatedInstallation.setCategories(categories);
 
-        InstallationUtils.register(generatedInstallation, getRegisteredIOSVariant(), getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredIOSVariant(), getSession());
 
         installationsWithCommonCategory.add(generatedInstallation);
     }
@@ -87,7 +87,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
         categories.add(COMMON_CATEGORY);
         generatedInstallation.setCategories(categories);
 
-        InstallationUtils.register(generatedInstallation, getRegisteredSimplePushVariant(), getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredSimplePushVariant(), getSession());
 
         // FIXME SimplePush should be also done the same way Sender and ApnsServiceImpl are done
         simplePushInstallation = generatedInstallation;
@@ -110,7 +110,7 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
 
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
     }
 
     @Test

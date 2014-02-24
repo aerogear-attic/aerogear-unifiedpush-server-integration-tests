@@ -16,21 +16,20 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
-import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.json.simple.JSONObject;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.apache.http.HttpStatus;
+import org.jboss.aerogear.unifiedpush.model.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.json.simple.JSONObject;
+
+import com.jayway.restassured.path.json.JsonPath;
+import com.jayway.restassured.response.Response;
 
 public final class AndroidVariantUtils {
 
@@ -39,20 +38,20 @@ public final class AndroidVariantUtils {
     private AndroidVariantUtils() {
     }
 
-    public static AndroidVariant create(String name, String description, String googleKey) {
+    public static AndroidVariant create(String name, String description, String googleKey, String projectNumber) {
         AndroidVariant androidVariant = new AndroidVariant();
 
         androidVariant.setName(name);
         androidVariant.setDescription(description);
         androidVariant.setGoogleKey(googleKey);
+        androidVariant.setProjectNumber(projectNumber);
 
         return androidVariant;
     }
 
-    public static AndroidVariant createAndRegister(String name, String description, String googleKey,
-                                                   PushApplication pushApplication,
-                                                   AuthenticationUtils.Session session) {
-        AndroidVariant androidVariant = create(name, description, googleKey);
+    public static AndroidVariant createAndRegister(String name, String description, String googleKey, String projectNumber,
+        PushApplication pushApplication, Session session) {
+        AndroidVariant androidVariant = create(name, description, googleKey, projectNumber);
 
         register(androidVariant, pushApplication, session);
 
@@ -70,8 +69,9 @@ public final class AndroidVariantUtils {
             String name = UUID.randomUUID().toString();
             String description = UUID.randomUUID().toString();
             String googleKey = UUID.randomUUID().toString();
+            String projectNumber = UUID.randomUUID().toString();
 
-            AndroidVariant androidVariant = create(name, description, googleKey);
+            AndroidVariant androidVariant = create(name, description, googleKey, projectNumber);
 
             androidVariants.add(androidVariant);
         }
@@ -80,12 +80,12 @@ public final class AndroidVariantUtils {
     }
 
     public static AndroidVariant generateAndRegister(PushApplication pushApplication,
-                                                     AuthenticationUtils.Session session) {
+        Session session) {
         return generateAndRegister(SINGLE, pushApplication, session).iterator().next();
     }
 
     public static List<AndroidVariant> generateAndRegister(int count, PushApplication pushApplication,
-                                                           AuthenticationUtils.Session session) {
+        Session session) {
         List<AndroidVariant> androidVariants = generate(count);
 
         for (AndroidVariant androidVariant : androidVariants) {
@@ -96,39 +96,35 @@ public final class AndroidVariantUtils {
     }
 
     public static void register(AndroidVariant androidVariant, PushApplication pushApplication,
-                                AuthenticationUtils.Session session) {
+        Session session) {
         register(androidVariant, pushApplication, session, ContentTypes.json());
     }
 
     public static void register(AndroidVariant androidVariant, PushApplication pushApplication,
-                                AuthenticationUtils.Session session, String contentType)
-            throws NullPointerException, UnexpectedResponseException {
-        assertNotNull(session);
+        Session session, String contentType) throws NullPointerException, UnexpectedResponseException {
 
-        Response response = RestAssured.given()
+        Validate.notNull(session);
+
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(androidVariant))
-                .post("{root}rest/applications/{pushApplicationID}/android", session.getRoot(),
-                        pushApplication.getPushApplicationID());
+            .post("/rest/applications/{pushApplicationID}/android", pushApplication.getPushApplicationID());
 
-        UnexpectedResponseException.verifyResponse(response, CREATED);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
         setFromJsonPath(response.jsonPath(), androidVariant);
     }
 
-    public static List<AndroidVariant> listAll(PushApplication pushApplication, AuthenticationUtils.Session session) {
-        assertNotNull(session);
+    public static List<AndroidVariant> listAll(PushApplication pushApplication, Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{pushApplicationID}/android", session.getRoot(),
-                        pushApplication.getPushApplicationID());
+            .get("/rest/applications/{pushApplicationID}/android", pushApplication.getPushApplicationID());
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         List<AndroidVariant> androidVariants = new ArrayList<AndroidVariant>();
 
@@ -148,53 +144,50 @@ public final class AndroidVariantUtils {
     }
 
     public static AndroidVariant findById(String variantID, PushApplication pushApplication,
-                                          AuthenticationUtils.Session session) {
-        assertNotNull(session);
+        Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{pushApplicationID}/android/{variantID}", session.getRoot(),
+            .get("/rest/applications/{pushApplicationID}/android/{variantID}",
                         pushApplication.getPushApplicationID(), variantID);
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         return fromJsonPath(response.jsonPath());
     }
 
     public static void update(AndroidVariant androidVariant, PushApplication pushApplication,
-                              AuthenticationUtils.Session session) {
+        Session session) {
         update(androidVariant, pushApplication, session, ContentTypes.json());
     }
 
     public static void update(AndroidVariant androidVariant, PushApplication pushApplication,
-                              AuthenticationUtils.Session session, String contentType) {
-        assertNotNull(session);
+        Session session, String contentType) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(androidVariant))
-                .put("{root}rest/applications/{pushApplicationID}/android/{variantID}", session.getRoot(),
+            .put("/rest/applications/{pushApplicationID}/android/{variantID}",
                         pushApplication.getPushApplicationID(), androidVariant.getVariantID());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     public static void delete(AndroidVariant androidVariant, PushApplication pushApplication,
-                              AuthenticationUtils.Session session) {
-        assertNotNull(session);
+        Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .delete("{root}rest/applications/{pushApplicationID}/android/{variantID}", session.getRoot(),
+            .delete("/rest/applications/{pushApplicationID}/android/{variantID}",
                         pushApplication.getPushApplicationID(), androidVariant.getVariantID());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     public static JSONObject toJSONObject(AndroidVariant androidVariant) {
@@ -202,6 +195,7 @@ public final class AndroidVariantUtils {
         jsonObject.put("name", androidVariant.getName());
         jsonObject.put("description", androidVariant.getDescription());
         jsonObject.put("googleKey", androidVariant.getGoogleKey());
+        jsonObject.put("projectNumber", androidVariant.getProjectNumber());
         return jsonObject;
     }
 

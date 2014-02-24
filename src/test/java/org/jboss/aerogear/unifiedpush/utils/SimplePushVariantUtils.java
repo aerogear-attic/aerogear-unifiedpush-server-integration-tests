@@ -16,22 +16,17 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
 import org.json.simple.JSONObject;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
@@ -52,7 +47,7 @@ public final class SimplePushVariantUtils {
     }
 
     public static SimplePushVariant createAndRegister(String name, String description, PushApplication pushApplication,
-                                                      AuthenticationUtils.Session session) {
+        Session session) {
         SimplePushVariant simplePushVariant = create(name, description);
 
         register(simplePushVariant, pushApplication, session);
@@ -80,12 +75,12 @@ public final class SimplePushVariantUtils {
     }
 
     public static SimplePushVariant generateAndRegister(PushApplication pushApplication,
-                                                        AuthenticationUtils.Session session) {
+        Session session) {
         return generateAndRegister(SINGLE, pushApplication, session).iterator().next();
     }
 
     public static List<SimplePushVariant> generateAndRegister(int count, PushApplication pushApplication,
-                                                              AuthenticationUtils.Session session) {
+        Session session) {
         List<SimplePushVariant> simplePushVariants = generate(count);
 
         for (SimplePushVariant simplePushVariant : simplePushVariants) {
@@ -96,36 +91,34 @@ public final class SimplePushVariantUtils {
     }
 
     public static void register(SimplePushVariant simplePushVariant, PushApplication pushApplication,
-                                AuthenticationUtils.Session session) {
+        Session session) {
         register(simplePushVariant, pushApplication, session, ContentTypes.json());
     }
 
     public static void register(SimplePushVariant simplePushVariant, PushApplication pushApplication,
-                                AuthenticationUtils.Session session, String contentType) {
+        Session session, String contentType) {
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(simplePushVariant))
-                .post("{root}rest/applications/{pushApplicationID}/simplePush", session.getRoot(),
+            .post("/rest/applications/{pushApplicationID}/simplePush",
                         pushApplication.getPushApplicationID());
 
-        UnexpectedResponseException.verifyResponse(response, CREATED);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
         setFromJsonPath(response.jsonPath(), simplePushVariant);
     }
 
     public static List<SimplePushVariant> listAll(PushApplication pushApplication,
-                                                  AuthenticationUtils.Session session) {
-        Response response = RestAssured.given()
+        Session session) {
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{pushApplicationID}/simplePush", session.getRoot(),
+            .get("/rest/applications/{pushApplicationID}/simplePush",
                         pushApplication.getPushApplicationID());
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         List<SimplePushVariant> simplePushVariants = new ArrayList<SimplePushVariant>();
 
@@ -145,51 +138,48 @@ public final class SimplePushVariantUtils {
     }
 
     public static SimplePushVariant findById(String variantID, PushApplication pushApplication,
-                                             AuthenticationUtils.Session session) {
-        Response response = RestAssured.given()
+        Session session) {
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{pushApplicationID}/android/{variantID}", session.getRoot(),
+            .get("/rest/applications/{pushApplicationID}/android/{variantID}",
                         pushApplication.getPushApplicationID(), variantID);
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         return fromJsonPath(response.jsonPath());
     }
 
     public static void update(SimplePushVariant simplePushVariant, PushApplication pushApplication,
-                              AuthenticationUtils.Session session) {
+        Session session) {
         update(simplePushVariant, pushApplication, session, ContentTypes.json());
     }
 
     public static void update(SimplePushVariant simplePushVariant, PushApplication pushApplication,
-                              AuthenticationUtils.Session session, String contentType) {
-        assertNotNull(session);
+        Session session, String contentType) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(simplePushVariant))
-                .put("{root}rest/applications/{pushApplicationID}/simplePush/{variantID}", session.getRoot(),
+            .put("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
                         pushApplication.getPushApplicationID(), simplePushVariant.getVariantID());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     public static void delete(SimplePushVariant simplePushVariant, PushApplication pushApplication,
-                              AuthenticationUtils.Session session) {
-        assertNotNull(session);
+        Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .delete("{root}rest/applications/{pushApplicationID}/simplePush/{variantID}", session.getRoot(),
+            .delete("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
                         pushApplication.getPushApplicationID(), simplePushVariant.getVariantID());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     public static JSONObject toJSONObject(SimplePushVariant simplePushVariant) {
@@ -243,72 +233,59 @@ public final class SimplePushVariantUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static Response registerSimplePushVariant(String pushAppId, SimplePushVariant variant, Map<String,
-            ?> cookies,
-                                                     String root) {
-
-        assertNotNull(root);
+    public static Response registerSimplePushVariant(String pushAppId, SimplePushVariant variant, Session session) {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("name", variant.getName());
         jsonObject.put("description", variant.getDescription());
 
-        Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString())
-                .post("{root}rest/applications/{pushAppId}/simplePush", root, pushAppId);
+        Response response = session.given().contentType("application/json").header("Accept", "application/json")
+            .body(jsonObject.toString())
+            .post("/rest/applications/{pushAppId}/simplePush", pushAppId);
 
         return response;
     }
 
     @SuppressWarnings("unchecked")
-    public static Response updateSimplePushVariant(String pushAppId, SimplePushVariant variant, Map<String, ?> cookies,
-                                                   String variantId, String root) {
-
-        assertNotNull(root);
+    public static Response updateSimplePushVariant(String pushAppId, SimplePushVariant variant, String variantId,
+        Session session) {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("name", variant.getName());
         jsonObject.put("description", variant.getDescription());
 
-        Response response = RestAssured.given().contentType("application/json").header("Accept", "application/json")
-                .cookies(cookies).body(jsonObject.toString())
-                .put("{root}rest/applications/{pushAppId}/simplePush/{variantId}", root, pushAppId, variantId);
+        Response response = session.given().contentType("application/json").header("Accept", "application/json")
+            .body(jsonObject.toString())
+            .put("/rest/applications/{pushAppId}/simplePush/{variantId}", pushAppId, variantId);
 
         return response;
     }
 
-    public static Response listAllSimplePushVariants(String pushAppId, Map<String, ?> cookies, String root) {
-        assertNotNull(root);
+    public static Response listAllSimplePushVariants(String pushAppId, Session session) {
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType("application/json")
                 .header("Accept", "application/json")
-                .cookies(cookies)
-                .get("{root}rest/applications/{pushAppId}/simplePush", root, pushAppId);
+            .get("/rest/applications/{pushAppId}/simplePush", pushAppId);
 
         return response;
     }
 
-    public static Response findSimplePushVariantById(String pushAppId, String variantId, Map<String, ?> cookies,
-                                                     String root) {
-        assertNotNull(root);
+    public static Response findSimplePushVariantById(String pushAppId, String variantId,
+        Session session) {
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType("application/json")
                 .header("Accept", "application/json")
-                .cookies(cookies)
-                .get("{root}rest/applications/{pushAppId}/simplePush/{variantId}", root, pushAppId, variantId);
+            .get("/rest/applications/{pushAppId}/simplePush/{variantId}", pushAppId, variantId);
 
         return response;
     }
 
-    public static Response deleteSimplePushVariant(String pushAppId, String variantId, Map<String, ?> cookies,
-                                                   String root) {
-        assertNotNull(root);
+    public static Response deleteSimplePushVariant(String pushAppId, String variantId, Session session) {
 
-        Response response = RestAssured.given()
-                .cookies(cookies)
-                .delete("{root}rest/applications/{pushAppId}/simplePush/{variantId}", root, pushAppId, variantId);
+        Response response = session.given()
+            .delete("/rest/applications/{pushAppId}/simplePush/{variantId}", pushAppId, variantId);
 
         return response;
     }

@@ -11,6 +11,7 @@ import org.jboss.aerogear.unifiedpush.users.Developer;
 import org.jboss.aerogear.unifiedpush.utils.AdminUtils;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
 
@@ -21,7 +22,7 @@ public class AdminEndpointTest extends GenericSimpleUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    public static AuthenticationUtils.Session session;
+    public static Session session;
     public static Developer developer;
 
     @Deprecated
@@ -50,7 +51,7 @@ public class AdminEndpointTest extends GenericSimpleUnifiedPushTest {
     public void loginWithNewAccount() {
         String newPassword = UUID.randomUUID().toString();
 
-        AuthenticationUtils.Session developerSession = AuthenticationUtils.completeLogin(developer.getLoginName(),
+        Session developerSession = AuthenticationUtils.completeLogin(developer.getLoginName(),
                 developer.getPassword(), newPassword, getContextRoot());
 
         assertNotNull(developerSession);

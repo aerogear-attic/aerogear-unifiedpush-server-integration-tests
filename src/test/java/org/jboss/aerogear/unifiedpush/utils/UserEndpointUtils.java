@@ -1,8 +1,5 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -10,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.http.HttpStatus;
 import org.json.simple.JSONObject;
 import org.picketlink.idm.model.basic.User;
 
@@ -32,7 +30,7 @@ public final class UserEndpointUtils {
         return user;
     }
 
-    public static User createAndRegister(String loginName, AuthenticationUtils.Session session) {
+    public static User createAndRegister(String loginName, Session session) {
         User user = create(loginName);
 
         register(user, session);
@@ -58,11 +56,11 @@ public final class UserEndpointUtils {
         return users;
     }
 
-    public static User generateAndRegister(AuthenticationUtils.Session session) {
+    public static User generateAndRegister(Session session) {
         return generateAndRegister(SINGLE, session).iterator().next();
     }
 
-    public static List<User> generateAndRegister(int count, AuthenticationUtils.Session session) {
+    public static List<User> generateAndRegister(int count, Session session) {
         List<User> users = generate(count);
 
         for(User user : users) {
@@ -72,34 +70,34 @@ public final class UserEndpointUtils {
         return users;
     }
 
-    public static Response register(User user, AuthenticationUtils.Session session) {
+    public static Response register(User user, Session session) {
         return register(user, session, ContentTypes.json());
     }
 
-    public static Response register(User user, AuthenticationUtils.Session session, String contentType) {
-        Response response = RestAssured.given()
+    public static Response register(User user, Session session, String contentType) {
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
                 .body(toJSONString(user))
-                .post("{root}rest/users", session.getRoot());
+                .post("/rest/users");
 
-        UnexpectedResponseException.verifyResponse(response, CREATED);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
         setFromJsonPath(response.jsonPath(), user);
 
         return response;
     }
 
-    public static List<User> listAll(AuthenticationUtils.Session session) {
+    public static List<User> listAll(Session session) {
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
-                .get("{root}rest/users", session.getRoot());
+                .get("/rest/users");
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         List<User> users = new ArrayList<User>();
 
@@ -117,42 +115,42 @@ public final class UserEndpointUtils {
         return users;
     }
 
-    public static User findById(String id, AuthenticationUtils.Session session) {
-        Response response = RestAssured.given()
+    public static User findById(String id, Session session) {
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
-                .get("{root}rest/users/{id}", session.getRoot(), id);
+                .get("/rest/users/{id}", id);
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         return fromJsonPath(response.jsonPath());
     }
 
-    public static Response update(User user, AuthenticationUtils.Session session) {
+    public static Response update(User user, Session session) {
         return update(user, session, ContentTypes.json());
     }
 
-    public static Response update(User user, AuthenticationUtils.Session session, String contentType) {
+    public static Response update(User user, Session session, String contentType) {
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
                 .body(toJSONString(user))
-                .put("{root}rest/users", session.getRoot());
+                .put("/rest/users");
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
 
         return response;
     }
 
-    public static Response delete(User user, AuthenticationUtils.Session session) {
-        Response response = RestAssured.given()
+    public static Response delete(User user, Session session) {
+        Response response = session.given()
                 .cookies(session.getCookies())
-                .delete("{root}rest/users/{id}", session.getRoot(), user.getId());
+                .delete("/rest/users/{id}", user.getId());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
 
         return response;
     }

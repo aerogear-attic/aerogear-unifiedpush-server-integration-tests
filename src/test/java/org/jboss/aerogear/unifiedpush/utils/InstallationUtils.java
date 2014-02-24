@@ -16,19 +16,23 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
+import static org.junit.Assert.assertEquals;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.*;
-
-import static javax.ws.rs.core.Response.Status.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.jayway.restassured.path.json.JsonPath;
+import com.jayway.restassured.response.Response;
 
 public final class InstallationUtils {
     private static final int SINGLE = 1;
@@ -141,65 +145,60 @@ public final class InstallationUtils {
         return installations;
     }
 
-    public static void register(InstallationImpl installation, Variant variant, String root) {
-        register(installation, variant, root, ContentTypes.json());
+    public static void register(InstallationImpl installation, Variant variant, Session session) {
+        register(installation, variant, ContentTypes.json(), session);
     }
 
-    public static void register(InstallationImpl installation, Variant variant, String root, String contentType) {
-        assertNotNull(root);
+    public static void register(InstallationImpl installation, Variant variant, String contentType, Session session) {
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .auth()
                 .basic(variant.getVariantID(), variant.getSecret())
                 .header(Headers.acceptJson())
                 .body(toJSONString(installation))
-                .post("{root}rest/registry/device", root);
+            .post("/rest/registry/device");
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         setFromJsonPath(response.jsonPath(), installation);
     }
 
-    public static void registerAll(List<InstallationImpl> installations, Variant variant, String root) {
-        registerAll(installations, variant, root, ContentTypes.json());
+    public static void registerAll(List<InstallationImpl> installations, Variant variant, Session session) {
+        registerAll(installations, variant, ContentTypes.json(), session);
     }
 
-    public static void registerAll(List<InstallationImpl> installations, Variant variant, String root,
-                                   String contentType) {
+    public static void registerAll(List<InstallationImpl> installations, Variant variant, String contentType, Session session) {
         for (InstallationImpl installation : installations) {
-            register(installation, variant, root, contentType);
+            register(installation, variant, contentType, session);
         }
     }
 
-    public static void unregister(InstallationImpl installation, Variant variant, String root) {
-        assertNotNull(root);
-
-        Response response = RestAssured.given()
+    public static void unregister(InstallationImpl installation, Variant variant, Session session) {
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .auth()
                 .basic(variant.getVariantID(), variant.getSecret())
-                .delete("{root}rest/registry/device/{deviceToken}", root, installation.getDeviceToken());
+            .delete("/rest/registry/device/{deviceToken}", installation.getDeviceToken());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
-    public static void unregisterAll(List<InstallationImpl> installations, Variant variant, String root) {
+    public static void unregisterAll(List<InstallationImpl> installations, Variant variant, Session session) {
         for (InstallationImpl installation : installations) {
-            unregister(installation, variant, root);
+            unregister(installation, variant, session);
         }
     }
 
-    public static List<InstallationImpl> listAll(Variant variant, AuthenticationUtils.Session session) {
-        assertNotNull(session);
+    public static List<InstallationImpl> listAll(Variant variant, Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{variantID}/installations", session.getRoot(), variant.getVariantID());
+            .get("/rest/applications/{variantID}/installations", variant.getVariantID());
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         List<InstallationImpl> installations = new ArrayList<InstallationImpl>();
 
@@ -219,46 +218,43 @@ public final class InstallationUtils {
     }
 
     public static InstallationImpl findById(String installationID, Variant variant,
-                                            AuthenticationUtils.Session session) {
-        assertNotNull(session);
+        Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{variantID}/installations/{installationID}", session.getRoot(),
+            .get("/rest/applications/{variantID}/installations/{installationID}",
                         variant.getVariantID(), installationID);
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         return fromJsonPath(response.jsonPath());
     }
 
     public static void updateInstallation(InstallationImpl installation, Variant variant,
-                                          AuthenticationUtils.Session session) {
-        assertNotNull(session);
+        Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(installation))
-                .put("{root}rest/applications/{variantID}/installations/{installationID}", session.getRoot(),
+            .put("/rest/applications/{variantID}/installations/{installationID}",
                         variant.getVariantID(), installation.getId());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
-    public static void delete(InstallationImpl installation, Variant variant, AuthenticationUtils.Session session) {
-        assertNotNull(session);
+    public static void delete(InstallationImpl installation, Variant variant, Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .delete("{root}rest/applications/{variantID}/installations/{installationID}", session.getRoot(),
+            .delete("/rest/applications/{variantID}/installations/{installationID}",
                         variant.getVariantID(), installation.getId());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     public static JSONObject toJSONObject(InstallationImpl installation) {

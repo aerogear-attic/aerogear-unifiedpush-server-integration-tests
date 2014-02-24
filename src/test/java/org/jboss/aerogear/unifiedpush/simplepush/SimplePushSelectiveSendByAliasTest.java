@@ -71,11 +71,11 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, deviceTypes, categories, null);
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, null);
-        
+
         ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
         assertNotNull(serverSocket);
-        
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
+
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
 
         final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 

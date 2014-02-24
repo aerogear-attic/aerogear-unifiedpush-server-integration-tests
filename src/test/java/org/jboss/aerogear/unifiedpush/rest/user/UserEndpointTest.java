@@ -10,6 +10,7 @@ import java.util.List;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.aerogear.unifiedpush.utils.UserEndpointUtils;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
         return Constants.INSECURE_AG_PUSH_ENDPOINT;
     }
 
-    private static AuthenticationUtils.Session session;
+    private static Session session;
     private static User adminUser;
     private static User developerUser;
 
@@ -76,7 +77,7 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
 
         UserEndpointUtils.checkEquality(developerUser, user);
 
-        AuthenticationUtils.Session developerSession = AuthenticationUtils.completeLogin(user.getLoginName(), "123",
+        Session developerSession = AuthenticationUtils.completeLogin(user.getLoginName(), "123",
                 "opensource2013", getContextRoot());
 
         assertNotNull(developerSession);
@@ -109,7 +110,7 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     @Test(expected = AuthenticationUtils.InvalidPasswordException.class)
     @InSequence(7)
     public void tryLoginWithDeletedUser() {
-        AuthenticationUtils.Session developerSession = AuthenticationUtils.completeLogin(developerUser.getLoginName(),
+        Session developerSession = AuthenticationUtils.completeLogin(developerUser.getLoginName(),
                 "123", "opensource2013", getContextRoot());
 
         // we shouldn't get that far

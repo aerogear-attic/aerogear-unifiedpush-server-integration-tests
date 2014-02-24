@@ -16,6 +16,7 @@
  */
 package org.jboss.aerogear.unifiedpush.simplepush;
 
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
@@ -28,7 +29,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -59,9 +59,9 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(100)
     public void registerSimplePushVariantMissingAuthCookies() {
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
         SimplePushVariantUtils.generateAndRegister(getRegisteredPushApplication(),
-                AuthenticationUtils.Session.createInvalid(getContextRoot()));
+                Session.createInvalid(getContextRoot()));
     }
 
     @Test
@@ -134,7 +134,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         installation.setCategories(categories);
         installation.setAlias(UPDATED_SIMPLE_PUSH_ALIAS);
 
-        InstallationUtils.register(installation, getRegisteredSimplePushVariant(), getContextRoot());
+        InstallationUtils.register(installation, getRegisteredSimplePushVariant(), getSession());
     }
 
     @Test
@@ -154,7 +154,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public void registerSimplePushVariantWithWrongPushApplication() {
         PushApplication pushApplication = PushApplicationUtils.generate();
 
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         SimplePushVariantUtils.generateAndRegister(pushApplication, getSession());
     }
 
@@ -181,7 +181,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(109)
     public void findSimplePushVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         SimplePushVariantUtils.findById(UUID.randomUUID().toString(), getRegisteredPushApplication(), getSession());
     }
 
@@ -192,7 +192,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
         simplePushVariant.setVariantID(UUID.randomUUID().toString());
 
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         SimplePushVariantUtils.update(simplePushVariant, getRegisteredPushApplication(), getSession());
     }
 
@@ -203,7 +203,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
         simplePushVariant.setVariantID(UUID.randomUUID().toString());
 
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         SimplePushVariantUtils.delete(simplePushVariant, getRegisteredPushApplication(), getSession());
     }
 
@@ -212,13 +212,13 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public void unregisterInstallation() {
         InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
 
-        InstallationUtils.unregister(registeredInstallation, getRegisteredSimplePushVariant(), getContextRoot());
+        InstallationUtils.unregister(registeredInstallation, getRegisteredSimplePushVariant(), getSession());
     }
 
     @Test
     @InSequence(117)
     public void verifyInstallationRemoval() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         InstallationUtils.findById(getRegisteredSimplePushInstallations().get(0).getId(), getRegisteredSimplePushVariant(),
                 getSession());
     }
@@ -230,8 +230,8 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
         InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
 
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
-        InstallationUtils.unregister(registeredInstallation, generatedSimplePushVariant, getContextRoot());
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        InstallationUtils.unregister(registeredInstallation, generatedSimplePushVariant, getSession());
     }
 
     @Test

@@ -16,8 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -33,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.JavaSender;
 import org.jboss.aerogear.unifiedpush.SenderClient;
 import org.jboss.aerogear.unifiedpush.message.MessageResponseCallback;
@@ -45,7 +44,6 @@ import org.mockito.Mockito;
 import com.google.android.gcm.server.Message;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 
@@ -58,7 +56,7 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SendCriteria createCriteria(List<String> aliases, List<String> deviceTypes, List<String> categories,
-            List<String> variants) {
+        List<String> variants) {
         Map<String, Object> data = criteriaToMap(aliases, deviceTypes, categories, variants);
 
         return new SendCriteria(data);
@@ -77,12 +75,12 @@ public final class PushNotificationSenderUtils {
     }
 
     public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, int timeToLive,
-            Map<String, Object> customData) {
+        Map<String, Object> customData) {
         return createMessage(criteria, simplePush, null, null, DEFAULT_BADGE, timeToLive, customData);
     }
 
     public static UnifiedPushMessage createMessage(SendCriteria criteria, String simplePush, String alert, String sound,
-            int badge, int timeToLive, Map<String, Object> customData) {
+        int badge, int timeToLive, Map<String, Object> customData) {
         Map<String, Object> messageMap = messageToMap(criteria, simplePush, alert, sound, badge, timeToLive, customData);
 
         return createMessage(messageMap);
@@ -107,8 +105,8 @@ public final class PushNotificationSenderUtils {
     // TODO: better implementation
     private static UnifiedMessage createUnifiedMessage(UnifiedPushMessage message, PushApplication pushApplication) {
         UnifiedMessage.Builder unifiedMessage = new UnifiedMessage.Builder()
-                .pushApplicationId(pushApplication.getPushApplicationID())
-                .masterSecret(pushApplication.getMasterSecret());
+            .pushApplicationId(pushApplication.getPushApplicationID())
+            .masterSecret(pushApplication.getMasterSecret());
 
         if (!isEmpty(message.getData())) {
             unifiedMessage.attributes(message.getData());
@@ -153,10 +151,10 @@ public final class PushNotificationSenderUtils {
         return unifiedMessage.build();
     }
 
-    public static void send(PushApplication pushApplication, UnifiedPushMessage message, String root) {
-        assertNotNull(root);
+    public static void send(PushApplication pushApplication, UnifiedPushMessage message, Session session) {
         assertNotNull(pushApplication);
 
+        // FIXME, there are problems with https!
         JavaSender sender = new SenderClient(Constants.INSECURE_AG_PUSH_ENDPOINT);
 
         final CountDownLatch latch = new CountDownLatch(1);
@@ -197,18 +195,18 @@ public final class PushNotificationSenderUtils {
         Response response = Mockito.mock(Response.class);
         Mockito.when(response.statusCode()).thenReturn(returnedStatusList.get(0));
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
     }
 
-    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatistics(AuthenticationUtils.Session session) {
+    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatistics(Session session) {
 
-        Response response = RestAssured.given()
-                .contentType(ContentTypes.json())
-                .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/senderStats", session.getRoot());
+        Response response = session.given()
+            .contentType(ContentTypes.json())
+            .header(Headers.acceptJson())
+            .cookies(session.getCookies())
+            .get("/rest/senderStats");
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         JsonPath jsonPath = response.jsonPath();
 
@@ -242,16 +240,16 @@ public final class PushNotificationSenderUtils {
         return senderStatistics;
     }
 
-    public static void resetSenderStatistics(AuthenticationUtils.Session session) {
+    public static void resetSenderStatistics(Session session) {
 
-        Response response = RestAssured.given().contentType(ContentTypes.json()).header(Headers.acceptJson())
-                .cookies(session.getCookies()).delete("{root}rest/senderStats", session.getRoot());
+        Response response = session.given().contentType(ContentTypes.json()).header(Headers.acceptJson())
+            .cookies(session.getCookies()).delete("/rest/senderStats");
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
 
     }
 
-    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatisticsAndReset(AuthenticationUtils.Session session) {
+    public static SenderStatisticsEndpoint.SenderStatistics getSenderStatisticsAndReset(Session session) {
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = getSenderStatistics(session);
 
         resetSenderStatistics(session);
@@ -260,7 +258,7 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SenderStatisticsEndpoint.SenderStatistics waitSenderStatistics(final int expectedTokenCount,
-            final AuthenticationUtils.Session session) {
+        final Session session) {
         Awaitility.await().atMost(Duration.FIVE_SECONDS).until(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
@@ -280,7 +278,7 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SenderStatisticsEndpoint.SenderStatistics waitSenderStatisticsAndReset(int expectedTokenCount,
-            AuthenticationUtils.Session session) {
+        Session session) {
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = waitSenderStatistics(expectedTokenCount, session);
 
         resetSenderStatistics(session);
@@ -293,7 +291,7 @@ public final class PushNotificationSenderUtils {
     }
 
     private static Map<String, Object> criteriaToMap(List<String> aliases, List<String> deviceTypes, List<String> categories,
-            List<String> variants) {
+        List<String> variants) {
         Map<String, Object> data = new HashMap<String, Object>();
 
         data.put("alias", aliases);
@@ -305,11 +303,11 @@ public final class PushNotificationSenderUtils {
 
     private static Map<String, Object> messageToMap(UnifiedPushMessage message) {
         return messageToMap(message.getSendCriteria(), message.getSimplePush(), message.getAlert(), message.getSound(),
-                message.getBadge(), message.getTimeToLive(), message.getData());
+            message.getBadge(), message.getTimeToLive(), message.getData());
     }
 
     private static Map<String, Object> messageToMap(SendCriteria criteria, String simplePush, String alert, String sound,
-            int badge, int timeToLive, Map<String, Object> customData) {
+        int badge, int timeToLive, Map<String, Object> customData) {
         Map<String, Object> data = new HashMap<String, Object>();
 
         if (criteria != null) {

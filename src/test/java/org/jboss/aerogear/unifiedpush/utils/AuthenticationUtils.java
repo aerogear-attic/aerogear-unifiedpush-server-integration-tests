@@ -16,21 +16,10 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
+import org.apache.http.HttpStatus;
 import org.json.simple.JSONObject;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
-
 
 public final class AuthenticationUtils {
 
@@ -47,24 +36,24 @@ public final class AuthenticationUtils {
 
     public static Session login(String loginName, String password, String root) throws NullPointerException,
             UnexpectedResponseException {
-        assertNotNull(root);
+        Validate.notNull(root);
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("loginName", loginName);
         jsonObject.put("password", password);
 
-        Response response = RestAssured.given()
+        Response response = Session.newSession(root).given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .body(jsonObject.toJSONString())
-                .post("{root}rest/auth/login", root);
+            .post("/rest/auth/login");
 
         // TODO should we throw or return invalid session?
-        if (response.statusCode() == OK.getStatusCode()) {
-            return new Session(root, loginName, response.cookies());
-        } else if (response.statusCode() == FORBIDDEN.getStatusCode()) {
+        if (response.statusCode() == HttpStatus.SC_OK) {
+            return new Session(root, loginName, password, response.cookies());
+        } else if (response.statusCode() == HttpStatus.SC_FORBIDDEN) {
             throw new ExpiredPasswordException(response);
-        } else if (response.statusCode() == UNAUTHORIZED.getStatusCode()) {
+        } else if (response.statusCode() == HttpStatus.SC_UNAUTHORIZED) {
             throw new InvalidPasswordException(response);
         } else {
             // This should never happen
@@ -73,23 +62,24 @@ public final class AuthenticationUtils {
     }
 
     public static boolean changePassword(String loginName, String oldPassword, String newPassword, String root) {
-        assertNotNull(root);
+        Validate.notNull(root);
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("loginName", loginName);
         jsonObject.put("password", oldPassword);
         jsonObject.put("newPassword", newPassword);
 
-        Response response = RestAssured
+        // FIXME should not this be using already existing session?
+        Response response = Session.newSession(root)
                 .given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .body(jsonObject.toJSONString())
-                .put("{root}rest/auth/update", root);
+            .put("/rest/auth/update");
 
-        if (response.statusCode() == OK.getStatusCode()) {
+        if (response.statusCode() == HttpStatus.SC_OK) {
             return true;
-        } else if (response.statusCode() == UNAUTHORIZED.getStatusCode()) {
+        } else if (response.statusCode() == HttpStatus.SC_UNAUTHORIZED) {
             throw new InvalidPasswordException(response);
         } else {
             throw new UnexpectedResponseException(response);
@@ -97,18 +87,18 @@ public final class AuthenticationUtils {
     }
 
     public static void logout(Session session) {
-        assertNotNull(session);
-        assertTrue("Session has to be valid!", session.isValid());
+        Validate.notNull(session);
+        if (session.isValid() == false) {
+            throw new IllegalStateException("Session has to be valid!");
+        }
 
-        Response response = RestAssured
-                .given()
+        Response response = session.given()
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .post("{root}rest/auth/logout", session.getRoot());
+            .post("/rest/auth/logout");
 
-        if (response.statusCode() == OK.getStatusCode()) {
+        if (response.statusCode() == HttpStatus.SC_OK) {
             session.invalidate();
-        } else if (response.statusCode() == UNAUTHORIZED.getStatusCode()) {
+        } else if (response.statusCode() == HttpStatus.SC_UNAUTHORIZED) {
             throw new IllegalStateException("Session was marked as valid, but the logout was unsuccessful!");
         } else {
             throw new UnexpectedResponseException(response);
@@ -155,55 +145,6 @@ public final class AuthenticationUtils {
 
     public static String getDeveloperNewPassword() {
         return DEVELOPER_NEW_PASSWORD;
-    }
-
-    public static class Session {
-        private String root;
-        private String loginName;
-        private Map<String, ?> cookies;
-        private boolean invalid;
-
-        public Session(String root, String loginName, Map<String, ?> cookies) {
-            this.root = root;
-            this.loginName = loginName;
-            this.cookies = Collections.unmodifiableMap(cookies); // TODO should the be modifiable or not?
-            this.invalid = false;
-        }
-
-        public String getRoot() {
-            return root;
-        }
-
-        public Map<String, ?> getCookies() {
-            return cookies;
-        }
-
-        public String getLoginName() {
-            return loginName;
-        }
-
-        public boolean isValid() {
-            return !invalid;
-        }
-
-        // TODO is the invalidation needed?
-        protected void invalidate() {
-            root = null;
-            cookies = null;
-            invalid = true;
-        }
-
-        public static Session createInvalid(String root) {
-            Session session = forceCreateValidWithEmptyCookies(root);
-
-            session.invalid = true;
-
-            return session;
-        }
-
-        public static Session forceCreateValidWithEmptyCookies(String root) {
-            return new Session(root, "", new HashMap<String, Object>());
-        }
     }
 
     public static class ExpiredPasswordException extends RuntimeException {

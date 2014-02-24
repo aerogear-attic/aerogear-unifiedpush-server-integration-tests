@@ -5,8 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
-
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
@@ -58,7 +57,7 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
         InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
 
         InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
-                getRegisteredAndroidVariant(), getSession());
+            getRegisteredAndroidVariant(), getSession());
 
         assertNotNull(installation);
         InstallationUtils.checkEquality(registeredInstallation, installation);
@@ -84,7 +83,9 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     public void verifyUpdatedInstallation() {
         InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
 
-        InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(), getRegisteredAndroidVariant(), getSession());
+        InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
+            getRegisteredAndroidVariant(),
+            getSession());
 
         assertNotNull(installation);
         InstallationUtils.checkEquality(registeredInstallation, installation);
@@ -102,7 +103,7 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     @InSequence(17)
     public void verifyInstallationRemoval() {
         InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         InstallationUtils.findById(registeredInstallation.getId(), getRegisteredAndroidVariant(), getSession());
     }
 }

@@ -23,8 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ws.rs.core.Response.Status;
-
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.model.iOSVariant;
@@ -66,7 +65,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(100)
     public void updateIOSVariantPatchCase() {
         iOSVariant generatedVariant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
-                false);
+            false);
 
         getRegisteredIOSVariant().setName(generatedVariant.getName());
         getRegisteredIOSVariant().setDescription(generatedVariant.getDescription());
@@ -78,7 +77,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(101)
     public void verifyUpdatePatch() {
         iOSVariant iOSVariant = iOSVariantUtils.findById(getRegisteredIOSVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
 
         assertNotNull(iOSVariant);
         iOSVariantUtils.checkEquality(getRegisteredIOSVariant(), iOSVariant);
@@ -88,7 +87,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(102)
     public void updateiOSVariant() {
         iOSVariant generatedVariant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
-                false);
+            false);
 
         getRegisteredIOSVariant().setName(generatedVariant.getName());
         getRegisteredIOSVariant().setDescription(generatedVariant.getDescription());
@@ -100,7 +99,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(103)
     public void verifyiOSVariantUpdate() {
         iOSVariant iOSVariant = iOSVariantUtils.findById(getRegisteredIOSVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
 
         assertNotNull(iOSVariant);
         iOSVariantUtils.checkEquality(getRegisteredIOSVariant(), iOSVariant);
@@ -152,7 +151,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         installation.setOperatingSystem(UPDATED_IOS_OPERATING_SYSTEM);
         installation.setOsVersion(UPDATED_IOS_OPERATING_SYSTEM_VERSION);
 
-        InstallationUtils.register(installation, getRegisteredIOSVariant(), getContextRoot());
+        InstallationUtils.register(installation, getRegisteredIOSVariant(), getSession());
     }
 
     @Test
@@ -161,7 +160,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
         InstallationImpl registeredInstallation = getRegisteredIOSInstallations().get(0);
 
         InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
-                getRegisteredIOSVariant(), getSession());
+            getRegisteredIOSVariant(), getSession());
 
         assertNotNull(installation);
         InstallationUtils.checkEquality(registeredInstallation, installation);
@@ -170,17 +169,17 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(107)
     public void registeriOSVariantWithWrongPushApplication() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         iOSVariantUtils.generateAndRegister(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false,
-                PushApplicationUtils.generate(), getSession());
+            PushApplicationUtils.generate(), getSession());
     }
 
     @Test
     @InSequence(108)
     public void registeriOSVariantWithWrongCertificate() {
-        thrown.expectUnexpectedResponseException(Status.BAD_REQUEST);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
         iOSVariantUtils.generateAndRegister(IOS_CERTIFICATE_PATH, UUID.randomUUID().toString(), false,
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
     }
 
     @Test
@@ -196,37 +195,37 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(110)
     public void findiOSVariant() {
         iOSVariant iOSVariant = iOSVariantUtils.findById(getRegisteredIOSVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
         iOSVariantUtils.checkEquality(getRegisteredIOSVariant(), iOSVariant);
     }
 
     @Test
     @InSequence(111)
     public void findiOSVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         iOSVariantUtils.findById(UUID.randomUUID().toString(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(112)
     public void updateiOSVariantPatchWithInvalidId() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         iOSVariantUtils.updatePatch(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
-                false), getRegisteredPushApplication(), getSession());
+            false), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(113)
     public void updateiOSVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         iOSVariantUtils.update(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(114)
     public void updateiOSVariantWithWrongCertificate() {
-        thrown.expectUnexpectedResponseException(Status.BAD_REQUEST);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
         iOSVariant iOSVariant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, UUID.randomUUID().toString(), false);
 
         iOSVariant.setVariantID(getRegisteredIOSVariant().getVariantID());
@@ -238,32 +237,32 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(115)
     public void removeiOSVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         iOSVariantUtils.delete(iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(116)
     public void unregisterInstallation() {
         InstallationUtils.unregister(getRegisteredIOSInstallations().get(0), getRegisteredIOSVariant(),
-                getContextRoot());
+            getSession());
     }
 
     @Test
     @InSequence(117)
     public void verifyInstallationRemoval() {
-        thrown.expectUnexpectedResponseException(Status.NOT_FOUND);
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         InstallationUtils.findById(getRegisteredIOSInstallations().get(0).getId(), getRegisteredIOSVariant(),
-                getSession());
+            getSession());
     }
 
     @Test
     @InSequence(118)
     public void unauthorizedUnregisterInstallation() {
         iOSVariant variant = iOSVariantUtils.generate(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE, false);
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
-        InstallationUtils.unregister(getRegisteredIOSInstallations().get(1), variant, getContextRoot());
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        InstallationUtils.unregister(getRegisteredIOSInstallations().get(1), variant, getSession());
     }
 
     @Test

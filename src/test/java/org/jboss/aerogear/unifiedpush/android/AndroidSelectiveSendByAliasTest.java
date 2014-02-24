@@ -75,7 +75,7 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
 
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
     }
 
     @Test

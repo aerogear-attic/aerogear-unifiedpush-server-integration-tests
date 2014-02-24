@@ -1,7 +1,5 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
-import javax.ws.rs.core.Response;
-
 import org.hamcrest.Matcher;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -22,7 +20,7 @@ public class ExpectedException implements TestRule {
         return delegate.apply(statement, description);
     }
 
-    public void expectUnexpectedResponseException(final Response.Status expectedStatus) {
+    public void expectUnexpectedResponseException(final int expectedStatus) {
         expect(UnexpectedResponseException.class);
         expect(UnexpectedResponseException.Matcher.expect(expectedStatus));
     }

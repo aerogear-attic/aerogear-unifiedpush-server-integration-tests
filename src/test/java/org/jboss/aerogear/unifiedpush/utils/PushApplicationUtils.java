@@ -16,21 +16,19 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
-import org.apache.commons.lang3.StringUtils;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.json.simple.JSONObject;
-
+import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.json.simple.JSONObject;
+
+import com.jayway.restassured.path.json.JsonPath;
+import com.jayway.restassured.response.Response;
 
 public final class PushApplicationUtils {
 
@@ -49,7 +47,7 @@ public final class PushApplicationUtils {
     }
 
     public static PushApplication createAndRegister(String name, String description,
-                                                    AuthenticationUtils.Session session) {
+        Session session) {
         PushApplication pushApplication = create(name, description);
 
         register(pushApplication, session);
@@ -76,12 +74,12 @@ public final class PushApplicationUtils {
         return pushApplications;
     }
 
-    public static PushApplication generateAndRegister(AuthenticationUtils.Session session) throws NullPointerException,
+    public static PushApplication generateAndRegister(Session session) throws NullPointerException,
             UnexpectedResponseException {
         return generateAndRegister(SINGLE, session).iterator().next();
     }
 
-    public static List<PushApplication> generateAndRegister(int count, AuthenticationUtils.Session session)
+    public static List<PushApplication> generateAndRegister(int count, Session session)
             throws NullPointerException, UnexpectedResponseException {
         List<PushApplication> pushApplications = generate(count);
 
@@ -92,39 +90,37 @@ public final class PushApplicationUtils {
         return pushApplications;
     }
 
-    public static Response register(PushApplication pushApplication, AuthenticationUtils.Session session)
+    public static Response register(PushApplication pushApplication, Session session)
             throws NullPointerException, UnexpectedResponseException {
         return register(pushApplication, session, ContentTypes.json());
     }
 
-    public static Response register(PushApplication pushApplication, AuthenticationUtils.Session session,
+    public static Response register(PushApplication pushApplication, Session session,
                                     String contentType) throws NullPointerException, UnexpectedResponseException {
-        assertNotNull(session);
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(pushApplication))
-                .post("{root}rest/applications", session.getRoot());
+            .post("/rest/applications");
 
-        UnexpectedResponseException.verifyResponse(response, CREATED);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
         setFromJsonPath(response.jsonPath(), pushApplication);
 
         return response;
     }
 
-    public static List<PushApplication> listAll(AuthenticationUtils.Session session) {
-        assertNotNull(session);
+    public static List<PushApplication> listAll(Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications", session.getRoot());
+            .get("/rest/applications");
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         List<PushApplication> pushApplications = new ArrayList<PushApplication>();
 
@@ -143,52 +139,48 @@ public final class PushApplicationUtils {
         return pushApplications;
     }
 
-    public static PushApplication findById(String pushApplicationId, AuthenticationUtils.Session session) {
-        assertNotNull(session);
+    public static PushApplication findById(String pushApplicationId, Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .get("{root}rest/applications/{pushApplicationId}", session.getRoot(), pushApplicationId);
+            .get("/rest/applications/{pushApplicationId}", pushApplicationId);
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         return fromJsonPath(response.jsonPath());
     }
 
-    public static Response update(PushApplication pushApplication, AuthenticationUtils.Session session) {
+    public static Response update(PushApplication pushApplication, Session session) {
         return update(pushApplication, session, ContentTypes.json());
     }
 
-    public static Response update(PushApplication pushApplication, AuthenticationUtils.Session session,
+    public static Response update(PushApplication pushApplication, Session session,
                                   String contentType) {
-        assertNotNull(session);
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
                 .body(toJSONString(pushApplication))
-                .put("{root}rest/applications/{pushApplicationID}", session.getRoot(),
+            .put("/rest/applications/{pushApplicationID}",
                         pushApplication.getPushApplicationID());
 
-
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
 
         return response;
     }
 
-    public static Response delete(PushApplication pushApplication, AuthenticationUtils.Session session) {
-        assertNotNull(session);
+    public static Response delete(PushApplication pushApplication, Session session) {
+        Validate.notNull(session);
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .header(Headers.acceptJson())
-                .cookies(session.getCookies())
-                .delete("{root}rest/applications/{pushApplicationId}", session.getRoot(),
+            .delete("/rest/applications/{pushApplicationId}",
                         pushApplication.getPushApplicationID());
 
-        UnexpectedResponseException.verifyResponse(response, NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
 
         return response;
     }
@@ -287,7 +279,7 @@ public final class PushApplicationUtils {
 
         return response;
     }
-    
+
     @SuppressWarnings("unchecked")
     public static Response updatePushApplication(PushApplication pushApp, Map<String, ?> cookies, String contentType,
             String root) {

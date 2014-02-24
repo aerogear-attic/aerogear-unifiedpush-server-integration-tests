@@ -28,6 +28,7 @@ import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
+import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,7 +46,7 @@ public class RegisterPushAppTest extends GenericSimpleUnifiedPushTest {
         return root.toExternalForm();
     }
 
-    private static AuthenticationUtils.Session session;
+    private static Session session;
 
     @BeforeClass
     public static void setup() {

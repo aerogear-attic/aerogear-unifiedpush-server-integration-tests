@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
@@ -72,8 +73,8 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
 
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
-        PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        PushNotificationSenderUtils.send(generatedPushApplication, message, getSession());
     }
 
     @Test
@@ -92,8 +93,8 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
 
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
-        PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        PushNotificationSenderUtils.send(generatedPushApplication, message, getSession());
     }
 
     @Test
@@ -112,8 +113,8 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
 
-        thrown.expectUnexpectedResponseException(Status.UNAUTHORIZED);
-        PushNotificationSenderUtils.send(generatedPushApplication, message, getContextRoot());
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        PushNotificationSenderUtils.send(generatedPushApplication, message, getSession());
     }
 
 }

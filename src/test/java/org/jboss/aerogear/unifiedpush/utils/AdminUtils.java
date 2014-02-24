@@ -4,6 +4,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 
 import java.util.UUID;
 
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.unifiedpush.users.Developer;
 import org.json.simple.JSONObject;
 
@@ -24,7 +25,7 @@ public final class AdminUtils {
         return developer;
     }
 
-    public static Developer createAndEnroll(String loginName, String password, AuthenticationUtils.Session session) {
+    public static Developer createAndEnroll(String loginName, String password, Session session) {
         Developer developer = create(loginName, password);
 
         enroll(developer, session);
@@ -39,7 +40,7 @@ public final class AdminUtils {
         return create(loginName, password);
     }
 
-    public static Developer generateAndEnroll(AuthenticationUtils.Session session) {
+    public static Developer generateAndEnroll(Session session) {
         Developer developer = generate();
 
         enroll(developer, session);
@@ -47,19 +48,19 @@ public final class AdminUtils {
         return developer;
     }
 
-    public static Response enroll(Developer developer, AuthenticationUtils.Session session) {
+    public static Response enroll(Developer developer, Session session) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("loginName", developer.getLoginName());
         jsonObject.put("password", developer.getPassword());
 
-        Response response = RestAssured.given()
+        Response response = session.given()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .cookies(session.getCookies())
                 .body(jsonObject.toJSONString())
-                .post("{root}rest/auth/enroll", session.getRoot());
+                .post("/rest/auth/enroll");
 
-        UnexpectedResponseException.verifyResponse(response, OK);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
         return response;
     }

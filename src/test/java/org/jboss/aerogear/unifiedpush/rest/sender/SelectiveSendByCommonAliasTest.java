@@ -78,7 +78,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
         generatedInstallation.setAlias(COMMON_ALIAS);
 
-        InstallationUtils.register(generatedInstallation, getRegisteredIOSVariant(), getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredIOSVariant(), getSession());
 
         installationsWithCommonAlias.add(generatedInstallation);
     }
@@ -90,7 +90,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
         generatedInstallation.setAlias(COMMON_ALIAS);
 
-        InstallationUtils.register(generatedInstallation, getRegisteredAndroidVariant(), getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredAndroidVariant(), getSession());
 
         installationsWithCommonAlias.add(generatedInstallation);
     }
@@ -102,7 +102,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
         generatedInstallation.setAlias(COMMON_ALIAS);
 
-        InstallationUtils.register(generatedInstallation, getRegisteredSimplePushVariant(), getContextRoot());
+        InstallationUtils.register(generatedInstallation, getRegisteredSimplePushVariant(), getSession());
 
         // FIXME SimplePush should be also done the same way Sender and ApnsServiceImpl are done
         simplePushInstallation = generatedInstallation;
@@ -123,11 +123,11 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, data);
-        
+
         ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
         assertNotNull(serverSocket);
-        
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
+
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
 
         final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 

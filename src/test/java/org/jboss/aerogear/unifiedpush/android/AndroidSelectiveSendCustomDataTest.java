@@ -76,7 +76,7 @@ public class AndroidSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
         UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, customData);
 
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getContextRoot());
+        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
     }
 
     @Test

@@ -84,7 +84,7 @@ public abstract class GenericUnifiedPushTest {
 
     protected final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear";
 
-    private static AuthenticationUtils.Session session;
+    private static Session session;
     private static String loginName;
 
     private static PushApplication registeredPushApplication;
@@ -151,7 +151,7 @@ public abstract class GenericUnifiedPushTest {
     public void registeriOSInstallations() {
         List<InstallationImpl> iosInstallations = InstallationUtils.generateIos(3);
 
-        InstallationUtils.registerAll(iosInstallations, registeredIOSVariant, getContextRoot());
+        InstallationUtils.registerAll(iosInstallations, registeredIOSVariant, getSession());
 
         registeredIOSInstallations = new ArrayList<InstallationImpl>(iosInstallations);
     }
@@ -163,7 +163,7 @@ public abstract class GenericUnifiedPushTest {
     public void registerAndroidInstallations() {
         List<InstallationImpl> androidInstallations = InstallationUtils.generateAndroid(3);
 
-        InstallationUtils.registerAll(androidInstallations, registeredAndroidVariant, getContextRoot());
+        InstallationUtils.registerAll(androidInstallations, registeredAndroidVariant, getSession());
 
         registeredAndroidInstallations = new ArrayList<InstallationImpl>(androidInstallations);
     }
@@ -174,12 +174,12 @@ public abstract class GenericUnifiedPushTest {
     public void registerSimplePushInstallation() {
         List<InstallationImpl> simplePushInstallations = InstallationUtils.generateSimplePush(3);
 
-        InstallationUtils.registerAll(simplePushInstallations, registeredSimplePushVariant, getContextRoot());
+        InstallationUtils.registerAll(simplePushInstallations, registeredSimplePushVariant, getSession());
 
         registeredSimplePushInstallations = new ArrayList<InstallationImpl>(simplePushInstallations);
     }
 
-    public static AuthenticationUtils.Session getSession() {
+    public static Session getSession() {
         return session;
     }
 

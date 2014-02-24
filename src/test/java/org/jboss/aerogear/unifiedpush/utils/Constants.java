@@ -16,6 +16,12 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
+/**
+ * This class should be removed. No hardcoder references should be used.
+ *
+ *
+ */
+@Deprecated
 public final class Constants {
 
     private Constants() {

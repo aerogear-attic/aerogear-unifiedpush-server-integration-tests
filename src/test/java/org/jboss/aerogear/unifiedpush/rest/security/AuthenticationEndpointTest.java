@@ -16,20 +16,27 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.security;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.UUID;
+
+import org.hamcrest.Matchers;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.UUID;
-
-import static org.junit.Assert.*;
-
 public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
 
-    private static AuthenticationUtils.Session session;
+    private static Session session;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -43,7 +50,7 @@ public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
     public void loginDefaultCredentialsLeadsTo403() {
         thrown.expect(AuthenticationUtils.ExpiredPasswordException.class);
         AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
-                AuthenticationUtils.getAdminOldPassword(), getContextRoot());
+            AuthenticationUtils.getAdminOldPassword(), getContextRoot());
     }
 
     @Test
@@ -53,14 +60,14 @@ public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
         thrown.expect(AuthenticationUtils.InvalidPasswordException.class);
 
         AuthenticationUtils.changePassword(AuthenticationUtils.getAdminLoginName(), wrongOldPassword,
-                AuthenticationUtils.getAdminNewPassword(), getContextRoot());
+            AuthenticationUtils.getAdminNewPassword(), getContextRoot());
     }
 
     @Test
     @InSequence(3)
     public void updatePasswordLeadsTo200() {
         boolean passwordChanged = AuthenticationUtils.changePassword(AuthenticationUtils.getAdminLoginName(),
-                AuthenticationUtils.getAdminOldPassword(), AuthenticationUtils.getAdminNewPassword(), getContextRoot());
+            AuthenticationUtils.getAdminOldPassword(), AuthenticationUtils.getAdminNewPassword(), getContextRoot());
 
         assertTrue(passwordChanged);
     }
@@ -71,14 +78,14 @@ public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
         String wrongPassword = UUID.randomUUID().toString();
         thrown.expect(AuthenticationUtils.InvalidPasswordException.class);
         AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
-                wrongPassword, getContextRoot());
+            wrongPassword, getContextRoot());
     }
 
     @Test
     @InSequence(5)
     public void properLoginLeadsTo200() {
         session = AuthenticationUtils.login(AuthenticationUtils.getAdminLoginName(),
-                AuthenticationUtils.getAdminNewPassword(), getContextRoot());
+            AuthenticationUtils.getAdminNewPassword(), getContextRoot());
 
         assertNotNull(session);
         assertTrue(session.isValid());
@@ -89,14 +96,14 @@ public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
     public void logoutLeadsTo200() {
         AuthenticationUtils.logout(session);
         assertFalse(session.isValid());
-        assertNull(session.getCookies());
-        assertNull(session.getRoot());
+        assertThat(session.getCookies().entrySet(), Matchers.is(Matchers.empty()));
+        assertNull(session.getBaseUrl());
     }
 
     @Test
     @InSequence(7)
     public void logoutWithoutBeingLoggedInLeadsTo401() {
         thrown.expect(IllegalStateException.class);
-        AuthenticationUtils.logout(AuthenticationUtils.Session.forceCreateValidWithEmptyCookies(getContextRoot()));
+        AuthenticationUtils.logout(Session.forceCreateValidWithEmptyCookies(getContextRoot()));
     }
 }
