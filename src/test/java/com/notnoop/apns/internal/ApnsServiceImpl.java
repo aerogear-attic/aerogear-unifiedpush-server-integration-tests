@@ -39,10 +39,11 @@ import java.util.Map;
 import com.notnoop.apns.ApnsService;
 
 /**
- * 
+ *
  * This class mocks the original com.notnoop.apns.internal.ApnsServiceImpl class and is used for testing reasons.
- * 
+ * This class should be replaced by Byteman based bytecode manipulation
  */
+@Deprecated
 public class ApnsServiceImpl implements ApnsService {
 
     public ApnsServiceImpl() {

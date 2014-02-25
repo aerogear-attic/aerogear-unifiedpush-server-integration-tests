@@ -25,10 +25,11 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 /**
- * 
+ *
  * This class mocks the original com.google.android.gcm.server.Sender class and is used for testing reasons.
- * 
+ * FIXME this class should be replaced with Byteman bytecode manipulation
  */
+@Deprecated
 @ApplicationScoped
 public class Sender {
 

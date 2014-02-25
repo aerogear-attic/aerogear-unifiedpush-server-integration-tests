@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;

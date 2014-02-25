@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
+import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;

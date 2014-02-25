@@ -1,18 +1,28 @@
 package org.jboss.aerogear.unifiedpush.test;
 
-import org.jboss.aerogear.unifiedpush.model.*;
-import org.jboss.aerogear.unifiedpush.utils.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
+import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
+import org.jboss.aerogear.unifiedpush.utils.Session;
+import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
+import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(Arquillian.class)
 public abstract class GenericUnifiedPushTest {

@@ -17,14 +17,15 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
+import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.json.simple.JSONObject;
 
 import com.jayway.restassured.path.json.JsonPath;

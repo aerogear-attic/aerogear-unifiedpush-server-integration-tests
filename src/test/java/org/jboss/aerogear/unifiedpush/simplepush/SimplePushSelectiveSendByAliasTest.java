@@ -23,11 +23,12 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -65,17 +66,19 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         List<String> deviceTypes = new ArrayList<String>();
         deviceTypes.add(registeredInstallation.getDeviceType());
 
-        List<String> categories = new ArrayList<String>();
+        Set<String> categories = new HashSet<String>();
         categories.add(registeredInstallation.getCategories().iterator().next());
 
-        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, deviceTypes, categories, null);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, null);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder().aliases(aliases)
+            .deviceType(deviceTypes).categories(categories)
+            .simplePush("15")
+            .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
         ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
         assertNotNull(serverSocket);
 
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
 
         final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 

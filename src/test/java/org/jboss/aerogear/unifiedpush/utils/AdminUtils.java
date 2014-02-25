@@ -1,14 +1,11 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
-import static javax.ws.rs.core.Response.Status.OK;
-
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.users.Developer;
+import org.jboss.aerogear.test.model.Developer;
 import org.json.simple.JSONObject;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 
 public final class AdminUtils {

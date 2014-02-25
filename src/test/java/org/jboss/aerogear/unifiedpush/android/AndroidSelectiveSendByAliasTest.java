@@ -25,9 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -67,23 +66,21 @@ public class AndroidSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
         Sender.clear();
 
-        // FIXME This is way too repetitive and should be in PushNotificationSenderUtils
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("alert", NOTIFICATION_ALERT_MSG);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder().aliases(aliases)
+            .alert(NOTIFICATION_ALERT_MSG)
+            .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
-        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
-
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
     }
 
     @Test
     @InSequence(13)
     public void verifyGCMnotifications() {
-        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2,
+            getSession());
 
-        for(int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
 
             assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));

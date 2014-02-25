@@ -21,13 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -68,28 +65,26 @@ public class AndroidSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
         Sender.clear();
 
-        Map<String, Object> customData = new HashMap<String, Object>();
-        customData.put("custom", NOTIFICATION_ALERT_MSG);
-        customData.put("test", CUSTOM_FIELD_DATA_MSG);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder().aliases(aliases)
+            .attribute("custom", NOTIFICATION_ALERT_MSG)
+            .attribute("test", CUSTOM_FIELD_DATA_MSG)
+            .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
-        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, customData);
-
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
     }
 
     @Test
     @InSequence(13)
     public void verifyGCMnotifications() {
-        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2, getSession());
+        SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(2,
+            getSession());
 
-        for(int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredAndroidInstallations().get(i);
 
             assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));
         }
-
 
         assertNotNull(senderStatistics.gcmMessage);
         assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.gcmMessage.getData().get("custom"));

@@ -16,24 +16,31 @@
  */
 package org.jboss.aerogear.unifiedpush.simplepush;
 
-import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.SimplePushVariant;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.*;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.InSequence;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.test.Deployments;
+import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
+import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
+import org.jboss.aerogear.unifiedpush.utils.Session;
+import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.InSequence;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
@@ -61,7 +68,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public void registerSimplePushVariantMissingAuthCookies() {
         thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
         SimplePushVariantUtils.generateAndRegister(getRegisteredPushApplication(),
-                Session.createInvalid(getContextRoot()));
+            Session.createInvalid(getContextRoot()));
     }
 
     @Test
@@ -114,7 +121,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(103)
     public void verifyUpdate() {
         SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
         assertNotNull(simplePushVariant);
         SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
     }
@@ -143,7 +150,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
         InstallationImpl registeredInstallation = getRegisteredSimplePushInstallations().get(0);
 
         InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
-                getRegisteredSimplePushVariant(), getSession());
+            getRegisteredSimplePushVariant(), getSession());
 
         assertNotNull(installation);
         InstallationUtils.checkEquality(registeredInstallation, installation);
@@ -162,7 +169,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(107)
     public void listAllSimplePushVariants() {
         List<SimplePushVariant> simplePushVariants = SimplePushVariantUtils.listAll(getRegisteredPushApplication(),
-                getSession());
+            getSession());
 
         assertNotNull(simplePushVariants);
         assertEquals(1, simplePushVariants.size());
@@ -172,7 +179,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(108)
     public void findSimplePushVariant() {
         SimplePushVariant simplePushVariant = SimplePushVariantUtils.findById(getRegisteredSimplePushVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
 
         assertNotNull(simplePushVariant);
         SimplePushVariantUtils.checkEquality(getRegisteredSimplePushVariant(), simplePushVariant);
@@ -220,7 +227,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public void verifyInstallationRemoval() {
         thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         InstallationUtils.findById(getRegisteredSimplePushInstallations().get(0).getId(), getRegisteredSimplePushVariant(),
-                getSession());
+            getSession());
     }
 
     @Test

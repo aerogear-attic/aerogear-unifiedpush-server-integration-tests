@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,8 +27,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.api.Variant;
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.test.model.Variant;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

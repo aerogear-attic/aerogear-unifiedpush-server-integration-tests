@@ -5,15 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -103,21 +100,19 @@ public class SelectiveSendByCommonCategoryTest extends GenericUnifiedPushTest {
         List<String> categories = new ArrayList<String>();
         categories.add(COMMON_CATEGORY);
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("alert", NOTIFICATION_ALERT_MSG);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder().categories(COMMON_CATEGORY)
+            .alert(NOTIFICATION_ALERT_MSG)
+            .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
-        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(null, null, categories, null);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
-
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
     }
 
     @Test
     @InSequence(17)
     public void verifyPushNotifications() {
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(
-                installationsWithCommonCategory.size(), getSession());
+            installationsWithCommonCategory.size(), getSession());
 
         for (InstallationImpl installation : installationsWithCommonCategory) {
             assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));

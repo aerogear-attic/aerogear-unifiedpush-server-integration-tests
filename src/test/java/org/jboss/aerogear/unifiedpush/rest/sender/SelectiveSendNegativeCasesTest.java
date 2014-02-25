@@ -16,15 +16,9 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.sender;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.core.Response.Status;
-
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -63,18 +57,13 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         ApnsServiceImpl.clear();
         Sender.clear();
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
-
-        PushApplication generatedPushApplication = PushApplicationUtils.generate();
-
-        generatedPushApplication.setPushApplicationID("");
-        generatedPushApplication.setMasterSecret(getRegisteredPushApplication().getMasterSecret());
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder();
+        message.pushApplicationId("")
+            .alert(NOTIFICATION_ALERT_MSG)
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
         thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
-        PushNotificationSenderUtils.send(generatedPushApplication, message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
     }
 
     @Test
@@ -83,18 +72,16 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         ApnsServiceImpl.clear();
         Sender.clear();
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
-
         PushApplication generatedPushApplication = PushApplicationUtils.generate();
 
-        generatedPushApplication.setPushApplicationID(UUID.randomUUID().toString());
-        generatedPushApplication.setMasterSecret(getRegisteredPushApplication().getMasterSecret());
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder();
+        message.pushApplicationId(generatedPushApplication.getPushApplicationID())
+            .alert(NOTIFICATION_ALERT_MSG)
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
         thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
-        PushNotificationSenderUtils.send(generatedPushApplication, message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
+
     }
 
     @Test
@@ -103,18 +90,15 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
         ApnsServiceImpl.clear();
         Sender.clear();
 
-        Map<String, Object> messages = new HashMap<String, Object>();
-        messages.put("alert", NOTIFICATION_ALERT_MSG);
-
         PushApplication generatedPushApplication = PushApplicationUtils.generate();
 
-        generatedPushApplication.setPushApplicationID(getRegisteredPushApplication().getPushApplicationID());
-        generatedPushApplication.setMasterSecret(UUID.randomUUID().toString());
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(null, messages);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder();
+        message.pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .alert(NOTIFICATION_ALERT_MSG)
+            .masterSecret(generatedPushApplication.getMasterSecret());
 
         thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
-        PushNotificationSenderUtils.send(generatedPushApplication, message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
     }
 
 }

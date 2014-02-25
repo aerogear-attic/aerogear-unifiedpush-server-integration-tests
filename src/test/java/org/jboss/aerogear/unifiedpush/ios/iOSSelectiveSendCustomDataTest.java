@@ -21,13 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -54,7 +51,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
     private final static String NOTIFICATION_SOUND = "default";
 
-    private final static int NOTIFICATION_BADGE = 7;
+    private final static String NOTIFICATION_BADGE = "7";
 
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
@@ -76,17 +73,15 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
         ApnsServiceImpl.clear();
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("alert", NOTIFICATION_ALERT_MSG);
-        data.put("sound", NOTIFICATION_SOUND);
-        data.put("badge", NOTIFICATION_BADGE);
-        data.put(CUSTOM_FIELD_DATA_KEY, CUSTOM_FIELD_DATA_MSG);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder().aliases(aliases)
+            .alert(NOTIFICATION_ALERT_MSG)
+            .badge(NOTIFICATION_BADGE)
+            .sound(NOTIFICATION_SOUND)
+            .attribute(CUSTOM_FIELD_DATA_KEY, CUSTOM_FIELD_DATA_MSG)
+            .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
-        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, data);
-
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
     }
 
     @Test
@@ -94,7 +89,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
     public void verifyiOSnotifications() {
 
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(
-                2, getSession());
+            2, getSession());
 
         for (int i = 0; i < 2; i++) {
             InstallationImpl installation = getRegisteredIOSInstallations().get(i);
@@ -104,7 +99,7 @@ public class iOSSelectiveSendCustomDataTest extends GenericUnifiedPushTest {
 
         assertEquals(NOTIFICATION_ALERT_MSG, senderStatistics.apnsAlert);
         assertEquals(NOTIFICATION_SOUND, senderStatistics.apnsSound);
-        assertEquals(NOTIFICATION_BADGE, senderStatistics.apnsBadge);
+        assertEquals(Integer.parseInt(NOTIFICATION_BADGE), senderStatistics.apnsBadge);
 
         // assertTrue(ApnsServiceImpl.getCustomFields() != null
         // && ApnsServiceImpl.getCustomFields().contains(CUSTOM_FIELD_DATA_KEY + "=" + CUSTOM_FIELD_DATA_MSG));

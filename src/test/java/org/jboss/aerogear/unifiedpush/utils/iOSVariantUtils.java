@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,11 +29,10 @@ import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.unifiedpush.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.model.iOSVariant;
+import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.iOSVariant;
 import org.json.simple.JSONObject;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 

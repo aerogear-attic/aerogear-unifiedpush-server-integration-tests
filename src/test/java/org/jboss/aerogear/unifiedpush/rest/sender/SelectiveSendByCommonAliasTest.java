@@ -24,14 +24,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.jboss.aerogear.unifiedpush.model.InstallationImpl;
-import org.jboss.aerogear.unifiedpush.service.sender.message.SendCriteria;
-import org.jboss.aerogear.unifiedpush.service.sender.message.UnifiedPushMessage;
+import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -117,17 +114,15 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         ApnsServiceImpl.clear();
         Sender.clear();
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("alert", NOTIFICATION_ALERT_MSG);
-
-        SendCriteria criteria = PushNotificationSenderUtils.createCriteria(aliases, null, null, null);
-
-        UnifiedPushMessage message = PushNotificationSenderUtils.createMessage(criteria, SIMPLE_PUSH_VERSION, data);
+        UnifiedMessage.Builder message = new UnifiedMessage.Builder()
+            .aliases(aliases).alert(NOTIFICATION_ALERT_MSG).simplePush("15")
+            .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
+            .masterSecret(getRegisteredPushApplication().getMasterSecret());
 
         ServerSocket serverSocket = ServerSocketUtils.createServerSocket(Constants.SOCKET_SERVER_PORT);
         assertNotNull(serverSocket);
 
-        PushNotificationSenderUtils.send(getRegisteredPushApplication(), message, getSession());
+        PushNotificationSenderUtils.send(message.build(), getSession());
 
         final String serverInput = ServerSocketUtils.readUntilMessageIsShown(serverSocket, NOTIFICATION_ALERT_MSG);
 
@@ -140,7 +135,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
     @InSequence(16)
     public void verifyGCMandAPNnotifications() {
         SenderStatisticsEndpoint.SenderStatistics senderStatistics = PushNotificationSenderUtils.waitSenderStatisticsAndReset(
-                installationsWithCommonAlias.size(), getSession());
+            installationsWithCommonAlias.size(), getSession());
 
         for (InstallationImpl installation : installationsWithCommonAlias) {
             assertTrue(senderStatistics.deviceTokens.contains(installation.getDeviceToken()));

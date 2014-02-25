@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.users.Developer;
 import org.jboss.aerogear.unifiedpush.utils.AdminUtils;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -23,7 +22,7 @@ public class AdminEndpointTest extends GenericSimpleUnifiedPushTest {
     }
 
     public static Session session;
-    public static Developer developer;
+    public static org.jboss.aerogear.test.model.Developer developer;
 
     @Deprecated
     public static Map<String, ?> getAuthCookies() {
@@ -52,7 +51,7 @@ public class AdminEndpointTest extends GenericSimpleUnifiedPushTest {
         String newPassword = UUID.randomUUID().toString();
 
         Session developerSession = AuthenticationUtils.completeLogin(developer.getLoginName(),
-                developer.getPassword(), newPassword, getContextRoot());
+            developer.getPassword(), newPassword, getContextRoot());
 
         assertNotNull(developerSession);
         assertTrue(developerSession.isValid());
