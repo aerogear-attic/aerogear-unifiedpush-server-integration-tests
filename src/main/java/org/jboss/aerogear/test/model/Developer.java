@@ -16,20 +16,33 @@
  */
 package org.jboss.aerogear.test.model;
 
-import org.picketlink.idm.model.basic.User;
+public class Developer {
 
-public class Developer extends User {
-    private static final long serialVersionUID = 619586660464526363L;
+    private String id;
 
-    private Long id = null;
-
+    private String loginName;
     private String password;
     private String newPassword;
+    private String firstName;
+    private String lastName;
+    private String email;
 
     private String role;
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getLoginName() {
+        return loginName;
+    }
+
+    public void setLoginName(String loginName) {
+        this.loginName = loginName;
     }
 
     public String getPassword() {
@@ -56,21 +69,28 @@ public class Developer extends User {
         this.role = role;
     }
 
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        if (id != null) {
-            return id.equals(((Developer) that).id);
-        }
-        return super.equals(that);
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override
@@ -78,6 +98,76 @@ public class Developer extends User {
         if (id != null) {
             return id.hashCode();
         }
-        return super.hashCode();
+
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((email == null) ? 0 : email.hashCode());
+        result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
+        result = prime * result + ((loginName == null) ? 0 : loginName.hashCode());
+        result = prime * result + ((newPassword == null) ? 0 : newPassword.hashCode());
+        result = prime * result + ((password == null) ? 0 : password.hashCode());
+        result = prime * result + ((role == null) ? 0 : role.hashCode());
+        return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+
+        // this is an extra check
+        if (id != null) {
+            return id.equals(((Developer) obj).id);
+        }
+
+        Developer other = (Developer) obj;
+        if (email == null) {
+            if (other.email != null)
+                return false;
+        } else if (!email.equals(other.email))
+            return false;
+        if (firstName == null) {
+            if (other.firstName != null)
+                return false;
+        } else if (!firstName.equals(other.firstName))
+            return false;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (lastName == null) {
+            if (other.lastName != null)
+                return false;
+        } else if (!lastName.equals(other.lastName))
+            return false;
+        if (loginName == null) {
+            if (other.loginName != null)
+                return false;
+        } else if (!loginName.equals(other.loginName))
+            return false;
+        if (newPassword == null) {
+            if (other.newPassword != null)
+                return false;
+        } else if (!newPassword.equals(other.newPassword))
+            return false;
+        if (password == null) {
+            if (other.password != null)
+                return false;
+        } else if (!password.equals(other.password))
+            return false;
+        if (role == null) {
+            if (other.role != null)
+                return false;
+        } else if (!role.equals(other.role))
+            return false;
+        return true;
+    }
+
 }

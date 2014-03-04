@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.jboss.aerogear.test.model.Developer;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -14,7 +15,6 @@ import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.aerogear.unifiedpush.utils.UserEndpointUtils;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
-import org.picketlink.idm.model.basic.User;
 
 public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
 
@@ -24,8 +24,8 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     }
 
     private static Session session;
-    private static User adminUser;
-    private static User developerUser;
+    private static Developer adminUser;
+    private static Developer developerUser;
 
     @Test
     @InSequence(1)
@@ -39,16 +39,16 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     @InSequence(2)
     public void listAll() {
         // FIXME remove dependency on ".size() == 2"!
-        List<User> users = UserEndpointUtils.listAll(session);
+        List<Developer> users = UserEndpointUtils.listAll(session);
         assertEquals(2, users.size());
 
         assertTrue(UserEndpointUtils.loginNameExistsInList("admin", users));
         assertTrue(UserEndpointUtils.loginNameExistsInList("developer", users));
 
-        for(User user : users) {
-            if(adminUser == null && user.getLoginName().equals("admin")) {
+        for (Developer user : users) {
+            if (adminUser == null && user.getLoginName().equals("admin")) {
                 adminUser = user;
-            } else if(developerUser == null && user.getLoginName().equals("developer")) {
+            } else if (developerUser == null && user.getLoginName().equals("developer")) {
                 developerUser = user;
             } else {
                 // This should never happen!
@@ -63,7 +63,7 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     @Test
     @InSequence(3)
     public void updateUser() {
-        User user = UserEndpointUtils.generate();
+        Developer user = UserEndpointUtils.generate();
 
         developerUser.setLoginName(user.getLoginName());
 
@@ -73,12 +73,12 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     @Test
     @InSequence(4)
     public void verifyUserUpdate() {
-        User user = UserEndpointUtils.findById(developerUser.getId(), session);
+        Developer user = UserEndpointUtils.findById(developerUser.getId(), session);
 
         UserEndpointUtils.checkEquality(developerUser, user);
 
         Session developerSession = AuthenticationUtils.completeLogin(user.getLoginName(), "123",
-                "opensource2013", getContextRoot());
+            "opensource2013", getContextRoot());
 
         assertNotNull(developerSession);
         assertTrue(developerSession.isValid());
@@ -97,11 +97,11 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     @Test
     @InSequence(6)
     public void verifyUserDeletion() {
-        List<User> users = UserEndpointUtils.listAll(session);
+        List<Developer> users = UserEndpointUtils.listAll(session);
 
         assertEquals(1, users.size());
 
-        User user = users.get(0);
+        Developer user = users.get(0);
 
         UserEndpointUtils.checkEquality(adminUser, user);
 
@@ -111,7 +111,7 @@ public class UserEndpointTest extends GenericSimpleUnifiedPushTest {
     @InSequence(7)
     public void tryLoginWithDeletedUser() {
         Session developerSession = AuthenticationUtils.completeLogin(developerUser.getLoginName(),
-                "123", "opensource2013", getContextRoot());
+            "123", "opensource2013", getContextRoot());
 
         // we shouldn't get that far
         assertFalse(developerSession.isValid());

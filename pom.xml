@@ -134,7 +134,6 @@
             <scope>provided</scope>
         </dependency>
 
-
         <dependency>
             <groupId>com.notnoop.apns</groupId>
             <artifactId>apns</artifactId>
@@ -160,14 +159,7 @@
             <artifactId>aerogear-security</artifactId>
             <version>${aerogear.security.version}</version>
         </dependency>
-
-        <!-- FIXME: Clean DTO model to remove PL dependency -->
-        <dependency>
-            <groupId>org.jboss.aerogear</groupId>
-            <artifactId>aerogear-security-picketlink</artifactId>
-            <version>${aerogear.security.picketlink.version}</version>
-        </dependency>
-
+        
         <!-- UnifiedPush Java Sender is used -->
         <dependency>
             <groupId>org.jboss.aerogear</groupId>
