@@ -77,7 +77,7 @@ function patchContainer() {
              break
         fi
 
-        echo "[DEBUG] Start of JBoss container is not yet finished, checking again in $3 second(s)"
+        echo "[DEBUG] Start of JBoss container is not yet finished, checking again in $4 second(s)"
         sleep $4
     done
 
@@ -92,14 +92,18 @@ function patchContainer() {
     echo "[DEBUG] JBoss container is now started"
 
     # wait for EAP6 to start
-    echo "[INFO] Patching JBoss configuration using jboss_cli.sh script: $2"
+    echo "[INFO] Patching JBoss configuration using jboss_cli.sh script: $3"
 
     $1/bin/jboss-cli.sh --file=$3
 
     echo "[INFO] Patching process has been finished"
 
     # stops EAP6
-    $1/bin/jboss-cli.sh --connect command=:shutdown > /dev/null
+    if [ "$2" == "domain" ]; then
+        $1/bin/jboss-cli.sh --connect command=/host=master:shutdown > /dev/null
+    else
+        $1/bin/jboss-cli.sh --connect command=:shutdown > /dev/null
+    fi
 
     # wait for EAP6 to stop
     isRunning=1
@@ -111,7 +115,7 @@ function patchContainer() {
            break
         fi
 
-        echo "[DEBUG] Shutdown of JBoss container is not yet finished, checking again in $3 second(s)"
+        echo "[DEBUG] Shutdown of JBoss container is not yet finished, checking again in $4 second(s)"
         sleep $4
     done
 
