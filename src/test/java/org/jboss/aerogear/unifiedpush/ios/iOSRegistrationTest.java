@@ -36,6 +36,7 @@ import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
@@ -54,6 +55,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     private static final String UPDATED_IOS_ALIAS = "upd_qa_iOS_1@aerogear";
 
     @Deployment(testable = false)
+    @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses();
     }

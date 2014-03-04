@@ -37,6 +37,7 @@ import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
@@ -59,6 +60,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Deployment(testable = false)
+    @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses();
     }

@@ -13,6 +13,7 @@ import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
@@ -39,6 +40,7 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     }
 
     @Deployment(testable = false)
+    @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses();
     }

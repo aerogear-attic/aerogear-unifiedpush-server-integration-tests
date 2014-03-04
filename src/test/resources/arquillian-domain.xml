@@ -22,20 +22,21 @@
     <defaultProtocol type="Servlet 3.0" />
     
     <!-- Uncomment to have test archives exported to the file system for inspection -->
-    <!--
+    <!-- 
     <engine>
         <property name="deploymentExportPath">target/</property>
     </engine>
-    -->    
+    -->
 
-    <!-- Configuration to be used when the JBoss managed profile is active -->
-    <!-- Here, we reference "main-server-group", as this is the default for tests running in domain mode -->
-    <container qualifier="main-server-group" default="true">
-        <configuration>
-            <property name="jbossHome">${env.JBOSS_HOME:jboss-as-7.1.1.Final}</property>
+    <group qualifier="jboss" default="true">
+        <!-- Domain controller controls groups of servers. We deploy to "main-server-group", which is available by default.
+             In tests, we also need to mark deployments to be deployend to this group via @TargetsContainer annotation -->
+        <container qualifier="domain-controller">
+            <configuration>
+                <property name="jbossHome">${env.JBOSS_HOME:jboss-as-7.1.1.Final}</property>
             <!-- <property name="serverConfig">standalone-full.xml</property> -->
-            <property name="javaVmArguments">-Djboss.bind.address=${jbossBindAddress:127.0.0.1} -Xmx1024m -XX:MaxPermSize=256m</property>
-        </configuration>
-    </container>
-
+                <property name="javaVmArguments">-Djboss.bind.address=${jbossBindAddress:127.0.0.1} -Xmx1024m -XX:MaxPermSize=256m</property>
+            </configuration>
+        </container>
+    </group>
 </arquillian>

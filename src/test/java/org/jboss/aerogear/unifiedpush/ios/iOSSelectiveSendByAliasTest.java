@@ -32,6 +32,7 @@ import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
@@ -52,6 +53,7 @@ public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
     @Deployment(testable = false)
+    @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.customUnifiedPushServerWithClasses();
     }

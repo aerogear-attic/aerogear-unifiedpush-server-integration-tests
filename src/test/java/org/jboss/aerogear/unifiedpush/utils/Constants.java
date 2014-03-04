@@ -31,7 +31,7 @@ public final class Constants {
 
     public static final String INSECURE_AG_PUSH_ENDPOINT = "http://localhost:8080/ag-push/";
 
-    public static final String KEYSTORE_PATH = "jboss-as-conf/aerogear.keystore";
+    public static final String KEYSTORE_PATH = "setup/aerogear.keystore";
 
     public static final String KEYSTORE_PASSWORD = "aerogear";
 
