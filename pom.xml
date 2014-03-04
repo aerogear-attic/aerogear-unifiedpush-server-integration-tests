@@ -36,10 +36,7 @@
         <maven.compiler.argument.source>${maven.compiler.source}</maven.compiler.argument.source>
         
         <!-- Secured endpoint for SenderStatictics -->
-        <aerogear.security.version>1.2.1</aerogear.security.version>
-        
-        <!-- FIXME: Developer DTO depends on PicketLink -->
-        <aerogear.security.picketlink.version>1.2.2</aerogear.security.picketlink.version>
+        <aerogear.security.version>1.3.1</aerogear.security.version>
 
         <org.jboss.spec.javaee6.version>3.0.2.Final</org.jboss.spec.javaee6.version>
 
@@ -64,6 +61,13 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.11</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.9.5</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
@@ -104,14 +108,6 @@
     </dependencyManagement>
 
     <dependencies>
-
-        <!-- 
-        <dependency>
-            <groupId>org.jboss.spec.javax.transaction</groupId>
-            <artifactId>jboss-transaction-api_1.1_spec</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        -->
 
         <!-- CDI is needed for Sender redefinition. FIXME remove with Byteman integration -->
         <dependency>
@@ -177,7 +173,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.9.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -194,22 +189,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Exclude jackson artifacts to avoid conflict with APNS jackson dependencies -->
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>${com.jayway.restassured.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-mapper-asl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -217,36 +201,12 @@
             <artifactId>json-path</artifactId>
             <version>${com.jayway.restassured.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-mapper-asl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.5</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.jayway.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>1.3.5</version>
+            <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -273,44 +233,11 @@
                     <scope>test</scope>
                 </dependency>
             </dependencies>
+
             <build>
-                <pluginManagement>
-                    <plugins>
-                        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build
-                            itself. -->
-                        <plugin>
-                            <groupId>org.eclipse.m2e</groupId>
-                            <artifactId>lifecycle-mapping</artifactId>
-                            <version>1.0.0</version>
-                            <configuration>
-                                <lifecycleMappingMetadata>
-                                    <pluginExecutions>
-                                        <pluginExecution>
-                                            <pluginExecutionFilter>
-                                                <groupId>
-                                                    org.apache.maven.plugins
-                                                </groupId>
-                                                <artifactId>
-                                                    maven-dependency-plugin
-                                                </artifactId>
-                                                <versionRange>
-                                                    [2.1,)
-                                                </versionRange>
-                                                <goals>
-                                                    <goal>unpack</goal>
-                                                </goals>
-                                            </pluginExecutionFilter>
-                                            <action>
-                                                <ignore></ignore>
-                                            </action>
-                                        </pluginExecution>
-                                    </pluginExecutions>
-                                </lifecycleMappingMetadata>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
+            <!-- AS 7 is extracted using before the test -->
             </build>
+
         </profile>
 
         <profile>
@@ -481,11 +408,9 @@
         </profile>
     </profiles>
 
+
     <repositories>
-        <repository>
-            <id>JBOSS_NEXUS</id>
-            <url>http://repository.jboss.org/nexus/content/groups/public</url>
-        </repository>
+        <!-- this repository is needed to get GCM server -->
         <repository>
             <id>gcm-server-repository</id>
             <url>https://raw.github.com/slorber/gcm-server-repository/master/releases/</url>
