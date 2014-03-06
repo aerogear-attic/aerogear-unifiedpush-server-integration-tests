@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 	http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,20 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.model;
+package org.jboss.aerogear.unifiedpush.chrome;
 
-/**
- * The SimplePush variant class encapsulates SimplePush specific behavior.
- */
-public class SimplePushVariant extends AbstractVariant {
-    private static final long serialVersionUID = 9046963507735955449L;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.junit.BeforeClass;
 
-    public SimplePushVariant() {
-        super();
+import com.jayway.restassured.RestAssured;
+
+public class SecureChromePackagedAppRegistrationTest extends ChromePackagedAppRegistrationTest {
+
+    @BeforeClass
+    public static void setup() {
+        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
     }
 
     @Override
-    public VariantType getType() {
-        return VariantType.SIMPLE_PUSH;
+    protected String getContextRoot() {
+        return Constants.SECURE_AG_PUSH_ENDPOINT;
     }
 }

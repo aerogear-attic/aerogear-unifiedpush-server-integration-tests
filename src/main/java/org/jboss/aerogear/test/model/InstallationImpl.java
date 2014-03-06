@@ -19,7 +19,7 @@ package org.jboss.aerogear.test.model;
 import java.util.Set;
 
 public class InstallationImpl extends PersistentObject implements Installation {
-    private static final long serialVersionUID = 7177135979544758234L;
+    private static final long serialVersionUID = 1L;
 
     private boolean enabled = true;
     private String deviceToken;

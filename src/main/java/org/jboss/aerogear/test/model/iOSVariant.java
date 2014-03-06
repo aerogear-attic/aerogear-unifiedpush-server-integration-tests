@@ -16,7 +16,6 @@
  */
 package org.jboss.aerogear.test.model;
 
-
 /**
  * The iOS variant class encapsulates APNs specific behavior.
  */
@@ -25,8 +24,6 @@ public class iOSVariant extends AbstractVariant {
 
     public iOSVariant() {
         super();
-        // we are iOS:
-        this.setType(VariantType.IOS);
     }
 
     private boolean production;
@@ -34,6 +31,11 @@ public class iOSVariant extends AbstractVariant {
     private String passphrase;
 
     private byte[] certificate;
+
+    @Override
+    public VariantType getType() {
+        return VariantType.IOS;
+    }
 
     /**
      * If <code>true</code> a connection to Apple's Production APNs server

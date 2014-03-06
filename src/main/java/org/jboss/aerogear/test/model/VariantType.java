@@ -22,19 +22,24 @@ package org.jboss.aerogear.test.model;
 public enum VariantType {
 
     /**
-     * The type identifier for our Android variants. 
+     * The type identifier for our Android variants.
      */
     ANDROID("android"),
 
     /**
-     * The type identifier for our iOS variants. 
+     * The type identifier for our iOS variants.
      */
     IOS("ios"),
 
     /**
-     * The type identifier for our SimplePush variants. 
+     * The type identifier for our SimplePush variants.
      */
-    SIMPLE_PUSH("simplePush");
+    SIMPLE_PUSH("simplePush"),
+
+    /**
+     * The type identifier for our Chrome Packaged App variants.
+     */
+    CHROME_PACKAGED_APP("chromePackagedApp");
 
     private final String typeName;
 

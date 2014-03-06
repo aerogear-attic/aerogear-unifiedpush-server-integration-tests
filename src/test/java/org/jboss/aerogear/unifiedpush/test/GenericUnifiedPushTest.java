@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.test.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
+import org.jboss.aerogear.unifiedpush.utils.ChromePackagedAppVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Session;
@@ -64,7 +66,7 @@ public abstract class GenericUnifiedPushTest {
     protected final static String SIMPLE_PUSH_DEVICE_TYPE = "web";
 
     protected final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" +
-            SIMPLE_PUSH_DEVICE_TOKEN;
+        SIMPLE_PUSH_DEVICE_TOKEN;
 
     protected final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS";
 
@@ -101,16 +103,15 @@ public abstract class GenericUnifiedPushTest {
     private static String registeredPushApplicationName;
 
     private static AndroidVariant registeredAndroidVariant;
-    private static String registeredAndroidVariantID;
-
     private static ArrayList<InstallationImpl> registeredAndroidInstallations;
 
-    private static iOSVariant registeredIOSVariant;
+    private static ChromePackagedAppVariant registeredChromePackagedAppVariant;
+    private static ArrayList<InstallationImpl> registeredChromeInstallations;
 
+    private static iOSVariant registeredIOSVariant;
     private static ArrayList<InstallationImpl> registeredIOSInstallations;
 
     private static SimplePushVariant registeredSimplePushVariant;
-
     private static ArrayList<InstallationImpl> registeredSimplePushInstallations;
 
     @RunAsClient
@@ -141,6 +142,15 @@ public abstract class GenericUnifiedPushTest {
     @RunAsClient
     @Test
     @InSequence(4)
+    public void registerChromeVariant() {
+        registeredChromePackagedAppVariant = ChromePackagedAppVariantUtils.generateAndRegister(registeredPushApplication,
+            session);
+        assertNotNull(registeredChromePackagedAppVariant);
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(5)
     public void registerSimplePushVariant() {
         registeredSimplePushVariant = SimplePushVariantUtils.generateAndRegister(registeredPushApplication, session);
         assertNotNull(registeredSimplePushVariant);
@@ -148,16 +158,16 @@ public abstract class GenericUnifiedPushTest {
 
     @RunAsClient
     @Test
-    @InSequence(5)
+    @InSequence(6)
     public void registerIOSVariant() {
         registeredIOSVariant = iOSVariantUtils.generateAndRegister(IOS_CERTIFICATE_PATH, IOS_CERTIFICATE_PASS_PHRASE,
-                false, registeredPushApplication, session);
+            false, registeredPushApplication, session);
         assertNotNull(registeredIOSVariant);
     }
 
     @RunAsClient
     @Test
-    @InSequence(6)
+    @InSequence(7)
     public void registeriOSInstallations() {
         List<InstallationImpl> iosInstallations = InstallationUtils.generateIos(3);
 
@@ -166,10 +176,9 @@ public abstract class GenericUnifiedPushTest {
         registeredIOSInstallations = new ArrayList<InstallationImpl>(iosInstallations);
     }
 
-
     @RunAsClient
     @Test
-    @InSequence(7)
+    @InSequence(8)
     public void registerAndroidInstallations() {
         List<InstallationImpl> androidInstallations = InstallationUtils.generateAndroid(3);
 
@@ -181,6 +190,17 @@ public abstract class GenericUnifiedPushTest {
     @RunAsClient
     @Test
     @InSequence(8)
+    public void registerChromeInstallations() {
+        List<InstallationImpl> chromeInstallations = InstallationUtils.generateChrome(3);
+
+        InstallationUtils.registerAll(chromeInstallations, registeredChromePackagedAppVariant, getSession());
+
+        registeredChromeInstallations = new ArrayList<InstallationImpl>(chromeInstallations);
+    }
+
+    @RunAsClient
+    @Test
+    @InSequence(10)
     public void registerSimplePushInstallation() {
         List<InstallationImpl> simplePushInstallations = InstallationUtils.generateSimplePush(3);
 
@@ -205,6 +225,10 @@ public abstract class GenericUnifiedPushTest {
         return registeredPushApplicationName;
     }
 
+    public static ChromePackagedAppVariant getRegisteredChromePackagedAppVariant() {
+        return registeredChromePackagedAppVariant;
+    }
+
     public static AndroidVariant getRegisteredAndroidVariant() {
         return registeredAndroidVariant;
     }
@@ -227,6 +251,10 @@ public abstract class GenericUnifiedPushTest {
 
     public static ArrayList<InstallationImpl> getRegisteredSimplePushInstallations() {
         return registeredSimplePushInstallations;
+    }
+
+    public static ArrayList<InstallationImpl> getRegisteredChromeInstallations() {
+        return registeredChromeInstallations;
     }
 
     protected abstract String getContextRoot();

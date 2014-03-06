@@ -68,11 +68,8 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
         List<String> deviceTypes = new ArrayList<String>();
         deviceTypes.add(registeredInstallation.getDeviceType());
 
-        Set<String> categories = new HashSet<String>();
-        categories.add(registeredInstallation.getCategories().iterator().next());
-
         UnifiedMessage.Builder message = new UnifiedMessage.Builder().aliases(aliases)
-            .deviceType(deviceTypes).categories(categories)
+            .deviceType(deviceTypes).categories(registeredInstallation.getCategories().toArray(new String[0]))
             .simplePush("15")
             .pushApplicationId(getRegisteredPushApplication().getPushApplicationID())
             .masterSecret(getRegisteredPushApplication().getMasterSecret());

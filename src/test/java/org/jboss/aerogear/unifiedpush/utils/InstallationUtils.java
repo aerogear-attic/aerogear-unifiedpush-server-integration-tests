@@ -43,6 +43,8 @@ public final class InstallationUtils {
     private static final String ANDROID_DEFAULT_OPERATING_SYSTEM_VERSION = "4.2.2";
     private static final String[] ANDROID_DEFAULT_CATEGORIES = { };
 
+    private static final String[] CHROME_DEFAULT_CATEGORIES = { };
+
     private static final String IOS_DEFAULT_DEVICE_TYPE = "IOSPhone";
     private static final String IOS_DEFAULT_OPERATING_SYSTEM = "IOS";
     private static final String IOS_DEFAULT_OPERATING_SYSTEM_VERSION = "6.0";
@@ -60,6 +62,12 @@ public final class InstallationUtils {
     public static InstallationImpl createAndroid(String deviceToken, String alias) {
         return create(deviceToken, alias, getAndroidDefaultDeviceType(), getAndroidDefaultOperatingSystem(),
                 getAndroidDefaultOperatingSystemVersion(), getAndroidDefaultCategories(), null);
+    }
+
+
+    public static InstallationImpl createChrome(String deviceToken) {
+        return create(deviceToken, null, null, null, null, getChromeDefaultCategories(), null);
+
     }
 
     public static InstallationImpl createIOS(String deviceToken, String alias) {
@@ -107,6 +115,25 @@ public final class InstallationUtils {
 
         return installations;
     }
+
+    public static InstallationImpl generateChrome() {
+        return generateChrome(SINGLE).iterator().next();
+    }
+
+    public static List<InstallationImpl> generateChrome(int count) {
+        List<InstallationImpl> installations = new ArrayList<InstallationImpl>();
+
+        for (int i = 0; i < count; i++) {
+            String deviceToken = UUID.randomUUID().toString();
+
+            InstallationImpl installation = createChrome(deviceToken);
+
+            installations.add(installation);
+        }
+
+        return installations;
+    }
+
 
     public static InstallationImpl generateIos() {
         return generateIos(SINGLE).iterator().next();
@@ -335,8 +362,14 @@ public final class InstallationUtils {
     }
 
     public static Set<String> getAndroidDefaultCategories() {
-        HashSet<String> categories = new HashSet<String>();
+        Set<String> categories = new HashSet<String>();
         Collections.addAll(categories, ANDROID_DEFAULT_CATEGORIES);
+        return categories;
+    }
+
+    public static Set<String> getChromeDefaultCategories() {
+        Set<String> categories = new HashSet<String>();
+        Collections.addAll(categories, CHROME_DEFAULT_CATEGORIES);
         return categories;
     }
 

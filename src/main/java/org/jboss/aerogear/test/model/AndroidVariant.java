@@ -16,7 +16,6 @@
  */
 package org.jboss.aerogear.test.model;
 
-
 /**
  * The Android variant class encapsulates GCM specific behavior.
  */
@@ -25,13 +24,16 @@ public class AndroidVariant extends AbstractVariant {
 
     public AndroidVariant() {
         super();
-        // we are Android:
-        this.setType(VariantType.ANDROID);
     }
 
     private String googleKey;
 
     private String projectNumber;
+
+    @Override
+    public VariantType getType() {
+        return VariantType.ANDROID;
+    }
 
     /**
      * The "Google Project Number" from the API Console is <i>not</i> needed for sending push messages, but it is a convenience

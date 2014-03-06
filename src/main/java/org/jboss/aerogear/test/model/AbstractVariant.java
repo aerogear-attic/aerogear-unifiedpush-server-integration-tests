@@ -26,8 +26,6 @@ import java.util.UUID;
 public abstract class AbstractVariant extends PersistentObject implements Variant {
     private static final long serialVersionUID = -5028062942838899201L;
 
-    private VariantType type;
-
     private String name;
 
     private String description;
@@ -39,14 +37,6 @@ public abstract class AbstractVariant extends PersistentObject implements Varian
     private String developer;
 
     private Set<InstallationImpl> installations = new HashSet<InstallationImpl>();
-
-    public VariantType getType() {
-        return type;
-    }
-
-    public void setType(VariantType type) {
-        this.type = type;
-    }
 
     public String getName() {
         return this.name;
