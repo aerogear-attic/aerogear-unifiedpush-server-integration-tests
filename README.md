@@ -36,7 +36,7 @@ The integration tests execution is done through Maven. Navigate to the project's
 
 If you want to execute tests using domain mode, just run
 
-    mvn test -Pas711-domain-managed
+    mvn test -Pas711-domain-managed -Djavax.net.ssl.trustStore="setup/aerogear.truststore" -Djavax.net.ssl.trustStorePassword=aerogear
 
 Note, if you need to run tests against different directory, just specify following:
 
