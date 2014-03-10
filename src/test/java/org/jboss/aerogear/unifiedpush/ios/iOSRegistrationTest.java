@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +30,6 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
@@ -38,15 +38,19 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
+    @ArquillianResource
+    private URL context;
+
     @Override
     protected String getContextRoot() {
-        return Constants.INSECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 
     private static final String UPDATED_IOS_DEVICE_TYPE = "IPhone";
@@ -269,8 +273,9 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
 
     @Test
     // TODO this has to be the end of this test class, change it to be independent!!!
-    @InSequence(1000)
-    public void removeiOSVariant() {
+        @InSequence(1000)
+        public
+        void removeiOSVariant() {
         iOSVariantUtils.delete(getRegisteredIOSVariant(), getRegisteredPushApplication(), getSession());
     }
 

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +31,6 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
@@ -39,15 +39,19 @@ import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
 
+    @ArquillianResource
+    private URL context;
+
     @Override
     protected String getContextRoot() {
-        return Constants.INSECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 
     private final static String UPDATED_SIMPLE_PUSH_DEVICE_TYPE = "upd_web";

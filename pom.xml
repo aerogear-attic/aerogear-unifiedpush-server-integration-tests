@@ -15,18 +15,19 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-parent</artifactId>
         <version>0.1.0</version>
+        <relativePath/>
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
-    <version>0.11.0-SNAPSHOT</version>
-
+    <version>0.10.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,7 +44,7 @@
 
         <!-- Testing -->
         <org.jboss.shrinkwrap.resolver>2.0.2</org.jboss.shrinkwrap.resolver>
-        <org.jboss.arquillian.version>1.1.3.Final</org.jboss.arquillian.version>
+        <org.jboss.arquillian.version>1.1.2.Final</org.jboss.arquillian.version>
         <com.jayway.restassured.version>2.3.0</com.jayway.restassured.version>
         <org.jboss.arquillian.as7.version>7.1.3.Final</org.jboss.arquillian.as7.version>
 
@@ -214,6 +215,15 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- dependencies for smarturl extension -->
+        <dependency>
+            <groupId>org.jboss.arquillian.core</groupId>
+            <artifactId>arquillian-core-spi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.container</groupId>
+            <artifactId>arquillian-container-test-impl-base</artifactId>
+        </dependency>
     </dependencies>
 
     <build />
@@ -357,7 +367,8 @@
                                 <configuration>
                                     <target>
                                         <property name="source-folder" location="${project.basedir}/aerogear-unifiedpush-server/server" />
-                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" />
+                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask"
+                                            classpathref="maven.plugin.classpath" />
                                         <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties" />
                                         <available file="${project.basedir}/${jacoco.report.file}" property="exec.file.exists" />
                                         <echo message="${project.basedir}/${jacoco.report.file}" />
@@ -384,7 +395,8 @@
                                                     </try>
                                                     <catch>
                                                         <property name="exception" refid="report_exception" />
-                                                        <property name="message" value="Error while generating jacoco report: ${exception}" />
+                                                        <property name="message"
+                                                            value="Error while generating jacoco report: ${exception}" />
                                                         <echo message="${message}" />
                                                     </catch>
                                                 </trycatch>

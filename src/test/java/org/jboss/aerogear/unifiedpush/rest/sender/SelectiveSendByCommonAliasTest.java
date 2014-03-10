@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.jboss.aerogear.unifiedpush.utils.ServerSocketUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
@@ -46,6 +48,9 @@ import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
+
+    @ArquillianResource
+    private URL context;
 
     private final static String SIMPLE_PUSH_VERSION = "version=15";
 
@@ -58,7 +63,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
 
     @Override
     protected String getContextRoot() {
-        return Constants.INSECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 
     @Deployment(testable = false)
@@ -94,6 +99,7 @@ public class SelectiveSendByCommonAliasTest extends GenericUnifiedPushTest {
         installationsWithCommonAlias.add(generatedInstallation);
     }
 
+    @Override
     @Test
     @InSequence(14)
     public void registerSimplePushInstallation() {

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,7 +31,6 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
@@ -38,15 +38,19 @@ import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class AndroidRegistrationTest extends GenericUnifiedPushTest {
 
+    @ArquillianResource
+    private URL context;
+
     @Override
     protected String getContextRoot() {
-        return Constants.INSECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 
     private final static String UPDATED_ANDROID_OPERATING_SYSTEM = "AndroidOS";
@@ -68,7 +72,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     public void registerAndroidVariantMissingGooglekey() {
         thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
         AndroidVariantUtils.createAndRegister(UUID.randomUUID().toString(), UUID.randomUUID().toString(), null, null,
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
     }
 
     @Test
@@ -76,7 +80,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     public void registerAndroidVariantMissingAuthCookies() {
         thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
         AndroidVariantUtils.generateAndRegister(getRegisteredPushApplication(),
-                Session.createInvalid(getContextRoot()));
+            Session.createInvalid(getContextRoot()));
     }
 
     @Test
@@ -132,7 +136,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(104)
     public void verifyUpdate() {
         AndroidVariant androidVariant = AndroidVariantUtils.findById(getRegisteredAndroidVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
         assertNotNull(androidVariant);
         AndroidVariantUtils.checkEquality(getRegisteredAndroidVariant(), androidVariant);
     }
@@ -157,7 +161,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
         InstallationImpl registeredInstallation = getRegisteredAndroidInstallations().get(0);
 
         InstallationImpl installation = InstallationUtils.findById(registeredInstallation.getId(),
-                getRegisteredAndroidVariant(), getSession());
+            getRegisteredAndroidVariant(), getSession());
 
         assertNotNull(installation);
         InstallationUtils.checkEquality(registeredInstallation, installation);
@@ -183,7 +187,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(109)
     public void findAndroidVariant() {
         AndroidVariant androidVariant = AndroidVariantUtils.findById(getRegisteredAndroidVariant().getVariantID(),
-                getRegisteredPushApplication(), getSession());
+            getRegisteredPushApplication(), getSession());
         AndroidVariantUtils.checkEquality(getRegisteredAndroidVariant(), androidVariant);
     }
 
@@ -212,7 +216,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(113)
     public void unregisterInstallation() {
         InstallationUtils.unregister(getRegisteredAndroidInstallations().get(0), getRegisteredAndroidVariant(),
-                getSession());
+            getSession());
     }
 
     @Test
@@ -220,7 +224,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     public void verifyInstallationRemoval() {
         thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         InstallationUtils.findById(getRegisteredAndroidInstallations().get(0).getId(), getRegisteredAndroidVariant(),
-                getSession());
+            getSession());
     }
 
     @Test

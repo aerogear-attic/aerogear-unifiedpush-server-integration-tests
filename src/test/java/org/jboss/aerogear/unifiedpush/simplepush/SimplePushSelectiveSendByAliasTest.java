@@ -21,11 +21,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
@@ -37,10 +36,14 @@ import org.jboss.aerogear.unifiedpush.utils.ServerSocketUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
 public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
+
+    @ArquillianResource
+    private URL context;
 
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
@@ -48,7 +51,7 @@ public class SimplePushSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
     @Override
     protected String getContextRoot() {
-        return Constants.INSECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 
     @Deployment(testable = false)

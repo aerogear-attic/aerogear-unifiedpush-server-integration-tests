@@ -49,10 +49,10 @@ public final class Deployments {
     public static WebArchive unifiedPushServer() {
 
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                "aerogear-unifiedpush-server/server/pom.xml");
+            "aerogear-unifiedpush-server/server/pom.xml");
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
-                .as(WebArchive.class);
+            .as(WebArchive.class);
 
         // replace original persistence.xml with testing one
         war.delete("/WEB-INF/classes/META-INF/persistence.xml");
@@ -64,10 +64,10 @@ public final class Deployments {
     public static WebArchive unifiedPushServerWithClasses(Class<?>... clazz) {
 
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                "aerogear-unifiedpush-server/server/pom.xml");
+            "aerogear-unifiedpush-server/server/pom.xml");
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
-                .as(WebArchive.class);
+            .as(WebArchive.class);
 
         war.delete("/WEB-INF/classes/META-INF/persistence.xml");
         war.addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml");
@@ -75,7 +75,7 @@ public final class Deployments {
         war.addClasses(clazz);
 
         File[] libs = Maven.resolver().loadPomFromFile("pom.xml").resolve("org.mockito:mockito-core").withTransitivity()
-                .asFile();
+            .asFile();
         war = war.addAsLibraries(libs);
 
         return war;
@@ -83,10 +83,10 @@ public final class Deployments {
 
     public static WebArchive customUnifiedPushServerWithClasses(Class<?>... clazz) {
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                "aerogear-unifiedpush-server/server/pom.xml");
+            "aerogear-unifiedpush-server/server/pom.xml");
 
         WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
-                .as(WebArchive.class);
+            .as(WebArchive.class);
 
         war.delete("/WEB-INF/lib/gcm-server-1.0.2.jar");
 
@@ -98,21 +98,21 @@ public final class Deployments {
         war.addClasses(clazz);
 
         JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "gcm-server-1.0.2.jar").addClasses(Result.class, Message.class,
-                MulticastResult.class, Message.class, Sender.class);
+            MulticastResult.class, Message.class, Sender.class);
         war.addAsLibraries(jar);
 
         war.delete("/WEB-INF/lib/apns-0.2.3.jar");
 
         JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException.class,
-                ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
-                Constants.class, ServerSocketUtils.class, ApnsNotification.class, EnhancedApnsNotification.class);
+            ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
+            Constants.class, ServerSocketUtils.class, ApnsNotification.class, EnhancedApnsNotification.class);
         war.addAsLibraries(apnsJar);
 
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 
         // here we resolve mockito transitively, other artifact without transitivity
         File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
-                .withoutTransitivity().asFile();
+            .withoutTransitivity().asFile();
         war.addAsLibraries(libs);
         libs = resolver.resolve("org.mockito:mockito-core").withTransitivity().asFile();
         war = war.addAsLibraries(libs);

@@ -16,7 +16,12 @@
  */
 package org.jboss.aerogear.unifiedpush.pushapp;
 
+import java.net.URL;
+
+import org.arquillian.extension.smarturl.SchemeName;
+import org.arquillian.extension.smarturl.UriScheme;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.BeforeClass;
 
 import com.jayway.restassured.RestAssured;
@@ -26,16 +31,20 @@ import com.jayway.restassured.config.RestAssuredConfig;
 
 public class SecureRegisterPushAppTest extends RegisterPushAppTest {
 
+    @ArquillianResource
+    @UriScheme(name = SchemeName.HTTPS, port = 8443)
+    private URL context;
+
     @BeforeClass
     public static void setup() {
         RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
+            .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
+            .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
         RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
     }
 
     @Override
     protected String getContextRoot() {
-        return Constants.SECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 }

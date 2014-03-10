@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +28,13 @@ import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 
@@ -41,9 +42,12 @@ import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public class iOSSelectiveSendByAliasTest extends GenericUnifiedPushTest {
 
+    @ArquillianResource
+    private URL context;
+
     @Override
     protected String getContextRoot() {
-        return Constants.INSECURE_AG_PUSH_ENDPOINT;
+        return context.toExternalForm();
     }
 
     private final static String NOTIFICATION_SOUND = "default";

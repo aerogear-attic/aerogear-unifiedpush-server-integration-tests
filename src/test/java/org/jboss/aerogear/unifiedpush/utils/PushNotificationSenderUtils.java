@@ -45,9 +45,9 @@ import com.jayway.restassured.response.Response;
 public final class PushNotificationSenderUtils {
 
     /*
-    private static final int DEFAULT_BADGE = -1;
-    private static final int DEFAULT_TTL = -1;
-    */
+     * private static final int DEFAULT_BADGE = -1;
+     * private static final int DEFAULT_TTL = -1;
+     */
 
     private PushNotificationSenderUtils() {
     }
@@ -61,8 +61,7 @@ public final class PushNotificationSenderUtils {
 
     public static void send(UnifiedMessage message, Session session) {
 
-        // FIXME, there are problems with https!
-        JavaSender sender = new SenderClient(Constants.INSECURE_AG_PUSH_ENDPOINT);
+        JavaSender sender = new SenderClient(session.getBaseUrl().toExternalForm());
 
         final CountDownLatch latch = new CountDownLatch(1);
         final List<Integer> returnedStatusList = new ArrayList<Integer>(1);
@@ -79,6 +78,7 @@ public final class PushNotificationSenderUtils {
             public void onError(Throwable throwable) {
                 onFailCalled.set(true);
                 latch.countDown();
+                throw new RuntimeException(throwable);
             }
         };
 
@@ -106,7 +106,6 @@ public final class PushNotificationSenderUtils {
     }
 
     public static SenderStatisticsEndpoint.SenderStatistics getSenderStatistics(Session session) {
-
         Response response = session.given()
             .contentType(ContentTypes.json())
             .header(Headers.acceptJson())
