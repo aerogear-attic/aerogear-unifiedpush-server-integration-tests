@@ -37,7 +37,7 @@ The integration tests execution is done through Maven. Navigate to the project's
 If you want to execute tests using domain mode, just run
 
     mvn test -Pas711-domain-managed
-
+    
 Note, if you need to run tests against different directory, just specify following:
 
     mvn test -Dunified.push.server.location=/path/to/pom.xml/that/should/be/build/instead

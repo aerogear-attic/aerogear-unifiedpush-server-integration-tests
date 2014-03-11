@@ -15,8 +15,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -172,12 +171,6 @@
 
         <!-- Test stuff -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
@@ -200,14 +193,14 @@
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>${com.jayway.restassured.version}</version>
-            <scope>test</scope>
+            <!-- <scope>test</scope> -->
         </dependency>
 
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>json-path</artifactId>
             <version>${com.jayway.restassured.version}</version>
-            <scope>test</scope>
+            <!-- <scope>test</scope> -->
         </dependency>
 
         <dependency>
@@ -217,13 +210,23 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- depenencies of smarturl and loading rule extension -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <!-- if ever this is moved to standalone extension, scope should be changed to provided -->
+        </dependency>
+        <!-- FIXME unexpected response exception, we need a matcher. Matcher should be moved to test package -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
+        </dependency>
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
             <artifactId>arquillian-junit-container</artifactId>
-            <scope>test</scope>
+            <!-- if ever this is moved to standalone extension, scope should be changed to provided -->
         </dependency>
-
-        <!-- dependencies for smarturl extension -->
         <dependency>
             <groupId>org.jboss.arquillian.core</groupId>
             <artifactId>arquillian-core-spi</artifactId>
@@ -399,8 +402,7 @@
                                 <configuration>
                                     <target>
                                         <property name="source-folder" location="${project.basedir}/aerogear-unifiedpush-server/server" />
-                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask"
-                                            classpathref="maven.plugin.classpath" />
+                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" />
                                         <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties" />
                                         <available file="${project.basedir}/${jacoco.report.file}" property="exec.file.exists" />
                                         <echo message="${project.basedir}/${jacoco.report.file}" />
@@ -427,8 +429,7 @@
                                                     </try>
                                                     <catch>
                                                         <property name="exception" refid="report_exception" />
-                                                        <property name="message"
-                                                            value="Error while generating jacoco report: ${exception}" />
+                                                        <property name="message" value="Error while generating jacoco report: ${exception}" />
                                                         <echo message="${message}" />
                                                     </catch>
                                                 </trycatch>
