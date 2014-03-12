@@ -26,7 +26,9 @@ function cloneRepository() {
     if [ ! -d "$AG_UPS_REPO" ]; then
         git clone -q https://github.com/aerogear/aerogear-unifiedpush-server.git $AG_UPS_REPO
         cd $AG_UPS_REPO
-        git checkout 2c586cb5742368953b5b5fcaa7901598372c09ff
+        #git branch --track 0.10.x origin/0.10.x
+        #git checkout 0.10.x
+        git checkout 35d15c91b7b4f01902e2fdb6a61d60506439a67c
         cd ..
     fi
 }

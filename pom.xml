@@ -23,7 +23,7 @@
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-parent</artifactId>
         <version>0.1.0</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
@@ -244,6 +244,17 @@
 
             <build>
             <!-- AS 7 is extracted using before the test -->
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <javax.net.ssl.trustStore>setup/aerogear.truststore</javax.net.ssl.trustStore>
+                                <javax.net.ssl.trustStorePassword>aerogear</javax.net.ssl.trustStorePassword>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
 
@@ -268,6 +279,8 @@
                         <configuration>
                             <systemPropertyVariables>
                                 <arquillian.xml>arquillian-domain.xml</arquillian.xml>
+                                <javax.net.ssl.trustStore>setup/aerogear.truststore</javax.net.ssl.trustStore>
+                                <javax.net.ssl.trustStorePassword>aerogear</javax.net.ssl.trustStorePassword>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -295,7 +308,18 @@
             </dependencies>
 
             <build>
-                <!-- JBoss EAP 6.0.1 is not hosted in any Maven repository, you have to unpack it manually -->
+				<!-- JBoss EAP 6.0.1 is not hosted in any Maven repository, you have to unpack it manually -->
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <javax.net.ssl.trustStore>setup/aerogear.truststore</javax.net.ssl.trustStore>
+                                <javax.net.ssl.trustStorePassword>aerogear</javax.net.ssl.trustStorePassword>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
 
