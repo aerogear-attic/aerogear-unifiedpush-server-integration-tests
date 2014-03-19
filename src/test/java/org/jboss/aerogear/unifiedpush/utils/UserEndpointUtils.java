@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.model.Developer;
 import org.json.simple.JSONObject;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 

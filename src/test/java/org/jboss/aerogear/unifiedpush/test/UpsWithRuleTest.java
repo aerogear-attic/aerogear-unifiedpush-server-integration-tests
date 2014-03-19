@@ -4,20 +4,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-import java.net.URL;
 import java.util.List;
 
-import org.arquillian.extension.smarturl.SchemeName;
-import org.arquillian.extension.smarturl.UriScheme;
-import org.jboss.aerogear.test.PushApplicationWorker;
-import org.jboss.aerogear.test.UPS;
+import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
 import org.jboss.arquillian.junit.ArquillianRules;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,14 +23,20 @@ import com.jayway.restassured.RestAssured;
 @RunWith(ArquillianRules.class)
 public class UpsWithRuleTest {
 
+
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
 
         @Override
-        protected UnifiedPushServer setup(UPS ups) {
-            // register new PushApplication
-            PushApplication app = ups.with(new PushApplicationWorker()).generate().register();
-            assertThat(app, is(notNullValue()));
+        protected UnifiedPushServer setup() {
+            // persist new PushApplication
+            List<PushApplication> apps = with(PushApplicationWorker.worker())
+                    .generate().persist()
+                    .generate().persist()
+                    .generate().name("name").description("asd").persist()
+                    .detachEntities();
+
+            assertThat(apps, is(notNullValue()));
 
             return this;
         }
@@ -54,16 +55,16 @@ public class UpsWithRuleTest {
 
     @Test
     public void verifyAppIsCreated() throws Exception {
-        List<PushApplication> apps = ups.getSession().with(PushApplicationWorker.class).findAll();
+        List<PushApplication> apps = ups.with(PushApplicationWorker.worker()).findAll().detachEntities();
         assertThat(apps, is(notNullValue()));
-        assertThat(apps.size(), is(1));
+        assertThat(apps.size(), is(3));
     }
 
     @Test
     public void verifyAppIsCreated2() throws Exception {
-        List<PushApplication> apps = ups.getSession().with(PushApplicationWorker.class).findAll();
+        List<PushApplication> apps = ups.with(PushApplicationWorker.worker()).findAll().detachEntities();
         assertThat(apps, is(notNullValue()));
-        assertThat(apps.size(), is(1));
+        assertThat(apps.size(), is(3));
     }
 
 }

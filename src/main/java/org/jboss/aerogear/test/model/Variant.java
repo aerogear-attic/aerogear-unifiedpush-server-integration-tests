@@ -43,14 +43,14 @@ public interface Variant {
     String getDescription();
 
     /**
-     * Identifier used to register an {@link Installation} with this Variant
+     * Identifier used to persist an {@link Installation} with this Variant
      */
     void setVariantID(String variantID);
 
     String getVariantID();
 
     /**
-     * The Variant-specific "secret", used from an {@link Installation} to register themselves against this Variant.
+     * The Variant-specific "secret", used from an {@link Installation} to persist themselves against this Variant.
      */
     void setSecret(String secret);
 

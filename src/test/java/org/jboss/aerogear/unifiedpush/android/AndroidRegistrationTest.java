@@ -59,7 +59,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     private final static String UPDATED_ANDROID_ALIAS = "upd_qa_android_1@aerogear";
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public ExpectedException exception = ExpectedException.none();
 
     @Deployment(testable = false)
     @TargetsContainer("main-server-group")
@@ -70,7 +70,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(100)
     public void registerAndroidVariantMissingGooglekey() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
         AndroidVariantUtils.createAndRegister(UUID.randomUUID().toString(), UUID.randomUUID().toString(), null, null,
             getRegisteredPushApplication(), getSession());
     }
@@ -78,7 +78,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(101)
     public void registerAndroidVariantMissingAuthCookies() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
         AndroidVariantUtils.generateAndRegister(getRegisteredPushApplication(),
             Session.createInvalid(getContextRoot()));
     }
@@ -170,7 +170,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(107)
     public void registerAndroidVariantWithWrongPushApplication() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         AndroidVariantUtils.generateAndRegister(PushApplicationUtils.generate(), getSession());
     }
 
@@ -194,21 +194,21 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(110)
     public void findAndroidVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         AndroidVariantUtils.findById(UUID.randomUUID().toString(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(111)
     public void updateAndroidVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         AndroidVariantUtils.update(AndroidVariantUtils.generate(), getRegisteredPushApplication(), getSession());
     }
 
     @Test
     @InSequence(112)
     public void removeAndroidVariantWithInvalidId() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         AndroidVariantUtils.delete(AndroidVariantUtils.generate(), getRegisteredPushApplication(), getSession());
     }
 
@@ -222,7 +222,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @Test
     @InSequence(114)
     public void verifyInstallationRemoval() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         InstallationUtils.findById(getRegisteredAndroidInstallations().get(0).getId(), getRegisteredAndroidVariant(),
             getSession());
     }
@@ -231,7 +231,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     @InSequence(115)
     public void unauthorizedUnregisterInstallation() {
         AndroidVariant variant = AndroidVariantUtils.generate();
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+        exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
         InstallationUtils.unregister(getRegisteredAndroidInstallations().get(1), variant, getSession());
     }
 

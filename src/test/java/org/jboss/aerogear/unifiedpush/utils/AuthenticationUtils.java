@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.json.simple.JSONObject;
 
 import com.jayway.restassured.response.Response;

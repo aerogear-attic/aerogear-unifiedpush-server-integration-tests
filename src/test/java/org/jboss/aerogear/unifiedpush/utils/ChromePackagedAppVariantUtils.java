@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.json.simple.JSONObject;

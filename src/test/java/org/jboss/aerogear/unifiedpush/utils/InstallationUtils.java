@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.Variant;
 import org.json.simple.JSONArray;

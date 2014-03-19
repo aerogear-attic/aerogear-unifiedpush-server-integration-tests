@@ -1,6 +1,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import org.hamcrest.Matcher;
+import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

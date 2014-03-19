@@ -6,8 +6,11 @@
 # 2. Downloads JBoss AS7 container
 # 3. Patches JBoss AS7 container, to contain https setup
 
+
 BASE_DIR=`pwd`
-SCRIPT_DIR=$(dirname $(readlink -f $0))
+# On mac osx, the readlink doesn't support -f flag so we need this script to emulate this behavior
+READLINK_F="$(dirname $0)/readlink_f.sh"
+SCRIPT_DIR=$(dirname $($READLINK_F $0))
 DOWNLOAD_URL="http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip"
 JBOSS_ZIP="$BASE_DIR/jboss-as-7.1.1.Final.zip"
 JBOSS_HOME="$BASE_DIR/jboss-as-7.1.1.Final"

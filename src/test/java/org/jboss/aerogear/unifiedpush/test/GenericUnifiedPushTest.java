@@ -29,69 +29,6 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public abstract class GenericUnifiedPushTest {
 
-    protected final static String ANDROID_VARIANT_GOOGLE_KEY = "IDDASDASDSAQ__1";
-
-    protected final static String ANDROID_VARIANT_NAME = "AndroidVariant__1";
-
-    protected final static String ANDROID_VARIANT_DESC = "awesome variant__1";
-
-    protected final static String PUSH_APPLICATION_NAME = "TestPushApplication__1";
-
-    protected final static String PUSH_APPLICATION_DESC = "awesome app__1";
-
-    protected final static String ANDROID_DEVICE_TOKEN = "gsmToken__1";
-
-    protected final static String ANDROID_DEVICE_TOKEN_2 = "gsmToken__2";
-
-    protected final static String ANDROID_DEVICE_TOKEN_3 = "gsmToken__3";
-
-    protected final static String ANDROID_DEVICE_OS = "ANDROID";
-
-    protected final static String ANDROID_DEVICE_TYPE = "AndroidTablet";
-
-    protected final static String ANDROID_DEVICE_TYPE_2 = "AndroidPhone";
-
-    protected final static String ANDROID_DEVICE_OS_VERSION = "4.2.2";
-
-    protected final static String ANDROID_CLIENT_ALIAS = "qa_android_1@aerogear";
-
-    protected final static String ANDROID_CLIENT_ALIAS_2 = "qa_android_2@mobileteam";
-
-    protected final static String SIMPLE_PUSH_VARIANT_NAME = "SimplePushVariant__1";
-
-    protected final static String SIMPLE_PUSH_VARIANT_DESC = "awesome variant__1";
-
-    protected final static String SIMPLE_PUSH_DEVICE_TOKEN = "simplePushToken__1";
-
-    protected final static String SIMPLE_PUSH_DEVICE_TYPE = "web";
-
-    protected final static String SIMPLE_PUSH_NETWORK_URL = "http://localhost:8081/endpoint/" +
-        SIMPLE_PUSH_DEVICE_TOKEN;
-
-    protected final static String SIMPLE_PUSH_DEVICE_OS = "MozillaOS";
-
-    protected final static String IOS_VARIANT_NAME = "IOS_Variant__1";
-
-    protected final static String IOS_VARIANT_DESC = "awesome variant__1";
-
-    protected final static String IOS_DEVICE_TOKEN = "abcd123456"; // Can be only HEX number
-
-    protected final static String IOS_DEVICE_TOKEN_2 = "abcd456789";
-
-    protected final static String IOS_DEVICE_OS = "IOS";
-
-    protected final static String IOS_DEVICE_TYPE = "IOSTablet";
-
-    protected final static String IOS_DEVICE_OS_VERSION = "6";
-
-    protected final static String IOS_CLIENT_ALIAS = "qa_iOS_1@aerogear";
-
-    protected final static String SIMPLE_PUSH_CATEGORY = "1234";
-
-    protected final static String SIMPLE_PUSH_CLIENT_ALIAS = "qa_simple_push_1@aerogear";
-
-    protected final static String COMMON_IOS_ANDROID_CLIENT_ALIAS = "qa_ios_android@aerogear";
-
     protected final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12";
 
     protected final static String IOS_CERTIFICATE_PASS_PHRASE = "aerogear";

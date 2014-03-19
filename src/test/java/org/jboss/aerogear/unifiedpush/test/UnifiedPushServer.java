@@ -14,7 +14,8 @@ import java.util.logging.Logger;
 import org.arquillian.extension.smarturl.SchemeName;
 import org.arquillian.extension.smarturl.UriScheme;
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.UPS;
+import org.jboss.aerogear.test.api.UPSContext;
+import org.jboss.aerogear.test.api.UPSWorker;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -44,7 +45,7 @@ public abstract class UnifiedPushServer implements MethodRule {
     protected URL httpsUrl;
 
     protected int currentSession;
-    protected List<UPS> upsSessions;
+    protected List<Session> sessions;
 
     protected String username;
     protected String oldPassword;
@@ -53,7 +54,7 @@ public abstract class UnifiedPushServer implements MethodRule {
     protected boolean initPerSession;
 
     public UnifiedPushServer() {
-        this.upsSessions = new ArrayList<UPS>();
+        this.sessions = new ArrayList<Session>();
         this.currentSession = 0;
         this.username = ADMIN_LOGIN_NAME;
         this.oldPassword = ADMIN_OLD_PASSWORD;
@@ -62,12 +63,33 @@ public abstract class UnifiedPushServer implements MethodRule {
     }
 
     /**
-     * Returns current UPS session. Always use this method to refer to session in tests
-     *
-     * @return
+     * Returns current session. Always use this method to refer to session in tests
      */
-    public UPS getSession() {
-        return upsSessions.get(currentSession);
+    public Session getSession() {
+        return sessions.get(currentSession);
+    }
+
+
+    public <ENTITY,
+            ENTITY_ID,
+            BLUEPRINT extends ENTITY,
+            EDITOR extends ENTITY,
+            PARENT,
+            CONTEXT extends UPSContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
+            WORKER extends UPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>> CONTEXT with(WORKER worker) {
+        return with(worker, null);
+    }
+
+    public <ENTITY,
+            ENTITY_ID,
+            BLUEPRINT extends ENTITY,
+            EDITOR extends ENTITY,
+            PARENT,
+            CONTEXT extends UPSContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
+            WORKER extends UPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>> CONTEXT
+    with(WORKER worker, PARENT parent) {
+
+        return worker.createContext(getSession(), parent);
     }
 
     /**
@@ -81,31 +103,31 @@ public abstract class UnifiedPushServer implements MethodRule {
             @Override
             public void evaluate() throws Throwable {
                 // if there are no session, simply initialize sessions, login and prepare data
-                if (UnifiedPushServer.this.upsSessions.isEmpty()) {
-                    UnifiedPushServer.this.upsSessions = initializeSessions(username, oldPassword, newPassword);
+                if (UnifiedPushServer.this.sessions.isEmpty()) {
+                    UnifiedPushServer.this.sessions = initializeSessions(username, oldPassword, newPassword);
 
                     // FIXME looks like for domain, datasets are not shared
                     if (UnifiedPushServer.this.initPerSession) {
-                        for (UPS ups : UnifiedPushServer.this.upsSessions) {
-                            setup(ups);
+                        for (int i = 0; i < UnifiedPushServer.this.sessions.size(); i++) {
+                            UnifiedPushServer.this.currentSession = i;
+                            setup();
                         }
                     }
                     // prepare data, is is sufficient to do that for the very first session
                     else {
-                        UPS ups = UnifiedPushServer.this.upsSessions.get(UnifiedPushServer.this.currentSession);
-                        setup(ups);
+                        setup();
                     }
                 }
 
                 // fire test multiple times and setup the session
                 int i = 0;
-                for (UPS ups : UnifiedPushServer.this.upsSessions) {
+                for (Session session : UnifiedPushServer.this.sessions) {
                     UnifiedPushServer.this.currentSession = i;
-                    UnifiedPushServer.log.log(Level.INFO, "Testing {0}() on {1}", new Object[] { method.getName(), ups });
+                    UnifiedPushServer.log.log(Level.INFO, "Testing {0}() on {1}", new Object[] { method.getName(), session });
                     base.evaluate();
                     i++;
                 }
-
+                // FIXME add cleanup method
             }
         };
     }
@@ -120,9 +142,9 @@ public abstract class UnifiedPushServer implements MethodRule {
      * @return
      * @throws Exception
      */
-    protected List<UPS> initializeSessions(String username, String oldPassword, String newPassword) throws Exception {
+    protected List<Session> initializeSessions(String username, String oldPassword, String newPassword) throws Exception {
 
-        List<UPS> upsSessions = new ArrayList<UPS>();
+        List<Session> sessions = new ArrayList<Session>();
 
         // check all fields that are injecting URL via ArquillianResource
         List<Field> fields = getFieldsWithAnnotation(this.getClass(), ArquillianResource.class);
@@ -130,11 +152,11 @@ public abstract class UnifiedPushServer implements MethodRule {
             if (URL.class.isAssignableFrom(field.getType())) {
                 URL url = (URL) field.get(this);
                 log.log(Level.INFO, "Establishing UPS session at {0}", url);
-                upsSessions.add(new UPS(login(url, username, oldPassword, newPassword)));
+                sessions.add(login(url, username, oldPassword, newPassword));
             }
         }
 
-        return upsSessions;
+        return sessions;
     }
 
     /**
@@ -158,7 +180,7 @@ public abstract class UnifiedPushServer implements MethodRule {
      * @param ups UPS with already established session
      * @return current rules
      */
-    protected abstract UnifiedPushServer setup(UPS ups);
+    protected abstract UnifiedPushServer setup();
 
     protected static List<Field> getFieldsWithAnnotation(final Class<?> source,
         final Class<? extends Annotation> annotationClass) {
