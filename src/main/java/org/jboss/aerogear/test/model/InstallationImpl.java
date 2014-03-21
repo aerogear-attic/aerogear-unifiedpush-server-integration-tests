@@ -16,6 +16,7 @@
  */
 package org.jboss.aerogear.test.model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class InstallationImpl extends PersistentObject implements Installation {

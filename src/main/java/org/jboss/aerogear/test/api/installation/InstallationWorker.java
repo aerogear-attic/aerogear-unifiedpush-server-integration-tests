@@ -13,6 +13,7 @@ import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.Installation;
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -38,6 +39,16 @@ public abstract class InstallationWorker<
         jsonObject.put("operatingSystem", entity.getOperatingSystem());
         jsonObject.put("osVersion", entity.getOsVersion());
         jsonObject.put("alias", entity.getAlias());
+
+        if(entity.getCategories() != null) {
+            // JSONObject doesn't understand Set<String>
+            JSONArray categories = new JSONArray();
+            for (String category : entity.getCategories()) {
+                categories.add(category);
+            }
+            jsonObject.put("categories", categories);
+        }
+        jsonObject.put("simplePushEndpoint", entity.getSimplePushEndpoint());
         return jsonObject;
     }
 

@@ -30,11 +30,14 @@ import org.jboss.aerogear.test.api.installation.InstallationWorker;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationContext;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
+import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
 import org.jboss.aerogear.test.api.ios.iOSVariantWorker;
+import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.test.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
@@ -66,7 +69,9 @@ public class InstallationTest {
         @Override
         protected UnifiedPushServer setup() {
 
-            PushApplication application = with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+            PushApplication application = with(PushApplicationWorker.worker())
+                    .generate().persist()
+                    .detachEntity();
 
             return this;
         }
@@ -107,13 +112,7 @@ public class InstallationTest {
                 .generate().persist()
                 .detachEntity();
 
-        try {
-            performInstallationCRUD(AndroidInstallationWorker.worker(), variant);
-        } finally {
-            // FIXME the cleanup might not be needed at all, because we always create a new variant and all data will
-            // get wiped after the class is tested because of undeployment
-            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(variant);
-        }
+        performInstallationCRUD(AndroidInstallationWorker.worker(), variant);
     }
 
     @Test
@@ -123,11 +122,7 @@ public class InstallationTest {
                 .generate().persist()
                 .detachEntity();
 
-        try {
-            performInstallationCRUD(AndroidInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
-        } finally {
-            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(variant);
-        }
+        performInstallationCRUD(AndroidInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
     }
 
     @Test
@@ -139,11 +134,7 @@ public class InstallationTest {
                 .generate().persist()
                 .detachEntity();
 
-        try {
-            performInstallationCRUD(iOSInstallationWorker.worker(), variant);
-        } finally {
-            ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).remove(variant);
-        }
+        performInstallationCRUD(iOSInstallationWorker.worker(), variant);
     }
 
     @Test
@@ -156,11 +147,26 @@ public class InstallationTest {
                 .generate().persist()
                 .detachEntity();
 
-        try {
-            performInstallationCRUD(iOSInstallationWorker.worker(), variant);
-        } finally {
-            ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).remove(variant);
-        }
+        performInstallationCRUD(iOSInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
+    }
+
+    @Test
+    public void testSimplePushInstallations() {
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist()
+                .detachEntity();
+
+        performInstallationCRUD(SimplePushInstallationWorker.worker(), variant);
+    }
+
+    @Test
+    public void testSimplePushInstallationsUTF8() {
+        SimplePushVariant variant = ups.with(
+                SimplePushVariantWorker.worker().contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
+                .generate().persist()
+                .detachEntity();
+
+        performInstallationCRUD(SimplePushInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
     }
 
     public <BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
