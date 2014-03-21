@@ -18,13 +18,14 @@ package org.jboss.aerogear.unifiedpush.utils;
 
 /**
  * This class should be removed. No hardcoder references should be used.
- * 
- * 
  */
 public final class Constants {
 
     private Constants() {
     }
+
+    public final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12";
+    public final static String IOS_CERTIFICATE_PASSPHRASE = "aerogear";
 
     public static final String KEYSTORE_PATH = "setup/aerogear.keystore";
 

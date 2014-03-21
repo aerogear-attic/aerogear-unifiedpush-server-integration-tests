@@ -30,7 +30,7 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
@@ -65,7 +65,7 @@ public class iOSRegistrationTest extends GenericUnifiedPushTest {
     }
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public CheckingExpectedException thrown = CheckingExpectedException.none();
 
     @Test
     @InSequence(100)

@@ -31,7 +31,7 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Session;
@@ -59,7 +59,7 @@ public class AndroidRegistrationTest extends GenericUnifiedPushTest {
     private final static String UPDATED_ANDROID_ALIAS = "upd_qa_android_1@aerogear";
 
     @Rule
-    public ExpectedException exception = ExpectedException.none();
+    public CheckingExpectedException exception = CheckingExpectedException.none();
 
     @Deployment(testable = false)
     @TargetsContainer("main-server-group")

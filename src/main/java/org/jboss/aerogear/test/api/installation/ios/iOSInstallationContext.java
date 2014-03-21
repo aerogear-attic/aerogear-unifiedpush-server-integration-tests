@@ -14,46 +14,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.installation.android;
+package org.jboss.aerogear.test.api.installation.ios;
 
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.api.AbstractUPSContext;
-import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
-import org.jboss.aerogear.test.api.installation.InstallationEditor;
-import org.jboss.aerogear.test.api.installation.InstallationWorker;
-import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.test.model.iOSVariant;
 
-import java.util.UUID;
+public class iOSInstallationContext extends InstallationContext<iOSInstallationBlueprint,
+        iOSInstallationEditor, iOSVariant, iOSInstallationWorker, iOSInstallationContext> {
 
-public class AndroidInstallationContext extends InstallationContext<AndroidInstallationBlueprint,
-        AndroidInstallationEditor, AndroidVariant, AndroidInstallationWorker, AndroidInstallationContext> {
-
-    public AndroidInstallationContext(AndroidInstallationWorker worker, AndroidVariant parent, Session session) {
+    public iOSInstallationContext(iOSInstallationWorker worker, iOSVariant parent, Session session) {
         super(worker, parent, session);
     }
 
     @Override
-    protected AndroidInstallationContext castInstance() {
+    protected iOSInstallationContext castInstance() {
         return this;
     }
 
     @Override
-    protected AndroidInstallationEditor createEditor() {
-        return new AndroidInstallationEditor(this);
+    protected iOSInstallationEditor createEditor() {
+        return new iOSInstallationEditor(this);
     }
 
     @Override
-    public AndroidInstallationBlueprint create() {
-        return new AndroidInstallationBlueprint(this);
+    public iOSInstallationBlueprint create() {
+        return new iOSInstallationBlueprint(this);
     }
 
     @Override
-    public AndroidInstallationBlueprint generate() {
+    public iOSInstallationBlueprint generate() {
         return create()
-                .deviceToken(randomString())
+                .deviceToken(randomString().replaceAll("-", ""))
                 .alias(randomString());
     }
 }

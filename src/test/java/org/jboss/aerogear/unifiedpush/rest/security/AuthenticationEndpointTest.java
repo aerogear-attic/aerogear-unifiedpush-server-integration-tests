@@ -22,13 +22,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
 import java.util.UUID;
 
 import org.hamcrest.Matchers;
 import org.jboss.aerogear.unifiedpush.test.GenericSimpleUnifiedPushTest;
 import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Rule;
@@ -38,7 +37,7 @@ public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
 
     private static Session session;
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public CheckingExpectedException thrown = CheckingExpectedException.none();
 
     @Override
     protected String getContextRoot() {

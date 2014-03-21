@@ -16,6 +16,8 @@
  */
 package org.jboss.aerogear.test.api;
 
+import org.jboss.aerogear.test.ContentTypes;
+
 // FIXME no need for abstract UPS worker?
 public abstract class AbstractUPSWorker<
         ENTITY,
@@ -28,5 +30,14 @@ public abstract class AbstractUPSWorker<
 
         implements UPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER> {
 
+    private String contentType = ContentTypes.json();
 
+    public String getContentType() {
+        return contentType;
+    }
+
+    public WORKER contentType(String contentType) {
+        this.contentType = contentType;
+        return (WORKER) this;
+    }
 }

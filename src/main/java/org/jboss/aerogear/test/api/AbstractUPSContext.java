@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public abstract class AbstractUPSContext<
         ENTITY,
@@ -82,6 +83,7 @@ public abstract class AbstractUPSContext<
 
     @Override
     public CONTEXT findAll() {
+        clear();
         List<EDITOR> editors = getWorker().readAll(castInstance());
         store(editors);
         return castInstance();
@@ -202,6 +204,10 @@ public abstract class AbstractUPSContext<
 
     protected void clear() {
         editors.clear();
+    }
+
+    protected String randomString() {
+        return UUID.randomUUID().toString();
     }
 
     // FIXME think of a better name

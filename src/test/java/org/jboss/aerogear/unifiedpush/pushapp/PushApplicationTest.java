@@ -28,8 +28,8 @@ import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -60,7 +60,7 @@ public class PushApplicationTest {
     };
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public CheckingExpectedException thrown = CheckingExpectedException.none();
 
     @BeforeClass
     public static void setup() {

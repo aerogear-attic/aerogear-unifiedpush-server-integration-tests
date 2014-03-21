@@ -23,7 +23,7 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushNotificationSenderUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -50,7 +50,7 @@ public class SelectiveSendNegativeCasesTest extends GenericUnifiedPushTest {
     private final static String NOTIFICATION_ALERT_MSG = "Hello AeroGearers";
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public CheckingExpectedException thrown = CheckingExpectedException.none();
 
     @Deployment(testable = false)
     @TargetsContainer("main-server-group")

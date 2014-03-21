@@ -30,8 +30,6 @@ public abstract class InstallationWorker<
 
         extends AbstractUPSWorker<InstallationImpl, String, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER> {
 
-    private String contentType = ContentTypes.json();
-
     @Override
     public JSONObject marshall(InstallationImpl entity) {
         JSONObject jsonObject = new JSONObject();
@@ -71,7 +69,7 @@ public abstract class InstallationWorker<
         List<EDITOR> editors = new ArrayList<EDITOR>();
         for (InstallationBlueprint blueprint : blueprints) {
             Response response = context.getSession().given()
-                    .contentType(contentType)
+                    .contentType(getContentType())
                     .auth().basic(context.getParent().getVariantID(), context.getParent().getSecret())
                     .header(Headers.acceptJson())
                     .body(marshall(blueprint))
@@ -87,7 +85,7 @@ public abstract class InstallationWorker<
     @Override
     public List<EDITOR> readAll(CONTEXT context) {
         Response response = context.getSession().given()
-                .contentType(ContentTypes.json())
+                .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations", context.getParent().getVariantID());
 
@@ -112,7 +110,7 @@ public abstract class InstallationWorker<
     @Override
     public EDITOR read(CONTEXT context, String id) {
         Response response = context.getSession().given()
-                .contentType(contentType)
+                .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations/{installationID}",
                         context.getParent().getVariantID(), id);
@@ -126,7 +124,7 @@ public abstract class InstallationWorker<
     public void update(CONTEXT context, Collection<? extends InstallationImpl> entities) {
         for (InstallationImpl entity : entities) {
             Response response = context.getSession().given()
-                    .contentType(contentType)
+                    .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
                     .put("/rest/applications/{variantID}/installations/{installationID}",
@@ -142,18 +140,13 @@ public abstract class InstallationWorker<
     public void delete(CONTEXT context, Collection<? extends InstallationImpl> entities) {
         for (InstallationImpl entity : entities) {
             Response response = context.getSession().given()
-                    .contentType(contentType)
+                    .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .delete("/rest/applications/{variantID}/installations/{installationID}",
                             context.getParent().getVariantID(), context.getEntityID(entity));
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
         }
-    }
-
-    public WORKER contentType(String contentType) {
-        this.contentType = contentType;
-        return (WORKER) this;
     }
 
 

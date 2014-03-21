@@ -19,8 +19,6 @@ import java.util.Map;
 
 public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, String, AndroidVariantBlueprint, AndroidVariantEditor, PushApplication, AndroidVariantContext, AndroidVariantWorker> {
 
-    private String contentType = ContentTypes.json();
-
     private AndroidVariantWorker() {
 
     }
@@ -63,7 +61,7 @@ public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, Stri
         List<AndroidVariantEditor> editors = new ArrayList<AndroidVariantEditor>();
         for (AndroidVariantBlueprint blueprint : blueprints) {
             Response response = context.getSession().given()
-                    .contentType(contentType)
+                    .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(blueprint))
                     .post("/rest/applications/{pushApplicationID}/android", context.getParent().getPushApplicationID());
@@ -78,7 +76,7 @@ public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, Stri
     @Override
     public List<AndroidVariantEditor> readAll(AndroidVariantContext context) {
         Response response = context.getSession().given()
-                .contentType(ContentTypes.json())
+                .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/android", context.getParent().getPushApplicationID());
 
@@ -103,7 +101,7 @@ public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, Stri
     @Override
     public AndroidVariantEditor read(AndroidVariantContext context, String id) {
         Response response = context.getSession().given()
-                .contentType(contentType)
+                .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/android/{variantID}",
                         context.getParent().getPushApplicationID(), id);
@@ -117,7 +115,7 @@ public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, Stri
     public void update(AndroidVariantContext context, Collection<? extends AndroidVariant> entities) {
         for (AndroidVariant entity : entities) {
             Response response = context.getSession().given()
-                    .contentType(contentType)
+                    .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
                     .put("/rest/applications/{pushApplicationID}/android/{variantID}",
@@ -133,18 +131,13 @@ public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, Stri
     public void delete(AndroidVariantContext context, Collection<? extends AndroidVariant> entities) {
         for (AndroidVariant entity : entities) {
             Response response = context.getSession().given()
-                    .contentType(contentType)
+                    .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .delete("/rest/applications/{pushApplicationID}/android/{variantID}",
                             context.getParent().getPushApplicationID(), context.getEntityID(entity));
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
         }
-    }
-
-    public AndroidVariantWorker contentType(String contentType) {
-        this.contentType = contentType;
-        return this;
     }
 
     public static AndroidVariantWorker worker() {

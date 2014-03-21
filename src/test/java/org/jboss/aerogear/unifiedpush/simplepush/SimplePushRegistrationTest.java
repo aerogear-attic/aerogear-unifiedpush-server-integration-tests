@@ -31,7 +31,7 @@ import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.aerogear.unifiedpush.utils.PushApplicationUtils;
 import org.jboss.aerogear.unifiedpush.utils.Session;
@@ -61,7 +61,7 @@ public class SimplePushRegistrationTest extends GenericUnifiedPushTest {
     private final static String UPDATED_SIMPLE_PUSH_ALIAS = "upd_qa_simple_push_1@aerogear";
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public CheckingExpectedException thrown = CheckingExpectedException.none();
 
     @Deployment(testable = false)
     @TargetsContainer("main-server-group")

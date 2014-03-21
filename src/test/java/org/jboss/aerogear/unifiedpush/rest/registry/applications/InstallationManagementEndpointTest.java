@@ -26,7 +26,7 @@ import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.GenericUnifiedPushTest;
-import org.jboss.aerogear.unifiedpush.utils.ExpectedException;
+import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -49,7 +49,7 @@ public class InstallationManagementEndpointTest extends GenericUnifiedPushTest {
     private static String installationId = null;
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public CheckingExpectedException thrown = CheckingExpectedException.none();
 
     public static String getInstallationId() {
         return installationId;
