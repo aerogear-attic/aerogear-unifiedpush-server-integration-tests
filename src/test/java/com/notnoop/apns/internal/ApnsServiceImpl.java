@@ -61,12 +61,12 @@ public class ApnsServiceImpl implements ApnsService {
 
     public Map<String, Date> getInactiveDevices() {
         final HashMap<String, Date> inactiveTokensHM = new HashMap<String, Date>();
-
+/*
         if (tokensList != null) {
             for (String token : tokensList) {
                 inactiveTokensHM.put(token, new Date());
             }
-        }
+        }*/
         return inactiveTokensHM;
     }
 

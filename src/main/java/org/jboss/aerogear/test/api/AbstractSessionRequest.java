@@ -16,26 +16,21 @@
  */
 package org.jboss.aerogear.test.api;
 
-import java.util.ArrayList;
+import org.jboss.aerogear.test.Session;
 
-public class BlueprintList<
-        ENTITY,
-        ENTITY_ID,
-        BLUEPRINT extends ENTITY,
-        EDITOR extends ENTITY,
-        PARENT,
-        WORKER extends UPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>,
-        CONTEXT extends UPSContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>>
+public abstract class AbstractSessionRequest<REQUEST extends AbstractSessionRequest<REQUEST>>
 
-        extends ArrayList<BLUEPRINT> {
+        implements SessionRequest<REQUEST> {
 
-    private final CONTEXT context;
+    private Session session;
 
-    public BlueprintList(CONTEXT context) {
-        this.context = context;
+    public Session getSession() {
+        return session;
     }
 
-    public CONTEXT persist() {
-        return context.persist(this);
+    @Override
+    public REQUEST withSession(Session session) {
+        this.session = session;
+        return (REQUEST) this;
     }
 }

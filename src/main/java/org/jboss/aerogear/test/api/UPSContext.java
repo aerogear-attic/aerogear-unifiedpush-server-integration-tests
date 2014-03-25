@@ -34,6 +34,8 @@ public interface UPSContext<
 
     BLUEPRINT generate();
 
+    BlueprintList<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT> generate(int count);
+
     CONTEXT findAll();
 
     CONTEXT find(ENTITY_ID id);

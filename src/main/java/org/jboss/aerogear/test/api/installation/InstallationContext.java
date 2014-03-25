@@ -21,6 +21,9 @@ import org.jboss.aerogear.test.api.AbstractUPSContext;
 import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.InstallationImpl;
 
+import java.util.Collection;
+import java.util.Collections;
+
 public abstract class InstallationContext<
         BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         EDITOR extends InstallationEditor<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
@@ -38,6 +41,26 @@ public abstract class InstallationContext<
     @Override
     public String getEntityID(InstallationImpl installation) {
         return installation.getId();
+    }
+
+    public CONTEXT unregisterAll() {
+        return unregister(getEditors().values());
+    }
+
+    public CONTEXT unregisterById(String id) {
+        return unregister(retrieve(id));
+    }
+
+    public CONTEXT unregister(InstallationImpl installation) {
+        return unregister(Collections.singleton(installation));
+    }
+
+    public CONTEXT unregister(Collection<? extends InstallationImpl> installations) {
+        getWorker().unregister(castInstance(), installations);
+        for (InstallationImpl installation : installations) {
+            localRemove(getEntityID(installation));
+        }
+        return castInstance();
     }
 
     protected abstract EDITOR createEditor();

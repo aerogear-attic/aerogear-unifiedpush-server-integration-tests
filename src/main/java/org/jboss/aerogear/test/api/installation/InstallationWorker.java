@@ -93,6 +93,17 @@ public abstract class InstallationWorker<
         return editors;
     }
 
+    public void unregister(CONTEXT context, Collection<? extends InstallationImpl> entities) {
+        for (InstallationImpl entity : entities) {
+            Response response = context.getSession().given()
+                    .contentType(getContentType())
+                    .auth().basic(context.getParent().getVariantID(), context.getParent().getSecret())
+                    .delete("/rest/registry/device/{deviceToken}", entity.getDeviceToken());
+
+            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
+        }
+    }
+
     @Override
     public List<EDITOR> readAll(CONTEXT context) {
         Response response = context.getSession().given()
@@ -159,6 +170,5 @@ public abstract class InstallationWorker<
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
         }
     }
-
 
 }

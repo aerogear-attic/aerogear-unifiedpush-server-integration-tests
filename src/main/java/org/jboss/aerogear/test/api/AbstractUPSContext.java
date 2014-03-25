@@ -90,6 +90,18 @@ public abstract class AbstractUPSContext<
     }
 
     @Override
+    public BlueprintList<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT> generate(int count) {
+        BlueprintList<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT> list =
+                new BlueprintList<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>(castInstance());
+
+        for (int i = 0; i < count; i++) {
+            list.add(generate());
+        }
+
+        return list;
+    }
+
+    @Override
     public EDITOR edit(ENTITY_ID id) {
         if(!contains(id)) {
             find(id);
@@ -196,6 +208,10 @@ public abstract class AbstractUPSContext<
             find(id);
         }
         return editors.get(id);
+    }
+
+    protected Map<ENTITY_ID, EDITOR> getEditors() {
+        return editors;
     }
 
     protected boolean contains(ENTITY_ID id) {

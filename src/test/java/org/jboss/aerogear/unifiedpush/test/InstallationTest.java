@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush;
+package org.jboss.aerogear.unifiedpush.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
@@ -232,7 +232,14 @@ public class InstallationTest {
         // DELETE
         readInstallations = ups.with(worker, parent)
                 .removeById(persistedInstallation.getId())
-                .removeById(persistedInstallation1.getId())
+                .findAll()
+                .detachEntities();
+
+        assertThat(readInstallations.size(), is(1));
+
+        // UNREGISTER
+        readInstallations = ups.with(worker, parent)
+                .unregisterById(persistedInstallation1.getId())
                 .findAll()
                 .detachEntities();
 

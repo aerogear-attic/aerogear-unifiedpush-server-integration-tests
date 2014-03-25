@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.pushapp;
+package org.jboss.aerogear.unifiedpush.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;

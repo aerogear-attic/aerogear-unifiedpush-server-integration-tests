@@ -12,19 +12,41 @@ public class UnexpectedResponseException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
     private final Response response;
+    private final int actualStatusCode;
+    private final int expectedStatusCode;
 
     public UnexpectedResponseException(Response response) {
         this(response, -1);
     }
 
     public UnexpectedResponseException(Response response, int expectedStatus) {
-        super("Unexpected response status code: " + response.getStatusCode() + "!" +
-            "(expected: " + expectedStatus + ")");
+        this(response, response.statusCode(), expectedStatus);
+    }
+
+    public UnexpectedResponseException(Response response, int actualStatusCode, int expectedStatusCode) {
+        super("Unexpected response status code: " + actualStatusCode + "! (expected: " + expectedStatusCode + ")");
         this.response = response;
+        this.actualStatusCode = actualStatusCode;
+        this.expectedStatusCode = expectedStatusCode;
     }
 
     public Response getResponse() {
         return response;
+    }
+
+    public int getActualStatusCode() {
+        return actualStatusCode;
+    }
+
+    public int getExpectedStatusCode() {
+        return expectedStatusCode;
+    }
+
+    public static void verifyStatusCode(int actualStatusCode, int expectedStatusCode)
+            throws UnexpectedResponseException {
+        if(actualStatusCode != expectedStatusCode) {
+            throw new UnexpectedResponseException(null, actualStatusCode, expectedStatusCode);
+        }
     }
 
     public static void verifyResponse(Response response, int expectedStatus) throws UnexpectedResponseException,
@@ -45,7 +67,7 @@ public class UnexpectedResponseException extends RuntimeException {
 
         @Override
         protected boolean matchesSafely(UnexpectedResponseException e) {
-            this.foundResponseCode = e.getResponse().statusCode();
+            this.foundResponseCode = e.getActualStatusCode();
             return foundResponseCode == expectedResponseCode;
         }
 

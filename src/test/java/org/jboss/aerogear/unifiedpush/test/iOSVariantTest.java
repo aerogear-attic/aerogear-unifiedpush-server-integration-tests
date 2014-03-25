@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.chrome;
-
+package org.jboss.aerogear.unifiedpush.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
@@ -24,16 +23,16 @@ import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantContext;
-import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantWorker;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
+import org.jboss.aerogear.test.api.ios.iOSVariantContext;
+import org.jboss.aerogear.test.api.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
-import org.jboss.aerogear.unifiedpush.utils.ChromePackagedAppVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
+import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
@@ -53,8 +52,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
-public class ChromePackagedAppVariantTest {
+public class iOSVariantTest {
 
+    // TODO begin of code that is same for each variant
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
@@ -70,8 +70,7 @@ public class ChromePackagedAppVariantTest {
     public CheckingExpectedException exception = new CheckingExpectedException() {
         @Override
         protected void afterExceptionAssert() {
-            List<ChromePackagedAppVariant> variants = ups.with(ChromePackagedAppVariantWorker.worker(),
-                    getRegisteredApplication())
+            List<iOSVariant> variants = ups.with(defaultWorker(), getRegisteredApplication())
                     .findAll()
                     .detachEntities();
 
@@ -105,88 +104,108 @@ public class ChromePackagedAppVariantTest {
         return ups.with(PushApplicationWorker.worker()).findAll().detachEntity();
     }
 
+    private iOSVariantWorker defaultWorker() {
+        return iOSVariantWorker.worker()
+                .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
+                .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE);
+    }
+    // TODO end of code that is same for each variant
+
     @Test
     public void registerWithoutAuthorization() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
 
         Session invalidSession = Session.newSession(ups.getSession().getBaseUrl().toExternalForm());
+        defaultWorker().createContext(invalidSession, getRegisteredApplication()).generate().persist();
+    }
 
-        ChromePackagedAppVariantWorker.worker().createContext(invalidSession, getRegisteredApplication()).generate().persist();
+    @Test
+    public void registerWithMissingCertificate() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
 
+        ups.with(defaultWorker(), getRegisteredApplication())
+                .generate().certificate(new byte[0]).passphrase("").persist();
     }
 
     @Test
     public void findVariantWithInvalidID() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
-        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).find(UUID.randomUUID().toString());
+        ups.with(defaultWorker(), getRegisteredApplication()).find(UUID.randomUUID().toString());
     }
 
     @Test
     public void updateVariantWithInvalidID() {
-        ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(),
-                getRegisteredApplication()).generate();
+        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication())
+                .generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
-        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).merge(variant);
+        ups.with(defaultWorker(), getRegisteredApplication()).merge(variant);
     }
 
     @Test
     public void removeVariantWithInvalidID() {
-        ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).generate();
+        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
-        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        ups.with(defaultWorker(), getRegisteredApplication()).remove(variant);
     }
 
     @Test
     public void testCRUD() {
-        performCRUD(ChromePackagedAppVariantWorker.worker());
+        performCRUD(defaultWorker());
     }
 
     @Test
     public void testCRUDUTF8() {
-        performCRUD(ChromePackagedAppVariantWorker.worker().contentType(ContentTypes.jsonUTF8()));
+        performCRUD(defaultWorker().contentType(ContentTypes.jsonUTF8()));
     }
 
-    private void performCRUD(ChromePackagedAppVariantWorker worker) {
+    private void performCRUD(iOSVariantWorker worker) {
         PushApplication application = getRegisteredApplication();
 
         // CREATE
-        List<ChromePackagedAppVariant> persistedVariants = ups.with(worker, application)
+        List<iOSVariant> persistedVariants = ups.with(worker, application)
                 .generate().name("AwesomeAppěščřžýáíéňľ").persist()
                 .generate().name("AwesomeAppவான்வழிe").persist()
                 .detachEntities();
 
         assertThat(persistedVariants, is(notNullValue()));
         assertThat(persistedVariants.size(), is(2));
-
-        ChromePackagedAppVariant persistedVariant = persistedVariants.get(0);
-        ChromePackagedAppVariant persistedVariant1 = persistedVariants.get(1);
-
+        
+        iOSVariant persistedVariant = persistedVariants.get(0);
+        iOSVariant persistedVariant1 = persistedVariants.get(1);
+        
         // READ
-        ChromePackagedAppVariantContext context = ups.with(worker, application).findAll();
-        List<ChromePackagedAppVariant> readVariants = context.detachEntities();
+        iOSVariantContext context = ups.with(worker, application).findAll();
+        List<iOSVariant> readVariants = context.detachEntities();
         assertThat(readVariants, is(notNullValue()));
         assertThat(readVariants.size(), is(2));
 
-        ChromePackagedAppVariantUtils.checkEquality(persistedVariant,
-                context.detachEntity(persistedVariant.getVariantID()));
-        ChromePackagedAppVariantUtils.checkEquality(persistedVariant1,
-                context.detachEntity(persistedVariant1.getVariantID()));
+        iOSVariantUtils.checkEquality(persistedVariant, context.detachEntity(persistedVariant.getVariantID()));
+        iOSVariantUtils.checkEquality(persistedVariant1, context.detachEntity(persistedVariant1.getVariantID()));
 
-        // UPDATE
+        // UPDATE, method: PUT
         ups.with(worker, application)
-                .edit(persistedVariant.getVariantID()).name("newname").description("newdescription").merge();
-        ChromePackagedAppVariant readVariant = ups.with(worker, application)
-                .find(persistedVariant.getVariantID())
-                .detachEntity();
-
+                .edit(persistedVariant.getVariantID())
+                    .name("newname")
+                    .description("newdescription")
+                    .certificate(Constants.IOS_CERTIFICATE_PATH)
+                    .passphrase(Constants.IOS_CERTIFICATE_PASSPHRASE)
+                    .merge();
+        iOSVariant readVariant = ups.with(worker, application).find(persistedVariant.getVariantID()).detachEntity();
         assertThat(readVariant.getName(), is("newname"));
         assertThat(readVariant.getDescription(), is("newdescription"));
+
+        // UPDATE, method: PATCH
+        ups.with(worker, application)
+                .edit(persistedVariant1.getVariantID()).name("newname1").description("newdescription1").mergePatch();
+        iOSVariant readVariant1 = ups.with(worker, application).find(persistedVariant1.getVariantID()).detachEntity();
+        assertThat(readVariant1.getName(), is("newname1"));
+        assertThat(readVariant1.getDescription(), is("newdescription1"));
 
         // DELETE
         readVariants = ups.with(worker, application)
@@ -195,8 +214,8 @@ public class ChromePackagedAppVariantTest {
                 .findAll()
                 .detachEntities();
         assertThat(readVariants.size(), is(0));
+
+
     }
-
-
 
 }

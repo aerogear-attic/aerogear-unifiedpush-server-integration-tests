@@ -66,13 +66,13 @@ public class Sender {
         if (regIds != null && !regIds.isEmpty()) {
             gcmRegIdsList = new ArrayList<String>();
             gcmRegIdsList.addAll(regIds);
-
+/*
             for (int i = 0; i < regIds.size(); i++) {
                 Result result = mock(Result.class);
                 when(result.getErrorCodeName()).thenReturn(Constants.ERROR_INVALID_REGISTRATION);
                 resultList.add(result);
             }
-        }
+*/        }
 
         when(multicatResult.getResults()).thenReturn(resultList);
         return multicatResult;

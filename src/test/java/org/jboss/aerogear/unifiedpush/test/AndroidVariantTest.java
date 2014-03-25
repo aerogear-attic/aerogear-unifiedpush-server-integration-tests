@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.simplepush;
-
+package org.jboss.aerogear.unifiedpush.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
@@ -26,18 +25,19 @@ import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.android.AndroidVariantContext;
 import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.simplepush.SimplePushVariantContext;
-import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
+import org.jboss.aerogear.test.api.installation.InstallationWorker;
+import org.jboss.aerogear.test.api.installation.android.AndroidInstallationContext;
+import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
-import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
+import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
@@ -57,7 +57,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
-public class SimplePushVariantTest {
+public class AndroidVariantTest {
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
@@ -74,7 +74,7 @@ public class SimplePushVariantTest {
     public CheckingExpectedException exception = new CheckingExpectedException() {
         @Override
         protected void afterExceptionAssert() {
-            List<SimplePushVariant> variants = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+            List<AndroidVariant> variants = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
                     .findAll()
                     .detachEntities();
 
@@ -114,50 +114,58 @@ public class SimplePushVariantTest {
 
         Session invalidSession = Session.newSession(ups.getSession().getBaseUrl().toExternalForm());
 
-        SimplePushVariantWorker.worker().createContext(invalidSession, getRegisteredApplication()).generate().persist();
+        AndroidVariantWorker.worker().createContext(invalidSession, getRegisteredApplication()).generate().persist();
+
+    }
+
+    @Test
+    public void registerWithMissingGoogleKey() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate().googleKey(null).persist();
     }
 
     @Test
     public void findVariantWithInvalidID() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
-        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).find(UUID.randomUUID().toString());
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).find(UUID.randomUUID().toString());
     }
 
     @Test
     public void updateVariantWithInvalidID() {
-        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).generate();
+        AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
-        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).merge(variant);
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).merge(variant);
     }
 
     @Test
     public void removeVariantWithInvalidID() {
-        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).generate();
+        AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
-        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(variant);
     }
 
     @Test
     public void testCRUD() {
-        performCRUD(SimplePushVariantWorker.worker());
+        performCRUD(AndroidVariantWorker.worker());
     }
 
     @Test
     public void testCRUDUTF8() {
-        performCRUD(SimplePushVariantWorker.worker().contentType(ContentTypes.jsonUTF8()));
+        performCRUD(AndroidVariantWorker.worker().contentType(ContentTypes.jsonUTF8()));
     }
 
-    private void performCRUD(SimplePushVariantWorker worker) {
+    private void performCRUD(AndroidVariantWorker worker) {
         PushApplication application = getRegisteredApplication();
 
         // CREATE
-        List<SimplePushVariant> persistedVariants = ups.with(worker, application)
+        List<AndroidVariant> persistedVariants = ups.with(worker, application)
                 .generate().name("AwesomeAppěščřžýáíéňľ").persist()
                 .generate().name("AwesomeAppவான்வழிe").persist()
                 .detachEntities();
@@ -165,25 +173,24 @@ public class SimplePushVariantTest {
         assertThat(persistedVariants, is(notNullValue()));
         assertThat(persistedVariants.size(), is(2));
 
-        SimplePushVariant persistedVariant = persistedVariants.get(0);
-        SimplePushVariant persistedVariant1 = persistedVariants.get(1);
+        AndroidVariant persistedVariant = persistedVariants.get(0);
+        AndroidVariant persistedVariant1 = persistedVariants.get(1);
 
         // READ
-        SimplePushVariantContext context = ups.with(worker, application).findAll();
-        List<SimplePushVariant> readVariants = context.detachEntities();
+        AndroidVariantContext context = ups.with(worker, application).findAll();
+        List<AndroidVariant> readVariants = context.detachEntities();
         assertThat(readVariants, is(notNullValue()));
         assertThat(readVariants.size(), is(2));
 
-        SimplePushVariantUtils.checkEquality(persistedVariant,
+        AndroidVariantUtils.checkEquality(persistedVariant,
                 context.detachEntity(persistedVariant.getVariantID()));
-        SimplePushVariantUtils.checkEquality(persistedVariant1,
+        AndroidVariantUtils.checkEquality(persistedVariant1,
                 context.detachEntity(persistedVariant1.getVariantID()));
 
         // UPDATE
         ups.with(worker, application)
                 .edit(persistedVariant.getVariantID()).name("newname").description("newdescription").merge();
-        SimplePushVariant readVariant = ups.with(worker, application)
-                .find(persistedVariant.getVariantID()).detachEntity();
+        AndroidVariant readVariant = ups.with(worker, application).find(persistedVariant.getVariantID()).detachEntity();
 
         assertThat(readVariant.getName(), is("newname"));
         assertThat(readVariant.getDescription(), is("newdescription"));

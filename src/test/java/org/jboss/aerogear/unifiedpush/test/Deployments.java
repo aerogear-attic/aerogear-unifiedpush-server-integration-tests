@@ -42,6 +42,17 @@ import com.notnoop.apns.EnhancedApnsNotification;
 import com.notnoop.apns.PayloadBuilder;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import com.notnoop.exceptions.NetworkIOException;
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
+import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
+import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
+
+import java.io.File;
 
 public final class Deployments {
 
@@ -62,10 +73,11 @@ public final class Deployments {
         }
 
         final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-            "aerogear-unifiedpush-server/server/pom.xml");
+                "aerogear-unifiedpush-server/server/pom.xml");
 
-        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom).importBuildOutput()
-            .as(WebArchive.class);
+        WebArchive war = ShrinkWrap.create(MavenImporter.class).loadPomFromFile(unifiedPushServerPom)
+                .importBuildOutput()
+                .as(WebArchive.class);
 
         return Deployments.addCustomPersistence(war);
     }
@@ -77,7 +89,7 @@ public final class Deployments {
         war.addClasses(clazz);
 
         File[] libs = Maven.resolver().loadPomFromFile("pom.xml").resolve("org.mockito:mockito-core").withTransitivity()
-            .asFile();
+                .asFile();
         war = war.addAsLibraries(libs);
 
         return war;
@@ -90,26 +102,28 @@ public final class Deployments {
 
         war.delete("/WEB-INF/lib/gcm-server-1.0.2.jar");
 
-        war.addClass(SenderStatisticsEndpoint.class);
+        war.addClass(SenderStatisticsEndpoint.class, SenderStatistics.class);
 
         war.addClasses(clazz);
 
-        JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "gcm-server-1.0.2.jar").addClasses(Result.class, Message.class,
-            MulticastResult.class, Message.class, Sender.class);
+        JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "gcm-server-1.0.2.jar").addClasses(Result.class,
+                Message.class,
+                MulticastResult.class, Message.class, Sender.class);
         war.addAsLibraries(jar);
 
         war.delete("/WEB-INF/lib/apns-0.2.3.jar");
 
-        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException.class,
-            ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
-            Constants.class, ServerSocketUtils.class, ApnsNotification.class, EnhancedApnsNotification.class);
+        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException
+                        .class,
+                ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
+                Constants.class, ApnsNotification.class, EnhancedApnsNotification.class);
         war.addAsLibraries(apnsJar);
 
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 
         // here we resolve mockito transitively, other artifact without transitivity
         File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
-            .withoutTransitivity().asFile();
+                .withoutTransitivity().asFile();
         war.addAsLibraries(libs);
         libs = resolver.resolve("org.mockito:mockito-core").withTransitivity().asFile();
         war = war.addAsLibraries(libs);

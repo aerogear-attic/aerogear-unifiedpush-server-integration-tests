@@ -1,9 +1,9 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import org.jboss.aerogear.security.authz.Secure;
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -23,6 +23,7 @@ import java.util.List;
 @TransactionAttribute
 @Path("/senderStats")
 @Secure( { "admin" } )
+// FIXME move to src/main
 public class SenderStatisticsEndpoint {
 
     @GET
@@ -60,14 +61,5 @@ public class SenderStatisticsEndpoint {
         return Response.noContent().build();
     }
 
-
-    public static final class SenderStatistics {
-        public List<String> deviceTokens;
-        public Message gcmMessage;
-        public String apnsAlert;
-        public int apnsBadge;
-        public String apnsSound;
-        public String apnsCustomFields;
-    }
 
 }

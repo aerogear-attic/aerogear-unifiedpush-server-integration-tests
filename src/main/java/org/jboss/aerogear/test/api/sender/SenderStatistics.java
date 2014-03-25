@@ -14,28 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api;
+package org.jboss.aerogear.test.api.sender;
 
-import java.util.ArrayList;
+import com.google.android.gcm.server.Message;
 
-public class BlueprintList<
-        ENTITY,
-        ENTITY_ID,
-        BLUEPRINT extends ENTITY,
-        EDITOR extends ENTITY,
-        PARENT,
-        WORKER extends UPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>,
-        CONTEXT extends UPSContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>>
+import java.util.List;
 
-        extends ArrayList<BLUEPRINT> {
-
-    private final CONTEXT context;
-
-    public BlueprintList(CONTEXT context) {
-        this.context = context;
-    }
-
-    public CONTEXT persist() {
-        return context.persist(this);
-    }
+public class SenderStatistics {
+    public List<String> deviceTokens;
+    public Message gcmMessage;
+    public String apnsAlert;
+    public int apnsBadge;
+    public String apnsSound;
+    public String apnsCustomFields;
 }

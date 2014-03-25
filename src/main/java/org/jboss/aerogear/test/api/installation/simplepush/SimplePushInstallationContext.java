@@ -45,9 +45,11 @@ public class SimplePushInstallationContext extends InstallationContext<SimplePus
 
     @Override
     public SimplePushInstallationBlueprint generate() {
+        String deviceToken = randomString();
+
         return create()
-                .deviceToken(randomString())
-                .simplePushEndpoint("http://localhost:14444/")
+                .deviceToken(deviceToken)
+                .simplePushEndpoint("http://localhost:8081/endpoint/" + deviceToken)
                 .alias(randomString());
     }
 }

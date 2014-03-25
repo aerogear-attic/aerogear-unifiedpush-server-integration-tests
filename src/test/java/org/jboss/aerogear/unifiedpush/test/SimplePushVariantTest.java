@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.ios;
+package org.jboss.aerogear.unifiedpush.test;
+
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
@@ -22,17 +23,21 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
+import org.jboss.aerogear.test.api.android.AndroidVariantContext;
+import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.ios.iOSVariantContext;
-import org.jboss.aerogear.test.api.ios.iOSVariantWorker;
+import org.jboss.aerogear.test.api.simplepush.SimplePushVariantContext;
+import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
+import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
+import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
-import org.jboss.aerogear.unifiedpush.utils.iOSVariantUtils;
+import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
@@ -52,9 +57,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
-public class iOSVariantTest {
+public class SimplePushVariantTest {
 
-    // TODO begin of code that is same for each variant
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
@@ -70,7 +74,7 @@ public class iOSVariantTest {
     public CheckingExpectedException exception = new CheckingExpectedException() {
         @Override
         protected void afterExceptionAssert() {
-            List<iOSVariant> variants = ups.with(defaultWorker(), getRegisteredApplication())
+            List<SimplePushVariant> variants = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
                     .findAll()
                     .detachEntities();
 
@@ -104,108 +108,85 @@ public class iOSVariantTest {
         return ups.with(PushApplicationWorker.worker()).findAll().detachEntity();
     }
 
-    private iOSVariantWorker defaultWorker() {
-        return iOSVariantWorker.worker()
-                .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
-                .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE);
-    }
-    // TODO end of code that is same for each variant
-
     @Test
     public void registerWithoutAuthorization() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
 
         Session invalidSession = Session.newSession(ups.getSession().getBaseUrl().toExternalForm());
-        defaultWorker().createContext(invalidSession, getRegisteredApplication()).generate().persist();
-    }
 
-    @Test
-    public void registerWithMissingCertificate() {
-        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
-
-        ups.with(defaultWorker(), getRegisteredApplication())
-                .generate().certificate(new byte[0]).passphrase("").persist();
+        SimplePushVariantWorker.worker().createContext(invalidSession, getRegisteredApplication()).generate().persist();
     }
 
     @Test
     public void findVariantWithInvalidID() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
-        ups.with(defaultWorker(), getRegisteredApplication()).find(UUID.randomUUID().toString());
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).find(UUID.randomUUID().toString());
     }
 
     @Test
     public void updateVariantWithInvalidID() {
-        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication())
-                .generate();
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
-        ups.with(defaultWorker(), getRegisteredApplication()).merge(variant);
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).merge(variant);
     }
 
     @Test
     public void removeVariantWithInvalidID() {
-        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication()).generate();
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
-        ups.with(defaultWorker(), getRegisteredApplication()).remove(variant);
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).remove(variant);
     }
 
     @Test
     public void testCRUD() {
-        performCRUD(defaultWorker());
+        performCRUD(SimplePushVariantWorker.worker());
     }
 
     @Test
     public void testCRUDUTF8() {
-        performCRUD(defaultWorker().contentType(ContentTypes.jsonUTF8()));
+        performCRUD(SimplePushVariantWorker.worker().contentType(ContentTypes.jsonUTF8()));
     }
 
-    private void performCRUD(iOSVariantWorker worker) {
+    private void performCRUD(SimplePushVariantWorker worker) {
         PushApplication application = getRegisteredApplication();
 
         // CREATE
-        List<iOSVariant> persistedVariants = ups.with(worker, application)
+        List<SimplePushVariant> persistedVariants = ups.with(worker, application)
                 .generate().name("AwesomeAppěščřžýáíéňľ").persist()
                 .generate().name("AwesomeAppவான்வழிe").persist()
                 .detachEntities();
 
         assertThat(persistedVariants, is(notNullValue()));
         assertThat(persistedVariants.size(), is(2));
-        
-        iOSVariant persistedVariant = persistedVariants.get(0);
-        iOSVariant persistedVariant1 = persistedVariants.get(1);
-        
+
+        SimplePushVariant persistedVariant = persistedVariants.get(0);
+        SimplePushVariant persistedVariant1 = persistedVariants.get(1);
+
         // READ
-        iOSVariantContext context = ups.with(worker, application).findAll();
-        List<iOSVariant> readVariants = context.detachEntities();
+        SimplePushVariantContext context = ups.with(worker, application).findAll();
+        List<SimplePushVariant> readVariants = context.detachEntities();
         assertThat(readVariants, is(notNullValue()));
         assertThat(readVariants.size(), is(2));
 
-        iOSVariantUtils.checkEquality(persistedVariant, context.detachEntity(persistedVariant.getVariantID()));
-        iOSVariantUtils.checkEquality(persistedVariant1, context.detachEntity(persistedVariant1.getVariantID()));
+        SimplePushVariantUtils.checkEquality(persistedVariant,
+                context.detachEntity(persistedVariant.getVariantID()));
+        SimplePushVariantUtils.checkEquality(persistedVariant1,
+                context.detachEntity(persistedVariant1.getVariantID()));
 
-        // UPDATE, method: PUT
+        // UPDATE
         ups.with(worker, application)
-                .edit(persistedVariant.getVariantID())
-                    .name("newname")
-                    .description("newdescription")
-                    .certificate(Constants.IOS_CERTIFICATE_PATH)
-                    .passphrase(Constants.IOS_CERTIFICATE_PASSPHRASE)
-                    .merge();
-        iOSVariant readVariant = ups.with(worker, application).find(persistedVariant.getVariantID()).detachEntity();
+                .edit(persistedVariant.getVariantID()).name("newname").description("newdescription").merge();
+        SimplePushVariant readVariant = ups.with(worker, application)
+                .find(persistedVariant.getVariantID()).detachEntity();
+
         assertThat(readVariant.getName(), is("newname"));
         assertThat(readVariant.getDescription(), is("newdescription"));
-
-        // UPDATE, method: PATCH
-        ups.with(worker, application)
-                .edit(persistedVariant1.getVariantID()).name("newname1").description("newdescription1").mergePatch();
-        iOSVariant readVariant1 = ups.with(worker, application).find(persistedVariant1.getVariantID()).detachEntity();
-        assertThat(readVariant1.getName(), is("newname1"));
-        assertThat(readVariant1.getDescription(), is("newdescription1"));
 
         // DELETE
         readVariants = ups.with(worker, application)
@@ -214,8 +195,8 @@ public class iOSVariantTest {
                 .findAll()
                 .detachEntities();
         assertThat(readVariants.size(), is(0));
-
-
     }
+
+
 
 }

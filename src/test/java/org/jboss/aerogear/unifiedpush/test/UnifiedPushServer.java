@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import org.arquillian.extension.smarturl.SchemeName;
 import org.arquillian.extension.smarturl.UriScheme;
 import org.jboss.aerogear.test.Session;
+import org.jboss.aerogear.test.api.SessionRequest;
 import org.jboss.aerogear.test.api.UPSContext;
 import org.jboss.aerogear.test.api.UPSWorker;
 import org.jboss.arquillian.test.api.ArquillianResource;
@@ -90,6 +91,10 @@ public abstract class UnifiedPushServer implements MethodRule {
     with(WORKER worker, PARENT parent) {
 
         return worker.createContext(getSession(), parent);
+    }
+
+    public <REQUEST extends SessionRequest<REQUEST>> REQUEST with(REQUEST request) {
+        return request.withSession(getSession());
     }
 
     /**
