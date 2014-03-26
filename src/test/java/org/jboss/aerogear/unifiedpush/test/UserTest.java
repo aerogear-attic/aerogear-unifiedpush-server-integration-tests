@@ -1,13 +1,13 @@
-/**
+/*
  * JBoss, Home of Professional Open Source
- * Copyright Red Hat, Inc., and individual contributors.
+ * Copyright 2011, Red Hat Middleware LLC, and individual contributors
+ * by the @authors tag. See the copyright.txt in the distribution for a
+ * full listing of individual contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- * 	http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,11 +21,15 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
+import org.hamcrest.Matchers;
 import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationContext;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.user.UserContext;
+import org.jboss.aerogear.test.api.user.UserWorker;
+import org.jboss.aerogear.test.model.Developer;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -40,14 +44,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(ArquillianRules.class)
-public class PushApplicationTest {
+public class UserTest {
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
@@ -84,63 +90,81 @@ public class PushApplicationTest {
 
     @Test
     public void testCRUD() {
-        performCRUD(PushApplicationWorker.worker());
+        performCRUD(UserWorker.worker());
     }
 
     @Test
     public void testCRUDUTF8() {
-        performCRUD(PushApplicationWorker.worker().contentType(ContentTypes.jsonUTF8()));
+        performCRUD(UserWorker.worker().contentType(ContentTypes.jsonUTF8()));
     }
 
-    @Test
-    public void testRegistrationWithoutAuthorization() {
-        thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
+    private void performCRUD(UserWorker worker) {
+        // READ ALL
+        List<Developer> defaultUsers = ups.with(UserWorker.worker()).findAll().detachEntities();
+        int defaultUserCount = defaultUsers.size();
 
-        Session invalidSession = Session.newSession(ups.getSession().getBaseUrl().toExternalForm());
+        Developer adminUser = null;
+        Developer developerUser = null;
 
-        PushApplicationWorker.worker().createContext(invalidSession, null).generate().persist();
-    }
+        List<String> defaultUserNames = new ArrayList<String>();
+        for (Developer defaultUser : defaultUsers) {
+            String loginName = defaultUser.getLoginName();
+            if(loginName.equals("admin")) {
+                if(adminUser == null) {
+                    adminUser = defaultUser;
+                } else {
+                    fail("There can be no more than one admin user!");
+                }
+            } else if(loginName.equals("developer")) {
+                if(developerUser == null) {
+                    developerUser = defaultUser;
+                } else {
+                    fail("There can be no more than one developer user!");
+                }
+            }
 
-    private void performCRUD(PushApplicationWorker worker) {
+            defaultUserNames.add(loginName);
+        }
+
+        assertThat(defaultUserCount, is(2));
+        assertThat(defaultUserNames, Matchers.containsInAnyOrder("admin", "developer"));
+        assertThat(adminUser, is(notNullValue()));
+        assertThat(developerUser, is(notNullValue()));
+
         // CREATE
-        List<PushApplication> persistedApplications = ups.with(worker)
-                .generate().name("AwesomeAppěščřžýáíéňľ").persist()
-                .generate().name("AwesomeAppவான்வழிe").persist()
+        List<Developer> persistedUsers = ups.with(worker)
+                .generate().persist()
+                .generate().persist()
                 .detachEntities();
 
-        assertThat(persistedApplications, is(notNullValue()));
-        assertThat(persistedApplications.size(), is(2));
+        assertThat(persistedUsers.size(), is(2));
 
-        PushApplication persistedApplication = persistedApplications.get(0);
-        PushApplication persistedApplication1 = persistedApplications.get(1);
+        Developer persistedUser = persistedUsers.get(0);
+        Developer persistedUser1 = persistedUsers.get(1);
 
         // READ
-        PushApplicationContext context = ups.with(worker).findAll();
-        List<PushApplication> readApplications = context.detachEntities();
-        assertThat(readApplications, is(notNullValue()));
-        assertThat(readApplications.size(), is(2));
+        UserContext context = ups.with(worker).findAll();
+        List<Developer> readUsers = context.detachEntities();
+        assertThat(readUsers.size(), is(2 + defaultUserCount));
 
-        ModelAsserts.assertModelsEqual(persistedApplication,
-                context.detachEntity(persistedApplication.getPushApplicationID()));
-        ModelAsserts.assertModelsEqual(persistedApplication1,
-                context.detachEntity(persistedApplication1.getPushApplicationID()));
+        ModelAsserts.assertModelsEqual(persistedUser, context.detachEntity(persistedUser.getId()));
+        ModelAsserts.assertModelsEqual(persistedUser1, context.detachEntity(persistedUser1.getId()));
 
         // UPDATE
         ups.with(worker)
-                .edit(persistedApplication.getPushApplicationID()).name("newname").description("newdescription").merge();
-        PushApplication readApplication = ups.with(worker)
-                .find(persistedApplication.getPushApplicationID())
+                .edit(persistedUser.getId()).loginName("newloginname").merge();
+        Developer readUser = ups.with(worker)
+                .find(persistedUser.getId())
                 .detachEntity();
-        assertThat(readApplication.getName(), is("newname"));
-        assertThat(readApplication.getDescription(), is("newdescription"));
+        assertThat(readUser.getLoginName(), is("newloginname"));
 
         // DELETE
-        readApplications = ups.with(worker)
-                .removeById(persistedApplication.getPushApplicationID())
-                .removeById(persistedApplication1.getPushApplicationID())
+        readUsers = ups.with(worker)
+                .removeById(persistedUser.getId())
+                .removeById(persistedUser1.getId())
                 .findAll()
                 .detachEntities();
-        assertThat(readApplications.size(), is(0));
+        assertThat(readUsers.size(), is(defaultUserCount));
     }
 
 

@@ -23,17 +23,12 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.api.android.AndroidVariantContext;
-import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
+import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.simplepush.SimplePushVariantContext;
 import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
-import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
-import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
@@ -174,9 +169,9 @@ public class SimplePushVariantTest {
         assertThat(readVariants, is(notNullValue()));
         assertThat(readVariants.size(), is(2));
 
-        SimplePushVariantUtils.checkEquality(persistedVariant,
+        ModelAsserts.assertModelsEqual(persistedVariant,
                 context.detachEntity(persistedVariant.getVariantID()));
-        SimplePushVariantUtils.checkEquality(persistedVariant1,
+        ModelAsserts.assertModelsEqual(persistedVariant1,
                 context.detachEntity(persistedVariant1.getVariantID()));
 
         // UPDATE

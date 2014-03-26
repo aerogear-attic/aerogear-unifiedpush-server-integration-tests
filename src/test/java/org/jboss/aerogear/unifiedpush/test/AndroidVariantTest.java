@@ -22,22 +22,15 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
+import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.android.AndroidVariantContext;
 import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.installation.InstallationWorker;
-import org.jboss.aerogear.test.api.installation.android.AndroidInstallationContext;
-import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
-import org.jboss.aerogear.unifiedpush.utils.AndroidVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
@@ -182,9 +175,9 @@ public class AndroidVariantTest {
         assertThat(readVariants, is(notNullValue()));
         assertThat(readVariants.size(), is(2));
 
-        AndroidVariantUtils.checkEquality(persistedVariant,
+        ModelAsserts.assertModelsEqual(persistedVariant,
                 context.detachEntity(persistedVariant.getVariantID()));
-        AndroidVariantUtils.checkEquality(persistedVariant1,
+        ModelAsserts.assertModelsEqual(persistedVariant1,
                 context.detachEntity(persistedVariant1.getVariantID()));
 
         // UPDATE

@@ -21,6 +21,7 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.jboss.aerogear.test.ContentTypes;
+import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantWorker;
@@ -28,7 +29,6 @@ import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
 import org.jboss.aerogear.test.api.installation.InstallationWorker;
-import org.jboss.aerogear.test.api.installation.android.AndroidInstallationContext;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
@@ -42,11 +42,8 @@ import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.test.model.iOSVariant;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
-import org.jboss.aerogear.unifiedpush.utils.InstallationUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
@@ -217,8 +214,8 @@ public class InstallationTest {
         assertThat(readInstallations, is(notNullValue()));
         assertThat(readInstallations.size(), is(2));
 
-        InstallationUtils.checkEquality(persistedInstallation, context.detachEntity(persistedInstallation.getId()));
-        InstallationUtils.checkEquality(persistedInstallation1,
+        ModelAsserts.assertModelsEqual(persistedInstallation, context.detachEntity(persistedInstallation.getId()));
+        ModelAsserts.assertModelsEqual(persistedInstallation1,
                 context.detachEntity(persistedInstallation1.getId()));
 
         // UPDATE

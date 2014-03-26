@@ -23,15 +23,13 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
+import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantContext;
 import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
-import org.jboss.aerogear.unifiedpush.utils.ChromePackagedAppVariantUtils;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -173,10 +171,8 @@ public class ChromePackagedAppVariantTest {
         assertThat(readVariants, is(notNullValue()));
         assertThat(readVariants.size(), is(2));
 
-        ChromePackagedAppVariantUtils.checkEquality(persistedVariant,
-                context.detachEntity(persistedVariant.getVariantID()));
-        ChromePackagedAppVariantUtils.checkEquality(persistedVariant1,
-                context.detachEntity(persistedVariant1.getVariantID()));
+        ModelAsserts.assertModelsEqual(persistedVariant, context.detachEntity(persistedVariant.getVariantID()));
+        ModelAsserts.assertModelsEqual(persistedVariant1, context.detachEntity(persistedVariant1.getVariantID()));
 
         // UPDATE
         ups.with(worker, application)

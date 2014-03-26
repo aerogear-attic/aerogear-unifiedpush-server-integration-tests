@@ -37,12 +37,5 @@ public final class SimplePushVariantUtils {
     private SimplePushVariantUtils() {
     }
 
-    public static void checkEquality(SimplePushVariant expected, SimplePushVariant actual) {
-        assertEquals(expected.getName(), actual.getName());
-        assertEquals(expected.getDescription(), actual.getDescription());
-        assertEquals(expected.getVariantID(), actual.getVariantID());
-        assertEquals(expected.getSecret(), actual.getSecret());
-        assertEquals(expected.getDeveloper(), actual.getDeveloper());
-    }
 
 }

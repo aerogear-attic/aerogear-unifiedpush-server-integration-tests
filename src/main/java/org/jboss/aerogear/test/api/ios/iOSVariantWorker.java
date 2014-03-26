@@ -147,7 +147,7 @@ public class iOSVariantWorker extends AbstractUPSWorker<iOSVariant, String, iOSV
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
                     .patch("/rest/applications/{pushApplicationID}/iOS/{variantID}",
-                            context.getParent().getPushApplicationID(), entity.getVariantID());
+                            context.getParent().getPushApplicationID(), context.getEntityID(entity));
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
         }
