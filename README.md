@@ -32,11 +32,11 @@ Navigate to the project's root folder and setup the `JBOSS_HOME` environment var
 
 The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
-    mvn test -Djavax.net.ssl.trustStore="setup/aerogear.truststore" -Djavax.net.ssl.trustStorePassword=aerogear
+    mvn test
 
 If you want to execute tests using domain mode, just run
 
-    mvn test -Pas711-domain-managed -Djavax.net.ssl.trustStore="setup/aerogear.truststore" -Djavax.net.ssl.trustStorePassword=aerogear
+    mvn test -Pas711-domain-managed
 
 Note, if you need to run tests against different directory, just specify following:
 

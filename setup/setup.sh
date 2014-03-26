@@ -22,13 +22,11 @@ function cloneRepository() {
         rm -rf $AG_UPS_REPO
     fi
 
-    # We are cloning 0.10.0
+    # We are cloning 0.10.2
     if [ ! -d "$AG_UPS_REPO" ]; then
         git clone -q https://github.com/aerogear/aerogear-unifiedpush-server.git $AG_UPS_REPO
         cd $AG_UPS_REPO
-        #git branch --track 0.10.x origin/0.10.x
-        #git checkout 0.10.x
-        git checkout 35d15c91b7b4f01902e2fdb6a61d60506439a67c
+        git checkout 4fcc7e65ad1d637820f666c6568650c0e7d513bc
         cd ..
     fi
 }
@@ -136,7 +134,8 @@ function patchContainer() {
 cloneRepository
 getAS7
 
-#patchContainer $JBOSS_HOME $AG_UPS_REPO/databases/h2-database-config.cli 7
+patchContainer $JBOSS_HOME standalone $AG_UPS_REPO/databases/h2-database-config.cli 7
+patchContainer $JBOSS_HOME domain $SCRIPT_DIR/h2_database_config_domain.cli 7
 
 # copy keystore and truststore to the right directories
 cp $SCRIPT_DIR/aerogear.keystore $JBOSS_HOME/standalone/configuration

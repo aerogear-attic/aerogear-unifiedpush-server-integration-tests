@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
-    <version>0.10.0</version>
+    <version>0.10.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
