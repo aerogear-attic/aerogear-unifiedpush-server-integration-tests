@@ -28,6 +28,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
+import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories;
 
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
@@ -44,9 +45,9 @@ import com.notnoop.exceptions.NetworkIOException;
 
 public final class Deployments {
 
-    public static final String DEFAULT_STAGING_UPS_SETTINGS_XML = "setup/staging-settings.xml";
+    private static final String DEFAULT_STAGING_UPS_VERSION = "0.10.2";
 
-    public static final String DEFAULT_STAGING_UPS_VERSION = "0.10.1";
+    private static final String UPS_STAGING_URL = "http://people.apache.org/~matzew/aerogear-staging/";
 
     private Deployments() {
         throw new UnsupportedOperationException("No instantiation.");
@@ -125,37 +126,29 @@ public final class Deployments {
     }
 
     /**
-     * Gets UPS from staging repo of specified version and Maven settings.xml
-     * 
+     * Gets UPS from staging repo of specified version
+     *
      * When some argument is null or empty String, defaults are used.
-     * 
-     * @param version version of UPS you want to get from Bintray
-     * @param stagingSettings settings.xml-like file for staging repositories, defaults to "setup/staging-settings.xml"
-     * @return UPS from Bintray as WebArchive of specified {@code version}
+     *
+     * @param version version of UPS you want to get
+     * @return UPS of specified {@code version}
      */
-    public static WebArchive getUPSFromStaging(String version, String stagingSettings) {
+    public static WebArchive getUPSFromStaging(String version) {
 
         if (version == null || version.isEmpty()) {
             version = DEFAULT_STAGING_UPS_VERSION;
         }
 
-        if (stagingSettings == null || stagingSettings.isEmpty()) {
-            stagingSettings = DEFAULT_STAGING_UPS_SETTINGS_XML;
-        }
-
         // https://issues.jboss.org/browse/WFK2-61
         File warFile = Maven.configureResolver()
-            .fromFile(stagingSettings)
+            .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("staging_ups", UPS_STAGING_URL, "default"))
+            .withMavenCentralRepo(false)
             .resolve("org.jboss.aerogear.unifiedpush:unifiedpush-server:war:" + version)
-            .withMavenCentralRepo(false).withoutTransitivity().asSingle(File.class);
+            .withoutTransitivity().asSingle(File.class);
 
         WebArchive finalArchive = ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(warFile).as(WebArchive.class);
 
         return finalArchive;
-    }
-
-    public static WebArchive getUPSFromStaging(String version) {
-        return getUPSFromStaging(version, DEFAULT_STAGING_UPS_SETTINGS_XML);
     }
 
     public static WebArchive getUPSFromStaging() {
