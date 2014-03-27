@@ -41,6 +41,7 @@
 
         <org.jboss.spec.javaee6.version>3.0.2.Final</org.jboss.spec.javaee6.version>
 
+	<org.jboss.aerogear.upsjavaclient.version>0.6.0</org.jboss.aerogear.upsjavaclient.version>
 
         <!-- Testing -->
         <org.jboss.shrinkwrap.resolver>2.1.0</org.jboss.shrinkwrap.resolver>
@@ -159,7 +160,7 @@
         <dependency>
             <groupId>org.jboss.aerogear</groupId>
             <artifactId>unifiedpush-java-client</artifactId>
-            <version>0.5.0</version>
+            <version>${org.jboss.aerogear.upsjavaclient.version}</version>
         </dependency>
 
         <!-- Test stuff -->

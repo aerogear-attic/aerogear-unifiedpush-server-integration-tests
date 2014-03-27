@@ -61,8 +61,10 @@ public final class PushNotificationSenderUtils {
 
     public static void send(UnifiedMessage message, Session session) {
 
-        JavaSender sender = new SenderClient(session.getBaseUrl().toExternalForm());
-
+        SenderClient sender = new SenderClient.Builder().rootServerURL(session.getBaseUrl().toExternalForm())
+                .customTrustStore("setup/aerogear.truststore", null, "aerogear")
+                .build();
+        
         final CountDownLatch latch = new CountDownLatch(1);
         final List<Integer> returnedStatusList = new ArrayList<Integer>(1);
         final AtomicBoolean onFailCalled = new AtomicBoolean(false);
