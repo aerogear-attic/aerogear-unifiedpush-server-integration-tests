@@ -39,7 +39,7 @@
         <!-- Secured endpoint for SenderStatictics -->
         <aerogear.security.version>1.3.1</aerogear.security.version>
 
-        <org.jboss.spec.javaee6.version>3.0.2.Final</org.jboss.spec.javaee6.version>
+        <jboss-javaee-6.0.version>3.0.2.Final</jboss-javaee-6.0.version>
 
 
         <!-- Testing -->
@@ -53,6 +53,14 @@
         <org.jacoco.ant.version>0.6.3.201306030806</org.jacoco.ant.version>
         <org.jacoco.agent.version>0.6.3.201306030806</org.jacoco.agent.version>
         <ant.contrib.version>20020829</ant.contrib.version>
+
+        <junit.version>4.11</junit.version>
+        <mockito.version>1.9.5</mockito.version>
+        <notnoop.version>0.2.3</notnoop.version>
+        <gcm-server.version>1.0.2</gcm-server.version>
+        <aerogear.unifiedpush-java-client.version>0.5.0</aerogear.unifiedpush-java-client.version>
+        <awaitility.version>1.5.0</awaitility.version>
+
     </properties>
 
     <dependencyManagement>
@@ -61,13 +69,13 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.11</version>
+                <version>${junit.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>1.9.5</version>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -99,7 +107,7 @@
             <dependency>
                 <groupId>org.jboss.spec</groupId>
                 <artifactId>jboss-javaee-6.0</artifactId>
-                <version>${org.jboss.spec.javaee6.version}</version>
+                <version>${jboss-javaee-6.0.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -132,7 +140,7 @@
         <dependency>
             <groupId>com.notnoop.apns</groupId>
             <artifactId>apns</artifactId>
-            <version>0.2.3</version>
+            <version>${notnoop.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.jackson</groupId>
@@ -144,7 +152,7 @@
         <dependency>
             <groupId>com.google.android.gcm</groupId>
             <artifactId>gcm-server</artifactId>
-            <version>1.0.2</version>
+            <version>${gcm-server.version}</version>
         </dependency>
 
 
@@ -159,7 +167,7 @@
         <dependency>
             <groupId>org.jboss.aerogear</groupId>
             <artifactId>unifiedpush-java-client</artifactId>
-            <version>0.5.0</version>
+            <version>${aerogear.unifiedpush-java-client.version}</version>
         </dependency>
 
         <!-- Test stuff -->
@@ -205,7 +213,7 @@
         <dependency>
             <groupId>com.jayway.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>1.5.0</version>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
 
