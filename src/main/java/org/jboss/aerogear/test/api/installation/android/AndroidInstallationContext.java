@@ -17,16 +17,8 @@
 package org.jboss.aerogear.test.api.installation.android;
 
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.api.AbstractUPSContext;
-import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
-import org.jboss.aerogear.test.api.installation.InstallationEditor;
-import org.jboss.aerogear.test.api.installation.InstallationWorker;
-import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
-
-import java.util.UUID;
 
 public class AndroidInstallationContext extends InstallationContext<AndroidInstallationBlueprint,
         AndroidInstallationEditor, AndroidVariant, AndroidInstallationWorker, AndroidInstallationContext> {
@@ -53,7 +45,7 @@ public class AndroidInstallationContext extends InstallationContext<AndroidInsta
     @Override
     public AndroidInstallationBlueprint generate() {
         return create()
-                .deviceToken(randomString())
+                .deviceToken(randomStringOfLength(100))
                 .alias(randomString());
     }
 }

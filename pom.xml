@@ -15,14 +15,15 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-parent</artifactId>
         <version>0.1.0</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
@@ -34,7 +35,7 @@
 
         <maven.compiler.argument.target>${maven.compiler.target}</maven.compiler.argument.target>
         <maven.compiler.argument.source>${maven.compiler.source}</maven.compiler.argument.source>
-        
+
         <!-- Secured endpoint for SenderStatictics -->
         <aerogear.security.version>1.3.1</aerogear.security.version>
 
@@ -60,6 +61,7 @@
         <aerogear.unifiedpush-java-client.version>0.5.0</aerogear.unifiedpush-java-client.version>
         <awaitility.version>1.5.0</awaitility.version>
 
+        <code-coverage.active>false</code-coverage.active>
     </properties>
 
     <dependencyManagement>
@@ -161,7 +163,7 @@
             <artifactId>aerogear-security</artifactId>
             <version>${aerogear.security.version}</version>
         </dependency>
-        
+
         <!-- UnifiedPush Java Sender is used -->
         <dependency>
             <groupId>org.jboss.aerogear</groupId>
@@ -207,7 +209,6 @@
             <groupId>com.jayway.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- depenencies of smarturl and loading rule extension -->
@@ -243,7 +244,7 @@
         </dependency>
     </dependencies>
 
-    <build />
+    <build/>
 
     <profiles>
         <profile>
@@ -289,7 +290,7 @@
             </dependencies>
 
             <build>
-            <!-- AS 7 is extracted using before the test -->
+                <!-- AS 7 is extracted using before the test -->
                 <plugins>
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
@@ -344,6 +345,17 @@
         <!-- This profile enrich test execution with code coverage. It must be used together with another non-domain container profile -->
         <profile>
             <id>code-coverage</id>
+            <properties>
+                <jacoco.prep>${project.build.directory}/jacoco/prep</jacoco.prep>
+                <jacoco.prep.classes>${jacoco.prep}/classes</jacoco.prep.classes>
+                <jacoco.prep.sources>${jacoco.prep}/sources</jacoco.prep.sources>
+                <jacoco.report.file>${jacoco.prep}/jacoco.exec</jacoco.report.file>
+                <jacoco.report.output>${project.build.directory}/jacoco/report</jacoco.report.output>
+
+                <ups.dir>${project.basedir}/aerogear-unifiedpush-server</ups.dir>
+
+                <code-coverage.active>true</code-coverage.active>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -407,41 +419,56 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <property name="source-folder" location="${project.basedir}/aerogear-unifiedpush-server/server" />
-                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" />
-                                        <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties" />
-                                        <available file="${project.basedir}/${jacoco.report.file}" property="exec.file.exists" />
-                                        <echo message="${project.basedir}/${jacoco.report.file}" />
-                                        <echo message="${source-folder}" />
+                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask"
+                                                 classpathref="maven.plugin.classpath"/>
+                                        <taskdef classpathref="maven.runtime.classpath"
+                                                 resource="net/sf/antcontrib/antcontrib.properties"/>
+                                        <available file="${jacoco.report.file}" property="exec.file.exists"/>
+                                        <echo message="Jacoco.exec should be in: ${jacoco.report.file}"/>
+                                        <echo message="Unified Push Server should be in: ${ups.dir}" />
+                                        <copy todir="${jacoco.prep.sources}">
+                                            <fileset dir="${ups.dir}" includes="**/src/main/java/**" />
+                                            <mapper>
+                                                <regexpmapper from="^(?:.*?)/src/main/java/(.*)$$" to="\1" />
+                                            </mapper>
+                                        </copy>
+                                        <copy todir="${jacoco.prep.classes}">
+                                            <fileset dir="${ups.dir}" includes="**/target/classes/**" />
+                                            <mapper>
+                                                <regexpmapper from="^(?:.*?)/target/classes/(.*)$$" to="\1" />
+                                            </mapper>
+                                        </copy>
                                         <if>
-                                            <equals arg1="${exec.file.exists}" arg2="true" />
+                                            <equals arg1="${exec.file.exists}" arg2="true"/>
                                             <then>
                                                 <trycatch reference="report_exception">
                                                     <try>
                                                         <jacoco-report>
                                                             <executiondata>
-                                                                <file file="${project.basedir}/${jacoco.report.file}" />
+                                                                <file file="${jacoco.report.file}"/>
                                                             </executiondata>
-                                                            <structure name="Aerogear">
+                                                            <structure name="AeroGear Unified Push Server Integration Tests">
                                                                 <classfiles>
-                                                                    <fileset dir="${source-folder}/target/classes" />
+                                                                    <fileset dir="${jacoco.prep.classes}"/>
                                                                 </classfiles>
                                                                 <sourcefiles encoding="UTF-8">
-                                                                    <fileset dir="${source-folder}/src/main" />
+                                                                    <fileset dir="${jacoco.prep.sources}"/>
                                                                 </sourcefiles>
                                                             </structure>
-                                                            <html destdir="${project.basedir}/target/jacoco/report" />
+                                                            <html destdir="${jacoco.report.output}"/>
                                                         </jacoco-report>
                                                     </try>
                                                     <catch>
-                                                        <property name="exception" refid="report_exception" />
-                                                        <property name="message" value="Error while generating jacoco report: ${exception}" />
-                                                        <echo message="${message}" />
+                                                        <property name="exception" refid="report_exception"/>
+                                                        <property name="message"
+                                                                  value="Error while generating jacoco report: ${exception}"/>
+                                                        <echo message="${message}"/>
                                                     </catch>
                                                 </trycatch>
                                             </then>
                                             <else>
-                                                <echo message="${project.basedir}/${jacoco.report.file} .exec file is missing." />
+                                                <echo
+                                                    message="${jacoco.report.file} .exec file is missing."/>
                                             </else>
                                         </if>
                                     </target>
@@ -454,11 +481,12 @@
                         <configuration>
                             <systemPropertyVariables>
                                 <!-- As for excludes, there is something wrong in EJB 3.1 implementation in JBoss AS 7 - https://groups.google.com/forum/#!topic/jacoco/9TlsMdRE_10 -->
-                                <arq.container.jboss.configuration.javaVmArguments>
+                                <arq.container.main-server-group.configuration.javaVmArguments>
                                     -Djboss.bind.address=127.0.0.1 -Xmx512m
                                     -XX:MaxPermSize=512m
                                     -javaagent:${project.build.directory}/jacocoagent.jar=append=true,destfile=${jacoco.report.file},excludes=*$$$$$$*
-                                </arq.container.jboss.configuration.javaVmArguments>
+                                </arq.container.main-server-group.configuration.javaVmArguments>
+                                <code-coverage.active>${code-coverage.active}</code-coverage.active>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

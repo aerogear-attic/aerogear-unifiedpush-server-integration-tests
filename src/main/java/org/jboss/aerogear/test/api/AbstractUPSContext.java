@@ -18,7 +18,6 @@ package org.jboss.aerogear.test.api;
 
 import org.jboss.aerogear.test.Session;
 
-import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +37,8 @@ public abstract class AbstractUPSContext<
         CONTEXT extends UPSContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>>
 
         implements UPSContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT> {
+
+    public static final int DEFAULT_RANDOM_STRING_LENGTH = 32;
 
     private final WORKER worker;
     private final PARENT parent;
@@ -223,7 +224,17 @@ public abstract class AbstractUPSContext<
     }
 
     protected String randomString() {
-        return UUID.randomUUID().toString();
+        return randomStringOfLength(DEFAULT_RANDOM_STRING_LENGTH);
+    }
+
+    protected String randomStringOfLength(int length) {
+        StringBuilder builder = new StringBuilder();
+
+        while(builder.length() < length) {
+            builder.append(UUID.randomUUID().toString());
+        }
+
+        return builder.substring(0, length);
     }
 
     // FIXME think of a better name
