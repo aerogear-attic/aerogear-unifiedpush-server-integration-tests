@@ -14,17 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.android;
+package org.jboss.aerogear.test.api.variant.simplepush;
 
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.SimplePushVariant;
 
-import java.util.UUID;
+public abstract class SimplePushVariantExtension<EXTENSION extends SimplePushVariantExtension<EXTENSION>>
+        extends SimplePushVariant {
+    protected final SimplePushVariantContext context;
 
-public abstract class AndroidVariantExtension<EXTENSION extends AndroidVariantExtension<EXTENSION>> extends AndroidVariant {
-    protected final AndroidVariantContext context;
-
-    public AndroidVariantExtension(AndroidVariantContext context) {
+    public SimplePushVariantExtension(SimplePushVariantContext context) {
         this.context = context;
     }
 
@@ -36,16 +34,6 @@ public abstract class AndroidVariantExtension<EXTENSION extends AndroidVariantEx
 
     public EXTENSION description(String description) {
         setDescription(description);
-        return castInstance();
-    }
-
-    public EXTENSION googleKey(String googleKey) {
-        setGoogleKey(googleKey);
-        return castInstance();
-    }
-
-    public EXTENSION projectNumber(String projectNumber) {
-        setProjectNumber(projectNumber);
         return castInstance();
     }
 

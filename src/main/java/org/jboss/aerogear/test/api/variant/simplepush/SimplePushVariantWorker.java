@@ -1,4 +1,4 @@
-package org.jboss.aerogear.test.api.simplepush;
+package org.jboss.aerogear.test.api.variant.simplepush;
 
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
@@ -7,7 +7,7 @@ import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
-import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.json.simple.JSONObject;
@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class SimplePushVariantWorker extends AbstractUPSWorker<SimplePushVariant, String, SimplePushVariantBlueprint, SimplePushVariantEditor, PushApplication, SimplePushVariantContext, SimplePushVariantWorker> {
+public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, String, SimplePushVariantBlueprint, SimplePushVariantEditor, PushApplication, SimplePushVariantContext, SimplePushVariantWorker> {
 
     private SimplePushVariantWorker() {
 
@@ -125,16 +125,26 @@ public class SimplePushVariantWorker extends AbstractUPSWorker<SimplePushVariant
     }
 
     @Override
-    public void delete(SimplePushVariantContext context, Collection<? extends SimplePushVariant> entities) {
-        for (SimplePushVariant entity : entities) {
+    public void deleteById(SimplePushVariantContext context, String id) {
             Response response = context.getSession().given()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .delete("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
-                            context.getParent().getPushApplicationID(), context.getEntityID(entity));
+                            context.getParent().getPushApplicationID(), id);
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+    }
+
+    @Override
+    public void resetSecret(SimplePushVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .body("[]")
+                .put("/rest/applications/{pushApplicationID}/simplePush/{variantID}/reset",
+                        context.getParent().getPushApplicationID(), id);
+
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
     }
 
     public static SimplePushVariantWorker worker() {

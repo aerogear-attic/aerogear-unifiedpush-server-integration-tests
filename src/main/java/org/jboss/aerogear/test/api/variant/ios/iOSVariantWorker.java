@@ -1,4 +1,4 @@
-package org.jboss.aerogear.test.api.ios;
+package org.jboss.aerogear.test.api.variant.ios;
 
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
@@ -9,6 +9,7 @@ import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
+import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.iOSVariant;
 import org.json.simple.JSONObject;
@@ -19,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class iOSVariantWorker extends AbstractUPSWorker<iOSVariant, String, iOSVariantBlueprint, iOSVariantEditor,
+public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVariantBlueprint, iOSVariantEditor,
         PushApplication, iOSVariantContext, iOSVariantWorker> {
 
     private byte[] defaultCertificate;
@@ -154,16 +155,26 @@ public class iOSVariantWorker extends AbstractUPSWorker<iOSVariant, String, iOSV
     }
 
     @Override
-    public void delete(iOSVariantContext context, Collection<? extends iOSVariant> entities) {
-        for (iOSVariant entity : entities) {
-            Response response = context.getSession().given()
-                    .contentType(getContentType())
-                    .header(Headers.acceptJson())
-                    .delete("/rest/applications/{pushApplicationID}/iOS/{variantID}",
-                            context.getParent().getPushApplicationID(), context.getEntityID(entity));
+    public void deleteById(iOSVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .delete("/rest/applications/{pushApplicationID}/iOS/{variantID}",
+                        context.getParent().getPushApplicationID(), id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Override
+    public void resetSecret(iOSVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .body("[]")
+                .put("/rest/applications/{pushApplicationID}/iOS/{variantID}/reset",
+                        context.getParent().getPushApplicationID(), id);
+
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
     }
 
     public byte[] getDefaultCertificate() {

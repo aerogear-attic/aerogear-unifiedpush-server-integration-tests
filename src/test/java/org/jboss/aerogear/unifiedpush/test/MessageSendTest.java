@@ -27,27 +27,27 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
-import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantWorker;
+import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
+import org.jboss.aerogear.test.api.installation.InstallationWorker;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
-import org.jboss.aerogear.test.api.ios.iOSVariantWorker;
+import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.sender.SenderRequest;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.test.api.sender.SenderStatisticsRequest;
-import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
+import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
+import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
-import org.jboss.aerogear.test.model.Installation;
 import org.jboss.aerogear.test.model.InstallationImpl;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.test.model.Variant;
 import org.jboss.aerogear.test.model.iOSVariant;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -62,18 +62,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -99,7 +96,8 @@ public class MessageSendTest {
             iOSVariant iosVariant = with(
                     iOSVariantWorker.worker()
                             .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
-                            .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE), application)
+                            .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE), application
+            )
                     .generate().persist()
                     .detachEntity();
 
@@ -107,9 +105,10 @@ public class MessageSendTest {
                     .generate().persist()
                     .detachEntity();
 
-            ChromePackagedAppVariant chromePackagedAppVariant = with(ChromePackagedAppVariantWorker.worker(), application)
-                    .generate().persist()
-                    .detachEntity();
+            ChromePackagedAppVariant chromePackagedAppVariant =
+                    with(ChromePackagedAppVariantWorker.worker(), application)
+                            .generate().persist()
+                            .detachEntity();
 
             with(AndroidInstallationWorker.worker(), androidVariant)
                     .generate(3).persist();
@@ -156,7 +155,7 @@ public class MessageSendTest {
     @Deployment(testable = false)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
-        return Deployments.customUnifiedPushServerWithClasses();
+        return Deployments.unifiedPushServerWithCustomSenders();
     }
 
     private PushApplication getPushApplication() {
@@ -181,20 +180,60 @@ public class MessageSendTest {
 
     @Test
     public void androidSelectiveSendByAliases() {
+        SenderStatistics statistics;
         List<InstallationImpl> installations = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
                 .findAll().detachEntities();
+        installations = installations.subList(0, installations.size() - 1);
 
-        SenderStatistics statistics = selectiveSendByAliases(installations.subList(0, installations.size() - 1));
+        statistics = selectiveSendByAliases(installations);
         assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+
+        statistics = selectiveSendByAliasesWithTtl(installations, 5000);
+        assertThat(statistics.gcmMessage.getTimeToLive(), is(5000));
+        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+
+        statistics = selectiveSendByAliasesWithContentAvailable(installations);
+        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put("hello", "aerogear");
+        attributes.put("aerogear", "rulez!");
+
+        statistics = selectiveSendByAliasesWithAttributes(installations, attributes);
+        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+        assertThat(statistics.gcmMessage.getData().get("hello"), is("aerogear"));
+        assertThat(statistics.gcmMessage.getData().get("aerogear"), is("rulez!"));
     }
 
     @Test
     public void iosSelectiveSendByAliases() {
+        SenderStatistics statistics;
         List<InstallationImpl> installations = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
                 .findAll().detachEntities();
+        installations = installations.subList(0, installations.size() - 1);
 
-        SenderStatistics statistics = selectiveSendByAliases(installations.subList(0, installations.size() - 1));
+        statistics = selectiveSendByAliases(installations);
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+
+        statistics = selectiveSendByAliasesWithTtl(installations, 5000);
+        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+        assertThat(statistics.apnsCustomFields, containsString("ttl=5000"));
+
+        // FIXME add a way to verify content available!
+        statistics = selectiveSendByAliasesWithContentAvailable(installations);
+        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put("hello", "aerogear");
+        attributes.put("aerogear", "rulez!");
+
+        statistics = selectiveSendByAliasesWithAttributes(installations, attributes);
+        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+
+        for (String key : attributes.keySet()) {
+            assertThat(statistics.apnsCustomFields, containsString(key + "=" + attributes.get(key)));
+        }
+
     }
 
     @Test
@@ -203,19 +242,12 @@ public class MessageSendTest {
                 .findAll().detachEntities();
 
         installations = installations.subList(0, installations.size() - 1);
-        final List<String> aliases = new ArrayList<String>();
-        //List<String> deviceTypes = new ArrayList<String>();
-        for (InstallationImpl installation : installations) {
-            aliases.add(installation.getAlias());
-            //deviceTypes.add(installation.getDeviceType());
-        }
-
         SimplePushServerSimulator simulator = SimplePushServerSimulator.create().start();
 
         ups.with(SenderRequest.request())
                 .message()
                 .pushApplication(getPushApplication())
-                .aliases(aliases)
+                .aliasesOf(installations)
                 .alert(ALERT_MESSAGE)
                 .simplePush(SIMPLEPUSH_VERSION)
                 .send();
@@ -225,15 +257,23 @@ public class MessageSendTest {
         for (InstallationImpl installation : installations) {
             boolean found = false;
             for (HttpServerExchange exchange : exchanges) {
-                if(exchange.getRequestPath().endsWith(installation.getDeviceToken())) {
+                if (exchange.getRequestPath().endsWith(installation.getDeviceToken())) {
                     // assertThat(exchange.getRequestChannel().read);
                     found = true;
                 }
             }
-            if(!found) {
+            if (!found) {
                 fail("Message not sent for installation " + installation);
             }
         }
+    }
+
+    @Test
+    public void chromePackagedAppSelectiveSendByAliases() {
+        List<InstallationImpl> installations = ups.with(ChromePackagedAppInstallationWorker.worker(),
+                getChromePackagedAppVariant()).findAll().detachEntities();
+        SenderStatistics statistics = selectiveSendByAliases(installations.subList(0, installations.size() - 1));
+        assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
     }
 
     @Test
@@ -250,6 +290,12 @@ public class MessageSendTest {
                 .generate().alias(alias).persist()
                 .detachEntity();
         commonAliasInstallations.add(iosInstallation);
+
+        InstallationImpl gcmForChromeInstallation = ups.with(ChromePackagedAppInstallationWorker.worker(),
+                getChromePackagedAppVariant())
+                .generate().alias(alias).persist()
+                .detachEntity();
+        commonAliasInstallations.add(gcmForChromeInstallation);
 
         List<InstallationImpl> simplePushInstallations = new ArrayList<InstallationImpl>();
         InstallationImpl simplePushInstallation =
@@ -276,11 +322,11 @@ public class MessageSendTest {
         for (InstallationImpl pushInstallation : simplePushInstallations) {
             boolean found = false;
             for (HttpServerExchange exchange : exchanges) {
-                if(exchange.getRequestPath().endsWith(pushInstallation.getDeviceToken())) {
+                if (exchange.getRequestPath().endsWith(pushInstallation.getDeviceToken())) {
                     found = true;
                 }
             }
-            if(!found) {
+            if (!found) {
                 fail("Message not sent for SimplePush installation " + pushInstallation);
             }
         }
@@ -295,10 +341,86 @@ public class MessageSendTest {
         assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
         assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+        assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
 
         ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
         ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
         ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
+    }
+
+    @Test
+    public void selectiveSendWithInvalidTokens() {
+
+        List<InstallationImpl> validInstallations = new ArrayList<InstallationImpl>();
+        List<InstallationImpl> invalidInstallations = new ArrayList<InstallationImpl>();
+
+        validInstallations.addAll(
+                ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).findAll().detachEntities());
+        validInstallations.addAll(ups.with(iOSInstallationWorker.worker(), getIOSVariant()).findAll().detachEntities());
+
+        InstallationImpl validAndroidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
+                .generate().persist()
+                .detachEntity();
+        validInstallations.add(validAndroidInstallation);
+
+        InstallationImpl invalidAndroidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
+                .generate().invalidateToken().persist()
+                .detachEntity();
+        invalidInstallations.add(invalidAndroidInstallation);
+
+        InstallationImpl validIOSInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
+                .generate().persist()
+                .detachEntity();
+        validInstallations.add(validIOSInstallation);
+
+        InstallationImpl invalidIOSInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
+                .generate().invalidateToken().persist()
+                .detachEntity();
+        invalidInstallations.add(invalidIOSInstallation);
+
+        // FIXME how about GCM for chrome and SimplePush? they do not report client invalidity
+
+        ups.with(SenderRequest.request())
+                .message()
+                .pushApplication(getPushApplication())
+                .variants(getAndroidVariant(), getIOSVariant())
+                .alert(ALERT_MESSAGE)
+                .send();
+
+        SenderStatistics statistics = ups.with(SenderStatisticsRequest.request())
+                .awaitGetAndClear(validInstallations.size() + invalidInstallations.size(), Duration.FIVE_SECONDS);
+
+        for (InstallationImpl validInstallation : validInstallations) {
+            assertThat(statistics.deviceTokens.contains(validInstallation.getDeviceToken()), is(true));
+        }
+
+        for (InstallationImpl invalidInstallation : invalidInstallations) {
+            assertThat(statistics.deviceTokens.contains(invalidInstallation.getDeviceToken()), is(true));
+        }
+
+        List<InstallationImpl> afterSendInstallations = new ArrayList<InstallationImpl>();
+        afterSendInstallations.addAll(
+                ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).findAll().detachEntities());
+        afterSendInstallations.addAll(
+                ups.with(iOSInstallationWorker.worker(), getIOSVariant()).findAll().detachEntities());
+
+        assertThat(afterSendInstallations.size(), is(validInstallations.size()));
+
+        List<String> afterSendInstallationsTokens = new ArrayList<String>();
+        for (InstallationImpl afterSendInstallation : afterSendInstallations) {
+            afterSendInstallationsTokens.add(afterSendInstallation.getDeviceToken());
+        }
+
+        for (InstallationImpl validInstallation : validInstallations) {
+            assertThat(afterSendInstallationsTokens.contains(validInstallation.getDeviceToken()), is(true));
+        }
+
+        assertThat(statistics.gcmMessage, is(notNullValue()));
+        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+
+        ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(validAndroidInstallation);
+        ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(validIOSInstallation);
     }
 
     @Test
@@ -341,11 +463,11 @@ public class MessageSendTest {
         for (InstallationImpl pushInstallation : simplePushInstallations) {
             boolean found = false;
             for (HttpServerExchange exchange : exchanges) {
-                if(exchange.getRequestPath().endsWith(pushInstallation.getDeviceToken())) {
+                if (exchange.getRequestPath().endsWith(pushInstallation.getDeviceToken())) {
                     found = true;
                 }
             }
-            if(!found) {
+            if (!found) {
                 fail("Message not sent for SimplePush installation " + pushInstallation);
             }
         }
@@ -364,6 +486,16 @@ public class MessageSendTest {
         ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
         ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
         ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
+    }
+
+    @Test
+    public void selectiveSendByVariants() {
+        Map<AbstractVariant, InstallationWorker> variants = new HashMap<AbstractVariant, InstallationWorker>();
+
+        variants.put(getAndroidVariant(), AndroidInstallationWorker.worker());
+        variants.put(getIOSVariant(), iOSInstallationWorker.worker());
+
+        selectiveSendByVariants(variants);
     }
 
     @Test
@@ -401,35 +533,94 @@ public class MessageSendTest {
     }
 
     private SenderStatistics selectiveSendByAliases(List<InstallationImpl> installations) {
-        List<String> aliases = new ArrayList<String>();
-        for (InstallationImpl installation : installations) {
-            String alias = installation.getAlias();
-            aliases.add(alias);
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+                .message()
+                .alert(ALERT_MESSAGE);
+
+        return selectiveSendByAliases(installations, blueprint);
+    }
+
+    private SenderStatistics selectiveSendByAliasesWithTtl(List<InstallationImpl> installations, int timeToLive) {
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+                .message()
+                .alert(ALERT_MESSAGE)
+                .timeToLive(timeToLive);
+
+        return selectiveSendByAliases(installations, blueprint);
+    }
+
+    private SenderStatistics selectiveSendByAliasesWithContentAvailable(List<InstallationImpl> installations) {
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+                .message()
+                .alert(ALERT_MESSAGE)
+                .contentAvailable();
+
+        return selectiveSendByAliases(installations, blueprint);
+    }
+
+    private SenderStatistics selectiveSendByAliasesWithAttributes(List<InstallationImpl> installations,
+                                                                  Map<String, String> attributes) {
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+                .message()
+                .alert(ALERT_MESSAGE);
+        for (String key : attributes.keySet()) {
+            blueprint.attribute(key, attributes.get(key));
         }
 
-        ups.with(SenderRequest.request())
-                .message()
-                .pushApplication(getPushApplication())
-                .aliases(aliases)
-                .alert(ALERT_MESSAGE)
-                .send();
+        return selectiveSendByAliases(installations, blueprint);
+    }
+
+    private SenderStatistics selectiveSendByAliases(List<InstallationImpl> installations,
+                                                    SenderRequest.UnifiedMessageBlueprint messageBlueprint) {
+
+        messageBlueprint.pushApplication(getPushApplication()).aliasesOf(installations).send();
 
         SenderStatistics senderStatistics = ups.with(SenderStatisticsRequest.request())
-                .awaitGetAndClear(aliases.size(), Duration.FIVE_SECONDS);
+                .awaitGetAndClear(installations.size(), Duration.FIVE_SECONDS);
 
-        assertThat(senderStatistics.deviceTokens.size(), is(aliases.size()));
+        assertThat(senderStatistics.deviceTokens.size(), is(installations.size()));
         for (String deviceToken : senderStatistics.deviceTokens) {
             boolean found = false;
             for (InstallationImpl installation : installations) {
-                if(deviceToken.equals(installation.getDeviceToken())) {
+                if (deviceToken.equals(installation.getDeviceToken())) {
                     found = true;
                     break;
                 }
             }
-            if(!found) {
+            if (!found) {
                 fail("Message sent to unknown device token: " + deviceToken);
             }
         }
+        return senderStatistics;
+    }
+
+    private SenderStatistics selectiveSendByVariants(Map<AbstractVariant, InstallationWorker> variants) {
+        ups.with(SenderRequest.request())
+                .message()
+                .alert(ALERT_MESSAGE)
+                .pushApplication(getPushApplication())
+                .variants(new ArrayList<Variant>(variants.keySet()))
+                .send();
+
+        List<InstallationImpl> installations = new ArrayList<InstallationImpl>();
+        for (AbstractVariant variant : variants.keySet()) {
+            InstallationWorker worker = variants.get(variant);
+
+            installations.addAll(ups.with(worker, variant).findAll().detachEntities());
+        }
+
+        SenderStatistics senderStatistics = ups.with(SenderStatisticsRequest.request())
+                .awaitGetAndClear(installations.size(), Duration.FIVE_SECONDS);
+
+        assertThat(installations.size(), is(senderStatistics.deviceTokens.size()));
+        for (InstallationImpl installation : installations) {
+            assertThat(senderStatistics.deviceTokens.contains(installation.getDeviceToken()), is(true));
+        }
+
+        assertThat(senderStatistics.gcmMessage, is(notNullValue()));
+        assertThat(senderStatistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+        assertThat(senderStatistics.apnsAlert, is(ALERT_MESSAGE));
+
         return senderStatistics;
     }
 

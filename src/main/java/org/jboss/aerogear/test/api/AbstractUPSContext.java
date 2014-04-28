@@ -16,6 +16,7 @@
  */
 package org.jboss.aerogear.test.api;
 
+import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 
 import java.text.MessageFormat;
@@ -135,13 +136,14 @@ public abstract class AbstractUPSContext<
 
     @Override
     public CONTEXT removeAll() {
-        return remove(editors.values());
+        getWorker().delete(castInstance(), editors.values());
+        editors.clear();
+        return castInstance();
     }
 
     @Override
     public CONTEXT removeById(ENTITY_ID id) {
-        getWorker().delete(castInstance(), Collections.singletonList(retrieve(id)));
-        localRemove(id);
+        getWorker().deleteById(castInstance(), id);
         return castInstance();
     }
 
@@ -228,13 +230,7 @@ public abstract class AbstractUPSContext<
     }
 
     protected String randomStringOfLength(int length) {
-        StringBuilder builder = new StringBuilder();
-
-        while(builder.length() < length) {
-            builder.append(UUID.randomUUID().toString());
-        }
-
-        return builder.substring(0, length);
+        return Helper.randomStringOfLength(length);
     }
 
     // FIXME think of a better name

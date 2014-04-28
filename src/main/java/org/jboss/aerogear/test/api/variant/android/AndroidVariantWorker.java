@@ -1,13 +1,13 @@
-package org.jboss.aerogear.test.api.android;
+package org.jboss.aerogear.test.api.variant.android;
 
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
+import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.json.simple.JSONObject;
@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, String, AndroidVariantBlueprint, AndroidVariantEditor, PushApplication, AndroidVariantContext, AndroidVariantWorker> {
+public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, AndroidVariantBlueprint, AndroidVariantEditor, PushApplication, AndroidVariantContext, AndroidVariantWorker> {
 
     private AndroidVariantWorker() {
 
@@ -128,16 +128,26 @@ public class AndroidVariantWorker extends AbstractUPSWorker<AndroidVariant, Stri
     }
 
     @Override
-    public void delete(AndroidVariantContext context, Collection<? extends AndroidVariant> entities) {
-        for (AndroidVariant entity : entities) {
-            Response response = context.getSession().given()
-                    .contentType(getContentType())
-                    .header(Headers.acceptJson())
-                    .delete("/rest/applications/{pushApplicationID}/android/{variantID}",
-                            context.getParent().getPushApplicationID(), context.getEntityID(entity));
+    public void deleteById(AndroidVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .delete("/rest/applications/{pushApplicationID}/android/{variantID}",
+                        context.getParent().getPushApplicationID(), id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Override
+    public void resetSecret(AndroidVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .body("[]")
+                .put("/rest/applications/{pushApplicationID}/android/{variantID}/reset",
+                        context.getParent().getPushApplicationID(), id);
+
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
     }
 
     public static AndroidVariantWorker worker() {

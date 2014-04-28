@@ -14,20 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.sender;
+package org.jboss.aerogear.test.api.variant.android;
 
-import com.google.android.gcm.server.Message;
+public class AndroidVariantBlueprint extends AndroidVariantExtension<AndroidVariantBlueprint> {
 
-import java.util.List;
+    public AndroidVariantBlueprint(AndroidVariantContext context) {
+        super(context);
+    }
 
-public class SenderStatistics {
-    public static final String TOKEN_INVALIDATION_PREFIX = String.format("%08X-", 0xcafedead).toLowerCase();
+    public AndroidVariantContext persist() {
+        return context.persist(this);
+    }
 
-    public List<String> deviceTokens;
-    public Message gcmMessage;
-    public String apnsAlert;
-    public int apnsBadge;
-    public String apnsSound;
-    public String apnsCustomFields;
-    public String gcmForChromeAlert;
 }

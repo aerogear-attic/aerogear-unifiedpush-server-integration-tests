@@ -14,16 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.chromepackagedapp;
+package org.jboss.aerogear.test;
 
-public class ChromePackagedAppVariantEditor extends ChromePackagedAppVariantExtension<ChromePackagedAppVariantEditor> {
+import java.util.UUID;
 
-    public ChromePackagedAppVariantEditor(ChromePackagedAppVariantContext context) {
-        super(context);
-    }
+public class Helper {
 
-    public ChromePackagedAppVariantContext merge() {
-        return context.merge(this);
+    public static String randomStringOfLength(int length) {
+        StringBuilder builder = new StringBuilder();
+
+        while(builder.length() < length) {
+            builder.append(UUID.randomUUID().toString());
+        }
+
+        return builder.substring(0, length);
     }
 
 }

@@ -71,6 +71,7 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
         statistics.apnsBadge = jsonPath.getInt("apnsBadge");
         statistics.apnsCustomFields = jsonPath.getString("apnsCustomFields");
         statistics.apnsSound = jsonPath.getString("apnsSound");
+        statistics.gcmForChromeAlert = jsonPath.getString("gcmForChromeAlert");
 
         return statistics;
     }
@@ -97,7 +98,7 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
             @Override
             public Boolean call() throws Exception {
                 SenderStatistics statistics = get();
-
+                // FIXME we should report how many tokens we found before failing!
                 return statistics.deviceTokens != null && statistics.deviceTokens.size() == expectedTokenCount;
             }
         });

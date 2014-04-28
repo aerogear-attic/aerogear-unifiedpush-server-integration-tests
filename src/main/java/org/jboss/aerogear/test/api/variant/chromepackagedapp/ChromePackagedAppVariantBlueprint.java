@@ -14,15 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.android;
+package org.jboss.aerogear.test.api.variant.chromepackagedapp;
 
-public class AndroidVariantBlueprint extends AndroidVariantExtension<AndroidVariantBlueprint> {
+public class ChromePackagedAppVariantBlueprint extends ChromePackagedAppVariantExtension<ChromePackagedAppVariantBlueprint> {
 
-    public AndroidVariantBlueprint(AndroidVariantContext context) {
+    public ChromePackagedAppVariantBlueprint(ChromePackagedAppVariantContext context) {
         super(context);
     }
 
-    public AndroidVariantContext persist() {
+    public ChromePackagedAppVariantContext persist() {
         return context.persist(this);
     }
 

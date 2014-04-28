@@ -14,15 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.simplepush;
+package org.jboss.aerogear.test.api.variant.simplepush;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.AbstractUPSContext;
-import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.test.api.variant.VariantContext;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 
-public class SimplePushVariantContext extends AbstractUPSContext<SimplePushVariant, String, SimplePushVariantBlueprint,
+public class SimplePushVariantContext extends VariantContext<SimplePushVariant, String, SimplePushVariantBlueprint,
         SimplePushVariantEditor, PushApplication, SimplePushVariantWorker, SimplePushVariantContext> {
 
     public SimplePushVariantContext(SimplePushVariantWorker worker,

@@ -20,11 +20,13 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
+import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.ContentTypes;
+import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.ModelAsserts;
-import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantWorker;
+import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
@@ -33,8 +35,8 @@ import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorke
 import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
-import org.jboss.aerogear.test.api.ios.iOSVariantWorker;
-import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
+import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
+import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
@@ -56,10 +58,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(ArquillianRules.class)
 public class InstallationTest {
@@ -170,6 +175,16 @@ public class InstallationTest {
     }
 
     @Test
+    public void testRegisterSimplePushInstallationWithoutEndpoint() {
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist()
+                .detachEntity();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+        ups.with(SimplePushInstallationWorker.worker(), variant).generate().simplePushEndpoint(null).persist();
+    }
+
+    @Test
     public void testChromePackagedAppInstallations() {
         ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
                 .generate().persist()
@@ -208,6 +223,14 @@ public class InstallationTest {
         InstallationImpl persistedInstallation = persistedInstallations.get(0);
         InstallationImpl persistedInstallation1 = persistedInstallations.get(1);
 
+        // CREATE without deviceToken
+        try {
+            ups.with(worker, parent).generate().deviceToken(null).persist();
+            fail("Registration with null device token should have failed!");
+        } catch (UnexpectedResponseException e) {
+            assertThat(e.getActualStatusCode(), is(HttpStatus.SC_BAD_REQUEST));
+        }
+
         // READ
         CONTEXT context = ups.with(worker, parent).findAll();
         List<InstallationImpl> readInstallations = context.detachEntities();
@@ -218,13 +241,40 @@ public class InstallationTest {
         ModelAsserts.assertModelsEqual(persistedInstallation1,
                 context.detachEntity(persistedInstallation1.getId()));
 
-        // UPDATE
-        ups.with(worker, parent).edit(persistedInstallation.getId()).alias("newalias").merge();
+        // READ with wrong id
+        try {
+            ups.with(worker, parent).find(UUID.randomUUID().toString());
+            fail("Find should fail with SC_NOT_FOUND!");
+        } catch (UnexpectedResponseException e) {
+            assertThat(e.getActualStatusCode(), is(HttpStatus.SC_NOT_FOUND));
+        }
+
+        // UPDATE by CREATE
+        InstallationImpl updatedInstallation = ups.with(worker, parent)
+                .generate().deviceToken(persistedInstallation.getDeviceToken()).alias("newalias").persist()
+                .detachEntity();
         InstallationImpl readInstallation = ups.with(worker, parent)
                 .find(persistedInstallation.getId())
                 .detachEntity();
+        assertThat(updatedInstallation.getAlias(), is(not(persistedInstallation.getAlias())));
+        assertThat(readInstallation.getAlias(), is(updatedInstallation.getAlias()));
 
-        assertThat(readInstallation.getAlias(), is("newalias"));
+        // UPDATE
+        ups.with(worker, parent).edit(persistedInstallation1.getId()).alias("newalias").merge();
+        InstallationImpl readInstallation1 = ups.with(worker, parent)
+                .find(persistedInstallation1.getId())
+                .detachEntity();
+
+        assertThat(readInstallation1.getAlias(), is("newalias"));
+
+        // UPDATE with wrong id
+        try {
+            BLUEPRINT blueprint = ups.with(worker, parent).generate();
+            ups.with(worker, parent).merge(blueprint);
+            fail("Update should fail with SC_NOT_FOUND!");
+        } catch (UnexpectedResponseException e) {
+            assertThat(e.getActualStatusCode(), is(HttpStatus.SC_NOT_FOUND));
+        }
 
         // DELETE
         readInstallations = ups.with(worker, parent)
@@ -234,6 +284,15 @@ public class InstallationTest {
 
         assertThat(readInstallations.size(), is(1));
 
+        // DELETE with wrong id
+        try {
+            BLUEPRINT blueprint = ups.with(worker, parent).generate();
+            ups.with(worker, parent).merge(blueprint);
+            fail("Delete should fail with SC_NOT_FOUND!");
+        } catch (UnexpectedResponseException e) {
+            assertThat(e.getActualStatusCode(), is(HttpStatus.SC_NOT_FOUND));
+        }
+
         // UNREGISTER
         readInstallations = ups.with(worker, parent)
                 .unregisterById(persistedInstallation1.getId())
@@ -241,7 +300,6 @@ public class InstallationTest {
                 .detachEntities();
 
         assertThat(readInstallations.size(), is(0));
-
 
     }
 

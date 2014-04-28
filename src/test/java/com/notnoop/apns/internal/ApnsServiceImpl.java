@@ -35,8 +35,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.notnoop.apns.ApnsService;
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
 
 /**
  *
@@ -61,36 +63,80 @@ public class ApnsServiceImpl implements ApnsService {
 
     public Map<String, Date> getInactiveDevices() {
         final HashMap<String, Date> inactiveTokensHM = new HashMap<String, Date>();
-/*
+
         if (tokensList != null) {
             for (String token : tokensList) {
-                inactiveTokensHM.put(token, new Date());
+                if(token.toLowerCase().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX)) {
+                    inactiveTokensHM.put(token, new Date());
+                }
             }
-        }*/
+        }
         return inactiveTokensHM;
     }
 
     @SuppressWarnings("rawtypes")
     public Collection push(Collection<String> tokens, String message, Date expiry) {
+        Logger.getLogger(ApnsServiceImpl.class.getName()).warning(message);
+
         if (message != null) {
-            String[] parts = message.split(",");
-            for (String part : parts) {
-                String[] subparts = part.split(":");
-                if ("alert".equals(subparts[0]))
-                    alert = subparts[1];
-                else if ("sound".equals(subparts[0]))
-                    sound = subparts[1];
-                else if ("badge".equals(subparts[0]))
-                    badge = subparts[1] != null ? Integer.parseInt(subparts[1]) : -1;
-                else if ("customFields".equals(subparts[0]))
-                    customFields = subparts[1];
-            }
+            Map<String, String> parts = parseMessage(message);
+
+            Logger.getLogger(ApnsServiceImpl.class.getName()).warning(parts.toString());
+
+            alert = parts.get("alert");
+            sound = parts.get("sound");
+            badge = parts.get("badge") != null ? Integer.parseInt(parts.get("badge")) : -1;
+            customFields = parts.get("customFields");
+
         }
         if (tokens != null) {
             tokensList = new ArrayList<String>();
             tokensList.addAll(tokens);
         }
         return null;
+    }
+
+    private Map<String, String> parseMessage(String message) {
+        Map<String, String> messageParts = new HashMap<String, String>();
+
+        int openBrackets = 0;
+        boolean key = true;
+        StringBuilder currentKey = new StringBuilder();
+        StringBuilder currentValue = new StringBuilder();
+        for (int i = 0; i < message.length(); i++) {
+            char c = message.charAt(i);
+
+            int backSlashes = 0;
+            int charIndex = i - 1;
+            while(charIndex > 0) {
+                char cc = message.charAt(charIndex--);
+                if(cc == '\\') {
+                    backSlashes++;
+                } else {
+                    break;
+                }
+            }
+            boolean isCharEscaped = backSlashes % 2 != 0;
+            if(c == ',' && openBrackets == 0 && !isCharEscaped) {
+                messageParts.put(currentKey.toString(), currentValue.toString());
+                currentKey = new StringBuilder();
+                currentValue = new StringBuilder();
+                key = true;
+            } else if(c == ':' && openBrackets == 0 && !isCharEscaped) {
+                key = false;
+            } else if(c == '{' && !isCharEscaped) {
+                openBrackets++;
+            } else if(c == '}' && !isCharEscaped) {
+                openBrackets--;
+            } else if(key) {
+                currentKey.append(c);
+            } else {
+                currentValue.append(c);
+            }
+        }
+        messageParts.put(currentKey.toString(), currentValue.toString());
+
+        return messageParts;
     }
 
     public void start() {

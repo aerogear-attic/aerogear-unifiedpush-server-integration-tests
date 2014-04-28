@@ -17,7 +17,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 /**
- * This class should be removed. No hardcoder references should be used.
+ * FIXME This class should be removed. No hardcoded references should be used.
  */
 public final class Constants {
 

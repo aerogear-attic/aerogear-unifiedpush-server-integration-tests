@@ -22,17 +22,17 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.simplepush.SimplePushVariantContext;
-import org.jboss.aerogear.test.api.simplepush.SimplePushVariantWorker;
+import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantContext;
+import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
-import org.jboss.aerogear.unifiedpush.utils.SimplePushVariantUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
@@ -49,10 +49,14 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
 public class SimplePushVariantTest {
+
+    private static final String TOO_LONG_NAME = Helper.randomStringOfLength(256);
+    private static final String TOO_LONG_DESCRIPTION = Helper.randomStringOfLength(256);
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
@@ -113,6 +117,31 @@ public class SimplePushVariantTest {
     }
 
     @Test
+    public void registerWithoutApplication() {
+        PushApplication nonexistentApplication = ups.with(PushApplicationWorker.worker()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(SimplePushVariantWorker.worker(), nonexistentApplication).generate().persist();
+    }
+
+    @Test
+    public void registerWithTooLongName() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().name(TOO_LONG_NAME).persist();
+    }
+
+    @Test
+    public void registerWithTooLongDescription() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().description(TOO_LONG_DESCRIPTION).persist();
+    }
+
+    @Test
     public void findVariantWithInvalidID() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
@@ -130,12 +159,66 @@ public class SimplePushVariantTest {
     }
 
     @Test
+    public void updateWithTooLongName() {
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        try {
+            ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                    .edit(variant.getVariantID()).name(TOO_LONG_NAME).merge();
+        } finally {
+            ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        }
+    }
+
+    @Test
+    public void updateWithTooLongDescription() {
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        try {
+            ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                    .edit(variant.getVariantID()).description(TOO_LONG_DESCRIPTION).merge();
+        } finally {
+            ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        }
+    }
+
+    @Test
     public void removeVariantWithInvalidID() {
         SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+    }
+
+    @Test
+    public void resetSecret() {
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
+
+        SimplePushVariant changedVariant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
+                .find(variant.getVariantID()).detachEntity();
+
+        assertThat(changedVariant.getVariantID(), is(variant.getVariantID()));
+        assertThat(changedVariant.getSecret(), is(not(variant.getSecret())));
+
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).remove(changedVariant);
+    }
+
+    @Test
+    public void resetSecretWithInvalidID() {
+        SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
     }
 
     @Test

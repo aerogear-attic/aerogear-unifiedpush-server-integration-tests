@@ -9,6 +9,7 @@ import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.arquillian.container.spi.event.DeployManagedDeployments;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -122,15 +123,25 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     }
 
     @Override
-    public void delete(PushApplicationContext context, Collection<? extends PushApplication> pushApplications) {
-        for (PushApplication pushApplication : pushApplications) {
-            Response response = context.getSession().given()
-                    .contentType(contentType)
-                    .header(Headers.acceptJson())
-                    .delete("/rest/applications/{pushApplicationID}", context.getEntityID(pushApplication));
+    public void deleteById(PushApplicationContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(contentType)
+                .header(Headers.acceptJson())
+                .delete("/rest/applications/{pushApplicationID}", id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
+    }
+
+    public void resetMasterSecret(PushApplicationContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(contentType)
+                .header(Headers.acceptJson())
+                .body("[]")
+                .put("/rest/applications/{pushApplicationID}/reset", id);
+
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
+
+        // FIXME should we need to demarshall
     }
 
     public PushApplicationWorker contentType(String contentType) {

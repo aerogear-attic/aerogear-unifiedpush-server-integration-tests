@@ -19,14 +19,17 @@ package org.jboss.aerogear.test.api.sender;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractSessionRequest;
+import org.jboss.aerogear.test.model.Installation;
 import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.Variant;
 import org.jboss.aerogear.unifiedpush.JavaSender;
 import org.jboss.aerogear.unifiedpush.SenderClient;
 import org.jboss.aerogear.unifiedpush.message.MessageResponseCallback;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -114,6 +117,18 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
             return this;
         }
 
+        public UnifiedMessageBlueprint aliasesOf(Installation... installations) {
+            return aliasesOf(Arrays.asList(installations));
+        }
+
+        public UnifiedMessageBlueprint aliasesOf(List<? extends Installation> installations) {
+            List<String> aliases = new ArrayList<String>();
+            for (Installation installation : installations) {
+                aliases.add(installation.getAlias());
+            }
+            return aliases(aliases);
+        }
+
         public UnifiedMessageBlueprint deviceTypes(String... deviceTypes) {
             return deviceTypes(Arrays.asList(deviceTypes));
         }
@@ -121,6 +136,18 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         public UnifiedMessageBlueprint deviceTypes(List<String> deviceTypes) {
             builder.deviceType(deviceTypes);
             return this;
+        }
+
+        public UnifiedMessageBlueprint deviceTypesOf(Installation... installations) {
+            return deviceTypesOf(Arrays.asList(installations));
+        }
+
+        public UnifiedMessageBlueprint deviceTypesOf(List<? extends Installation> installations) {
+            List<String> deviceTypes = new ArrayList<String>();
+            for (Installation installation : installations) {
+                deviceTypes.add(installation.getDeviceType());
+            }
+            return deviceTypes(deviceTypes);
         }
 
         public UnifiedMessageBlueprint categories(String... categories) {
@@ -133,13 +160,37 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
             return this;
         }
 
-        public UnifiedMessageBlueprint variants(String... variants) {
+        public UnifiedMessageBlueprint categoriesOf(Installation... installations) {
+            return categoriesOf(Arrays.asList(installations));
+        }
+
+        public UnifiedMessageBlueprint categoriesOf(List<? extends Installation> installations) {
+            Set<String> categories = new HashSet<String>();
+            for (Installation installation : installations) {
+                categories.addAll(installation.getCategories());
+            }
+            return categories(categories);
+        }
+
+        public UnifiedMessageBlueprint variantIDs(String... variants) {
+            return variantIDs(Arrays.asList(variants));
+        }
+
+        public UnifiedMessageBlueprint variantIDs(List<String> variants) {
+            builder.variants(variants);
+            return this;
+        }
+
+        public UnifiedMessageBlueprint variants(Variant... variants) {
             return variants(Arrays.asList(variants));
         }
 
-        public UnifiedMessageBlueprint variants(List<String> variants) {
-            builder.variants(variants);
-            return this;
+        public UnifiedMessageBlueprint variants(List<? extends Variant> variants) {
+            List<String> variantIDs = new ArrayList<String>();
+            for (Variant variant : variants) {
+                variantIDs.add(variant.getVariantID());
+            }
+            return variantIDs(variantIDs);
         }
 
         public UnifiedMessageBlueprint attribute(String key, String value) {

@@ -14,46 +14,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.android;
+package org.jboss.aerogear.test.api.variant.ios;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.AbstractUPSContext;
-import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.test.api.variant.VariantContext;
 import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.test.model.iOSVariant;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
-public class AndroidVariantContext extends AbstractUPSContext<AndroidVariant, String, AndroidVariantBlueprint,
-        AndroidVariantEditor, PushApplication, AndroidVariantWorker, AndroidVariantContext> {
+public class iOSVariantContext extends VariantContext<iOSVariant, String, iOSVariantBlueprint,
+        iOSVariantEditor, PushApplication, iOSVariantWorker, iOSVariantContext> {
 
-    public AndroidVariantContext(AndroidVariantWorker worker, PushApplication parent, Session session) {
+    public iOSVariantContext(iOSVariantWorker worker, PushApplication parent, Session session) {
         super(worker, parent, session);
     }
 
     @Override
-    public AndroidVariantBlueprint create() {
-        return new AndroidVariantBlueprint(this);
+    public iOSVariantBlueprint create() {
+        return new iOSVariantBlueprint(this);
     }
 
     @Override
-    public AndroidVariantBlueprint generate() {
+    public iOSVariantBlueprint generate() {
         return create()
                 .name(randomString())
                 .description(randomString())
-                .googleKey(randomString())
-                .projectNumber(randomString());
+                .certificate(getWorker().getDefaultCertificate())
+                .passphrase(getWorker().getDefaultPassphrase());
     }
 
     @Override
-    protected AndroidVariantContext castInstance() {
+    protected iOSVariantContext castInstance() {
         return this;
     }
 
     @Override
-    public String getEntityID(AndroidVariant androidVariant) {
-        return androidVariant.getVariantID();
+    public String getEntityID(iOSVariant variant) {
+        return variant.getVariantID();
+    }
+
+    public iOSVariantContext mergePatch(iOSVariant variant) {
+        return mergePatch(Collections.singleton(variant));
+    }
+
+    public iOSVariantContext mergePatch(Collection<? extends iOSVariant> entities) {
+        getWorker().updatePatch(this, entities);
+        return this;
     }
 }

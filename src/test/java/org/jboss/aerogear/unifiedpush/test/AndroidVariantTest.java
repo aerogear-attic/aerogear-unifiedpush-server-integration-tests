@@ -21,10 +21,11 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
-import org.jboss.aerogear.test.api.android.AndroidVariantContext;
-import org.jboss.aerogear.test.api.android.AndroidVariantWorker;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantContext;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.model.AndroidVariant;
 import org.jboss.aerogear.test.model.PushApplication;
@@ -46,11 +47,15 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
 public class AndroidVariantTest {
+
+    private static final String TOO_LONG_GOOGLE_KEY = Helper.randomStringOfLength(256);
+    private static final String TOO_LONG_PROJECT_NUMBER = Helper.randomStringOfLength(256);
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
@@ -115,7 +120,32 @@ public class AndroidVariantTest {
     public void registerWithMissingGoogleKey() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
 
-            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate().googleKey(null).persist();
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate().googleKey(null).persist();
+    }
+
+    @Test
+    public void registerWithoutPushApplication() {
+        PushApplication nonExistentApplication = ups.with(PushApplicationWorker.worker()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(AndroidVariantWorker.worker(), nonExistentApplication).generate().persist();
+    }
+
+    @Test
+    public void registerWithTooLongGoogleKey() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                .generate().googleKey(TOO_LONG_GOOGLE_KEY).persist();
+    }
+
+    @Test
+    public void registerWithTooLongProjectNumber() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                .generate().projectNumber(TOO_LONG_PROJECT_NUMBER).persist();
     }
 
     @Test
@@ -136,12 +166,65 @@ public class AndroidVariantTest {
     }
 
     @Test
+    public void updateWithTooLongGoogleKey() {
+        AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        try {
+            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                    .edit(variant.getVariantID()).googleKey(TOO_LONG_GOOGLE_KEY).merge();
+        } finally {
+            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        }
+    }
+
+    @Test
+    public void updateWithTooLongProjectNumber() {
+        AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        try {
+            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                    .edit(variant.getVariantID()).projectNumber(TOO_LONG_PROJECT_NUMBER).merge();
+        } finally {
+            ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        }
+    }
+
+    @Test
     public void removeVariantWithInvalidID() {
         AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate();
-        variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+    }
+
+    @Test
+    public void resetSecret() {
+        AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
+
+        AndroidVariant changedVariant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+                .find(variant.getVariantID()).detachEntity();
+
+        assertThat(changedVariant.getVariantID(), is(variant.getVariantID()));
+        assertThat(changedVariant.getSecret(), is(not(variant.getSecret())));
+
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).remove(changedVariant);
+    }
+
+    @Test
+    public void resetSecretWithInvalidID() {
+        AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
     }
 
     @Test

@@ -16,6 +16,7 @@
  */
 package org.jboss.aerogear.test.api.installation;
 
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.InstallationImpl;
 
@@ -45,6 +46,17 @@ public abstract class InstallationExtension<
 
     public EXTENSION deviceToken(String deviceToken) {
         setDeviceToken(deviceToken);
+        return castInstance();
+    }
+
+    public boolean isTokenInvalid() {
+        return getDeviceToken().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX);
+    }
+
+    public EXTENSION invalidateToken() {
+        if(!isTokenInvalid()) {
+            setDeviceToken(SenderStatistics.TOKEN_INVALIDATION_PREFIX + getDeviceToken());
+        }
         return castInstance();
     }
 

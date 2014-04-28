@@ -25,8 +25,8 @@ import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantContext;
-import org.jboss.aerogear.test.api.chromepackagedapp.ChromePackagedAppVariantWorker;
+import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantContext;
+import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
@@ -48,6 +48,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
@@ -114,6 +115,25 @@ public class ChromePackagedAppVariantTest {
     }
 
     @Test
+    public void registerWithoutPushApplication() {
+
+        PushApplication nonExistentApplication = ups.with(PushApplicationWorker.worker()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(ChromePackagedAppVariantWorker.worker(), nonExistentApplication).generate().persist();
+    }
+
+    @Test
+    public void registerWithNullClientSecret() {
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
+                .generate().clientSecret(null).persist();
+
+    }
+
+    @Test
     public void findVariantWithInvalidID() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
@@ -132,12 +152,52 @@ public class ChromePackagedAppVariantTest {
     }
 
     @Test
+    public void updateVariantWithNullClientSecret() {
+        ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
+                        .generate().persist()
+                        .detachEntity();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        try {
+            ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
+                    .edit(variant.getVariantID()).clientSecret(null).merge();
+        } finally {
+            ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+        }
+    }
+
+    @Test
     public void removeVariantWithInvalidID() {
         ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).remove(variant);
+    }
+
+    @Test
+    public void resetSecret() {
+        ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
+
+        ChromePackagedAppVariant changedVariant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
+                .find(variant.getVariantID()).detachEntity();
+
+        assertThat(changedVariant.getVariantID(), is(variant.getVariantID()));
+        assertThat(changedVariant.getSecret(), is(not(variant.getSecret())));
+
+        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).remove(changedVariant);
+    }
+
+    @Test
+    public void resetSecretWithInvalidID() {
+        ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
     }
 
     @Test

@@ -14,15 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.chromepackagedapp;
+package org.jboss.aerogear.test.api.variant.android;
 
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
+import org.jboss.aerogear.test.model.AndroidVariant;
 
-public abstract class ChromePackagedAppVariantExtension<EXTENSION extends ChromePackagedAppVariantExtension<EXTENSION>>
-        extends ChromePackagedAppVariant {
-    protected final ChromePackagedAppVariantContext context;
+public abstract class AndroidVariantExtension<EXTENSION extends AndroidVariantExtension<EXTENSION>> extends AndroidVariant {
+    protected final AndroidVariantContext context;
 
-    public ChromePackagedAppVariantExtension(ChromePackagedAppVariantContext context) {
+    public AndroidVariantExtension(AndroidVariantContext context) {
         this.context = context;
     }
 
@@ -37,18 +36,13 @@ public abstract class ChromePackagedAppVariantExtension<EXTENSION extends Chrome
         return castInstance();
     }
 
-    public EXTENSION clientId(String clientId) {
-        setClientId(clientId);
+    public EXTENSION googleKey(String googleKey) {
+        setGoogleKey(googleKey);
         return castInstance();
     }
 
-    public EXTENSION clientSecret(String clientSecret) {
-        setClientSecret(clientSecret);
-        return castInstance();
-    }
-
-    public EXTENSION refreshToken(String refreshToken) {
-        setRefreshToken(refreshToken);
+    public EXTENSION projectNumber(String projectNumber) {
+        setProjectNumber(projectNumber);
         return castInstance();
     }
 

@@ -46,6 +46,7 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -86,6 +87,13 @@ public class UserTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Test
+    public void findByNonexistendId() {
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(UserWorker.worker()).find(UUID.randomUUID().toString());
     }
 
     @Test

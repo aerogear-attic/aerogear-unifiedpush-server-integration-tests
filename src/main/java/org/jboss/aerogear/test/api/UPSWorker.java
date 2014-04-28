@@ -31,4 +31,6 @@ public interface UPSWorker<
     void update(CONTEXT context, Collection<? extends ENTITY> entities);
 
     void delete(CONTEXT context, Collection<? extends ENTITY> entities);
+
+    void deleteById(CONTEXT context, ENTITY_ID id);
 }

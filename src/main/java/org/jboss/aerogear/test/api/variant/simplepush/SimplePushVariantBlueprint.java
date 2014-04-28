@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.simplepush;
+package org.jboss.aerogear.test.api.variant.simplepush;
 
-public class SimplePushVariantEditor extends SimplePushVariantExtension<SimplePushVariantEditor> {
+public class SimplePushVariantBlueprint extends SimplePushVariantExtension<SimplePushVariantBlueprint> {
 
-    public SimplePushVariantEditor(SimplePushVariantContext context) {
+    public SimplePushVariantBlueprint(SimplePushVariantContext context) {
         super(context);
     }
 
-    public SimplePushVariantContext merge() {
-        return context.merge(this);
+    public SimplePushVariantContext persist() {
+        return context.persist(this);
     }
 
 }

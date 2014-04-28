@@ -1,9 +1,11 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
 import com.google.android.gcm.server.Sender;
+import com.notnoop.apns.ApnsService;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import org.jboss.aerogear.security.authz.Secure;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
+import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -15,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:tkriz@redhat.com">Tadeas Kriz</a>
@@ -32,15 +36,15 @@ public class SenderStatisticsEndpoint {
 
         List<String> deviceTokens = new ArrayList<String>();
         if(Sender.getGcmRegIdsList() != null) {
-            for(String deviceToken : Sender.getGcmRegIdsList()) {
-                deviceTokens.add(deviceToken);
-            }
+            deviceTokens.addAll(Sender.getGcmRegIdsList());
         }
 
         if(ApnsServiceImpl.getTokensList() != null) {
-            for(String deviceToken : ApnsServiceImpl.getTokensList()) {
-                deviceTokens.add(deviceToken);
-            }
+            deviceTokens.addAll(ApnsServiceImpl.getTokensList());
+        }
+
+        if(GCMForChromePushNotificationSender.getChannelIDs() != null) {
+            deviceTokens.addAll(GCMForChromePushNotificationSender.getChannelIDs());
         }
 
         SenderStatistics senderStatistics = new SenderStatistics();
@@ -50,6 +54,7 @@ public class SenderStatisticsEndpoint {
         senderStatistics.apnsBadge = ApnsServiceImpl.getBadge();
         senderStatistics.apnsSound = ApnsServiceImpl.getSound();
         senderStatistics.apnsCustomFields = ApnsServiceImpl.getCustomFields();
+        senderStatistics.gcmForChromeAlert = GCMForChromePushNotificationSender.getAlert();
 
         return Response.ok(senderStatistics).build();
     }
@@ -58,6 +63,7 @@ public class SenderStatisticsEndpoint {
     public Response resetStatistics() {
         Sender.clear();
         ApnsServiceImpl.clear();
+        GCMForChromePushNotificationSender.clear();
         return Response.noContent().build();
     }
 

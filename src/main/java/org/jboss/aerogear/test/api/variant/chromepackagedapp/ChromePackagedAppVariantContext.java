@@ -14,14 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.chromepackagedapp;
+package org.jboss.aerogear.test.api.variant.chromepackagedapp;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.AbstractUPSContext;
+import org.jboss.aerogear.test.api.variant.VariantContext;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 import org.jboss.aerogear.test.model.PushApplication;
 
-public class ChromePackagedAppVariantContext extends AbstractUPSContext<ChromePackagedAppVariant, String,
+public class ChromePackagedAppVariantContext extends VariantContext<ChromePackagedAppVariant, String,
         ChromePackagedAppVariantBlueprint, ChromePackagedAppVariantEditor, PushApplication,
         ChromePackagedAppVariantWorker, ChromePackagedAppVariantContext> {
 

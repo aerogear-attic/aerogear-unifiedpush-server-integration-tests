@@ -18,6 +18,8 @@ package org.jboss.aerogear.test.api;
 
 import org.jboss.aerogear.test.ContentTypes;
 
+import java.util.Collection;
+
 // FIXME no need for abstract UPS worker?
 public abstract class AbstractUPSWorker<
         ENTITY,
@@ -34,6 +36,13 @@ public abstract class AbstractUPSWorker<
 
     public String getContentType() {
         return contentType;
+    }
+
+    @Override
+    public void delete(CONTEXT context, Collection<? extends ENTITY> entities) {
+        for (ENTITY entity : entities) {
+            deleteById(context, context.getEntityID(entity));
+        }
     }
 
     public WORKER contentType(String contentType) {

@@ -42,6 +42,14 @@ Note, if you need to run tests against different directory, just specify followi
 
     mvn test -Dunified.push.server.location=/path/to/pom.xml/that/should/be/build/instead
 
+You can also run tests agains a remote maven repository using (it will use the latest version in the repository,
+unless you specify `-Dups.version=x.y.z` where `x.y.z` is your desired version to run against):
+
+    mvn test -Dups.source=remote -Dups.remote.url=http://remote.maven/repository
+
+Or you can activate one of two profiles, `test-staging` or `test-release` which will run the test against the latest
+version in the default repositories. You can also override the version using `-Dups.version=x.y.z`.
+
 ## Documentation
 
 * [Arquillian Guides](http://arquillian.org/guides/)

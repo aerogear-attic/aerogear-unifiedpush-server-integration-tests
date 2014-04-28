@@ -24,8 +24,8 @@ import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.ios.iOSVariantContext;
-import org.jboss.aerogear.test.api.ios.iOSVariantWorker;
+import org.jboss.aerogear.test.api.variant.ios.iOSVariantContext;
+import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.iOSVariant;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
@@ -47,6 +47,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
@@ -126,6 +127,16 @@ public class iOSVariantTest {
     }
 
     @Test
+    public void registerWithoutApplication() {
+        PushApplication nonexistentApplication = ups.with(PushApplicationWorker.worker()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(defaultWorker(), nonexistentApplication).generate().persist();
+    }
+
+
+    @Test
     public void findVariantWithInvalidID() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
 
@@ -144,12 +155,59 @@ public class iOSVariantTest {
     }
 
     @Test
+    public void updateWithMissingCertificate() {
+        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+        try {
+            ups.with(defaultWorker(), getRegisteredApplication())
+                    .edit(variant.getVariantID()).certificate(new byte[0]).passphrase("").merge();
+        } finally {
+            ups.with(defaultWorker(), getRegisteredApplication()).remove(variant);
+        }
+    }
+
+    @Test
+    public void updateWithInvalidIDPatch() {
+        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication()).generate();
+        variant.setVariantID(UUID.randomUUID().toString());
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(defaultWorker(), getRegisteredApplication()).mergePatch(variant);
+    }
+
+    @Test
     public void removeVariantWithInvalidID() {
         iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication()).generate();
         variant.setVariantID(UUID.randomUUID().toString());
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
         ups.with(defaultWorker(), getRegisteredApplication()).remove(variant);
+    }
+
+    @Test
+    public void resetSecret() {
+        iOSVariant variant = ups.with(iOSVariantWorker.worker(), getRegisteredApplication())
+                .generate().persist().detachEntity();
+
+        ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
+
+        iOSVariant changedVariant = ups.with(iOSVariantWorker.worker(), getRegisteredApplication())
+                .find(variant.getVariantID()).detachEntity();
+
+        assertThat(changedVariant.getVariantID(), is(variant.getVariantID()));
+        assertThat(changedVariant.getSecret(), is(not(variant.getSecret())));
+
+        ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).remove(changedVariant);
+    }
+
+    @Test
+    public void resetSecretWithInvalidID() {
+        iOSVariant variant = ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+        ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
     }
 
     @Test

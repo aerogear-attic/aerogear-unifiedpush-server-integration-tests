@@ -14,22 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.ios;
+package org.jboss.aerogear.test.api.variant.chromepackagedapp;
 
-import org.jboss.aerogear.test.FileUtils;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.text.MessageFormat;
+public abstract class ChromePackagedAppVariantExtension<EXTENSION extends ChromePackagedAppVariantExtension<EXTENSION>>
+        extends ChromePackagedAppVariant {
+    protected final ChromePackagedAppVariantContext context;
 
-public abstract class iOSVariantExtension<EXTENSION extends iOSVariantExtension<EXTENSION>> extends iOSVariant {
-    protected final iOSVariantContext context;
-
-    public iOSVariantExtension(iOSVariantContext context) {
+    public ChromePackagedAppVariantExtension(ChromePackagedAppVariantContext context) {
         this.context = context;
     }
 
@@ -38,31 +31,24 @@ public abstract class iOSVariantExtension<EXTENSION extends iOSVariantExtension<
         return castInstance();
     }
 
+
     public EXTENSION description(String description) {
         setDescription(description);
         return castInstance();
     }
 
-    public EXTENSION certificate(String certificate) {
-        return certificate(new File(certificate));
-    }
-
-    public EXTENSION certificate(File certificate) {
-        return certificate(FileUtils.toByteArray(certificate));
-    }
-
-    public EXTENSION certificate(byte[] certificate) {
-        setCertificate(certificate);
+    public EXTENSION clientId(String clientId) {
+        setClientId(clientId);
         return castInstance();
     }
 
-    public EXTENSION passphrase(String passphrase) {
-        setPassphrase(passphrase);
+    public EXTENSION clientSecret(String clientSecret) {
+        setClientSecret(clientSecret);
         return castInstance();
     }
 
-    public EXTENSION production(boolean production) {
-        setProduction(production);
+    public EXTENSION refreshToken(String refreshToken) {
+        setRefreshToken(refreshToken);
         return castInstance();
     }
 

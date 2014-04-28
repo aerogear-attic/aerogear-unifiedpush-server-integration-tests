@@ -1,4 +1,4 @@
-package org.jboss.aerogear.test.api.chromepackagedapp;
+package org.jboss.aerogear.test.api.variant.chromepackagedapp;
 
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
@@ -7,6 +7,7 @@ import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
+import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.json.simple.JSONObject;
@@ -16,7 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class ChromePackagedAppVariantWorker extends AbstractUPSWorker<ChromePackagedAppVariant, String,
+public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackagedAppVariant, String,
         ChromePackagedAppVariantBlueprint, ChromePackagedAppVariantEditor, PushApplication,
         ChromePackagedAppVariantContext, ChromePackagedAppVariantWorker> {
 
@@ -134,17 +135,26 @@ public class ChromePackagedAppVariantWorker extends AbstractUPSWorker<ChromePack
     }
 
     @Override
-    public void delete(ChromePackagedAppVariantContext context,
-                       Collection<? extends ChromePackagedAppVariant> entities) {
-        for (ChromePackagedAppVariant entity : entities) {
-            Response response = context.getSession().given()
-                    .contentType(getContentType())
-                    .header(Headers.acceptJson())
-                    .delete("/rest/applications/{pushApplicationID}/chrome/{variantID}",
-                            context.getParent().getPushApplicationID(), context.getEntityID(entity));
+    public void deleteById(ChromePackagedAppVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .delete("/rest/applications/{pushApplicationID}/chrome/{variantID}",
+                        context.getParent().getPushApplicationID(), id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Override
+    public void resetSecret(ChromePackagedAppVariantContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .body("[]")
+                .put("/rest/applications/{pushApplicationID}/chrome/{variantID}/reset",
+                        context.getParent().getPushApplicationID(), id);
+
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
     }
 
     public static ChromePackagedAppVariantWorker worker() {

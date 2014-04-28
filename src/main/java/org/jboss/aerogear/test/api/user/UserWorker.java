@@ -130,15 +130,13 @@ public class UserWorker extends AbstractUPSWorker<Developer, String, UserBluepri
     }
 
     @Override
-    public void delete(UserContext context, Collection<? extends Developer> developers) {
-        for (Developer developer : developers) {
-            Response response = context.getSession().given()
-                    .contentType(getContentType())
-                    .header(Headers.acceptJson())
-                    .delete("/rest/users/{id}", context.getEntityID(developer));
+    public void deleteById(UserContext context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .delete("/rest/users/{id}", id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     public static UserWorker worker() {

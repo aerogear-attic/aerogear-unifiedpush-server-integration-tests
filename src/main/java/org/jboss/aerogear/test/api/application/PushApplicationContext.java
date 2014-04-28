@@ -46,6 +46,11 @@ public class PushApplicationContext extends AbstractUPSContext<PushApplication, 
         return application.getPushApplicationID();
     }
 
+    public PushApplicationContext resetMasterSecret(String pushApplicationId) {
+        getWorker().resetMasterSecret(this, pushApplicationId);
+        return this;
+    }
+
     @Override
     protected PushApplicationContext castInstance() {
         return this;

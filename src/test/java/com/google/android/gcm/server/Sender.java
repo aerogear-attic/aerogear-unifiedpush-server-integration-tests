@@ -15,17 +15,18 @@
  */
 package com.google.android.gcm.server;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- *
  * This class mocks the original com.google.android.gcm.server.Sender class and is used for testing reasons.
  * FIXME this class should be replaced with Byteman bytecode manipulation
  */
@@ -66,13 +67,17 @@ public class Sender {
         if (regIds != null && !regIds.isEmpty()) {
             gcmRegIdsList = new ArrayList<String>();
             gcmRegIdsList.addAll(regIds);
-/*
-            for (int i = 0; i < regIds.size(); i++) {
+
+            for (String regId : regIds) {
                 Result result = mock(Result.class);
-                when(result.getErrorCodeName()).thenReturn(Constants.ERROR_INVALID_REGISTRATION);
+                if (regId.toLowerCase().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX)) {
+                    when(result.getErrorCodeName()).thenReturn(Constants.ERROR_INVALID_REGISTRATION);
+                } else {
+                    when(result.getErrorCodeName()).thenReturn(null);
+                }
                 resultList.add(result);
             }
-*/        }
+        }
 
         when(multicatResult.getResults()).thenReturn(resultList);
         return multicatResult;

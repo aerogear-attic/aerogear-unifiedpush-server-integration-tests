@@ -29,112 +29,109 @@ import com.notnoop.apns.PayloadBuilder;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import com.notnoop.exceptions.NetworkIOException;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
+import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
+import org.jboss.shrinkwrap.api.ArchivePath;
+import org.jboss.shrinkwrap.api.Filter;
+import org.jboss.shrinkwrap.api.Node;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.importer.ZipImporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
-import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
 import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories;
-import org.jboss.shrinkwrap.resolver.api.maven.strategy.AcceptScopesStrategy;
-import org.jboss.shrinkwrap.resolver.api.maven.strategy.CombinedStrategy;
-import org.jboss.shrinkwrap.resolver.api.maven.strategy.RejectDependenciesStrategy;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class Deployments {
 
-    private static final String DEFAULT_STAGING_UPS_VERSION = "0.10.2";
+    private static final Logger LOGGER = Logger.getLogger(Deployments.class.getName());
 
-    private static final String UPS_STAGING_URL = "http://people.apache.org/~matzew/aerogear-staging/";
-    private static final String AG_UPS_SERVER_POM_XML_LOCATION = "aerogear-unifiedpush-server/server/pom.xml";
-    private static final String AG_UPS_JPA_POM_XML_LOCATION = "aerogear-unifiedpush-server/model/jpa/pom.xml";
+    private static final String PROPERTY_UPS_SOURCE = "ups.source";
+    private static final String PROPERTY_UPS_VERSION = "ups.version";
+    private static final String PROPERTY_UPS_REMOTE_URL = "ups.remote.url";
+    private static final String PROPERTY_UPS_LOCAL_POM = "ups.local.pom";
+
+    private static final String UPS_SOURCE_REMOTE = "remote";
+    private static final String UPS_SOURCE_LOCAL = "local";
+
+    private static final String UPS_MINIMUM_VERSION = "[0.10.0,)";
+
+    private static final String UPS_SOURCE_DEFAULT = UPS_SOURCE_LOCAL;
+    private static final String UPS_REMOTE_URL_DEFAULT = "http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/";
+    private static final String UPS_LOCAL_POM_DEFAULT = "aerogear-unifiedpush-server/server/pom.xml";
 
     private Deployments() {
         throw new UnsupportedOperationException("No instantiation.");
     }
 
+    /**
+     * Gets WebArchive of Unified Push Server with replaced persistence.xml files. The source of the server can be
+     * configured and defaults to release.
+     */
     public static WebArchive unifiedPushServer() {
+        String upsSource = getUpsSource();
 
-        // in case we want to download it from staing repo
-        if (System.getProperty("upsStaging") != null && System.getProperty("upsStaging").equals("true")) {
-            System.out.print("Resolving UPS from staging repo");
-            return Deployments.addCustomPersistence(Deployments.getUPSFromStaging());
+        WebArchive war;
+        if (upsSource.equalsIgnoreCase(UPS_SOURCE_REMOTE)) {
+            war = remoteUnifiedPushServer();
+        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_LOCAL)) {
+            war = localUnfiedPushServer();
+        } else {
+            throw new IllegalArgumentException("Unsupported source of Unified Push Server WAR: " + upsSource + "!");
         }
 
-        // FIXME this requires `mvn install` first as -SNAPSHOT dependencies are not available
-        // create a JPA jar
-        JavaArchive jar = ShrinkWrap.create(MavenImporter.class)
-                .loadPomFromFile(AG_UPS_JPA_POM_XML_LOCATION, getActiveProfiles())
-                .importBuildOutput()
-                .as(JavaArchive.class);
-
-        // modify persistence xml in JPA jar
-        jar.delete("/META-INF/persistence.xml");
-        jar.addAsResource("META-INF/persistence-ups.xml", "META-INF/persistence.xml");
-
-        // create a war but do not include JPA jar, we have modified content
-        final String unifiedPushServerPom = System.getProperty("unified.push.server.location",
-                AG_UPS_SERVER_POM_XML_LOCATION);
-
-        WebArchive war = ShrinkWrap.create(MavenImporter.class)
-                .loadPomFromFile(unifiedPushServerPom, getActiveProfiles())
-                .importBuildOutput(new CombinedStrategy(
-                        // to exclude test dependencies (dom4j in this particular case)
-                        new RejectDependenciesStrategy(false, "org.jboss.aerogear.unifiedpush:unifiedpush-model-jpa"),
-                        new AcceptScopesStrategy(ScopeType.COMPILE, ScopeType.PROVIDED, ScopeType.RUNTIME)
-                ))
-                .as(WebArchive.class);
-
-        war.addAsLibraries(jar);
-
-        // replace PicketLink persistence.xml with testing one - use H2 DB and different source
-        war.delete("/WEB-INF/classes/META-INF/persistence.xml");
-        war.addAsResource("META-INF/persistence-pl.xml", "META-INF/persistence.xml");
+        replacePersistenceInWar(war);
 
         return war;
     }
 
-    public static WebArchive unifiedPushServerWithClasses(Class<?>... clazz) {
+    /**
+     * Gets WebArchive of Unified Push Server with replaced persistence.xml files, custom sender libraries (GCM
+     * and APNS) and bundled SenderStatisticsEndpoint for Message testing.
+     *
+     * @see Deployments#unifiedPushServer()
+     */
+    public static WebArchive unifiedPushServerWithCustomSenders() {
         WebArchive war = unifiedPushServer();
 
-        war.addClasses(clazz);
+        Map<ArchivePath, Node> librariesToRemove = war.getContent(new Filter<ArchivePath>() {
+            @Override
+            public boolean include(ArchivePath path) {
+                return (path.get().startsWith("/WEB-INF/lib/apns") ||
+                        path.get().startsWith("/WEB-INF/lib/gcm-server")) && path.get().endsWith(".jar");
 
-        File[] libs = Maven.resolver().loadPomFromFile("pom.xml").resolve("org.mockito:mockito-core").withTransitivity()
-                .asFile();
-        war = war.addAsLibraries(libs);
+            }
+        });
 
-        return war;
-    }
+        for (ArchivePath archivePath : librariesToRemove.keySet()) {
+            war.delete(archivePath);
+        }
 
-    public static WebArchive customUnifiedPushServerWithClasses(Class<?>... clazz) {
-        WebArchive war = unifiedPushServer();
+        war.addClasses(SenderStatisticsEndpoint.class, SenderStatistics.class,
+                GCMForChromePushNotificationSender.class);
 
-        war.delete("/WEB-INF/lib/gcm-server-1.0.2.jar");
-
-        war.addClasses(SenderStatisticsEndpoint.class, SenderStatistics.class);
-
-        war.addClasses(clazz);
-
-        JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "gcm-server-1.0.2.jar").addClasses(Result.class,
+        JavaArchive gcmJar = ShrinkWrap.create(JavaArchive.class, "gcm-server.jar").addClasses(Result.class,
                 Message.class,
                 MulticastResult.class, Message.class, Sender.class);
-        war.addAsLibraries(jar);
-
-        war.delete("/WEB-INF/lib/apns-0.2.3.jar");
-
-        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns-0.2.3.jar").addClasses(NetworkIOException
+        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns.jar").addClasses(NetworkIOException
                         .class,
                 ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
                 Constants.class, ApnsNotification.class, EnhancedApnsNotification.class
         );
-        war.addAsLibraries(apnsJar);
+        war.addAsLibraries(gcmJar, apnsJar);
 
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 
@@ -148,46 +145,83 @@ public final class Deployments {
         return war;
     }
 
-    private static WebArchive addCustomPersistence(WebArchive webArchive) {
-        // replace original persistence.xml with testing one
-        webArchive.delete("/WEB-INF/classes/META-INF/persistence.xml");
-        // testing persistence
-        webArchive.addAsResource("META-INF/persistence.xml");
-        return webArchive;
+    /**
+     * Removes original persistence.xml files from unfiedpush-model-jpa JAR and from the war and replaces them with
+     * custom ones. This way we change what kind of storage is used.
+     *
+     * @param war WebArchive to be modified.
+     */
+    private static void replacePersistenceInWar(WebArchive war) {
+        Collection<JavaArchive> jpaModels = war.getAsType(JavaArchive.class, new Filter<ArchivePath>() {
+            @Override
+            public boolean include(ArchivePath path) {
+                return path.get().startsWith("/WEB-INF/lib/unifiedpush-model-jpa") && path.get().endsWith(".jar");
+            }
+        });
+
+        for (JavaArchive jpaModel : jpaModels) {
+            jpaModel.delete("/META-INF/persistence.xml");
+            jpaModel.addAsResource("META-INF/persistence-ups.xml", "META-INF/persistence.xml");
+        }
+
+        war.delete("/WEB-INF/classes/META-INF/persistence.xml");
+        war.addAsResource("META-INF/persistence-pl.xml", "META-INF/persistence.xml");
     }
 
     /**
-     * Gets UPS from staging repo of specified version
-     * <p/>
-     * When some argument is null or empty String, defaults are used.
-     *
-     * @param version version of UPS you want to get
-     * @return UPS of specified {@code version}
+     * Gets Unified Push Server from remote repository. If no version has been specified,
+     * latest version in repository will be used.
      */
-    public static WebArchive getUPSFromStaging(String version) {
+    private static WebArchive remoteUnifiedPushServer() {
+        final String upsCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server:war:%s";
 
-        if (version == null || version.isEmpty()) {
-            version = DEFAULT_STAGING_UPS_VERSION;
+        ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
+                .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("remote_ups", getUpsRemoteUrl(),
+                        "default"))
+                .withMavenCentralRepo(false);
+
+
+        MavenCoordinate upsCoordinate;
+        String upsVersion = System.getProperty(PROPERTY_UPS_VERSION);
+        if (upsVersion == null || upsVersion.length() == 0) {
+            upsCoordinate = resolver
+                    .resolveVersionRange(String.format(upsCanonicalCoordinate, UPS_MINIMUM_VERSION))
+                    .getHighestVersion();
+
+            LOGGER.log(Level.INFO, "Unified Push Server version not specified. Using repository''s latest version " +
+                    "\"{0}\". You can override it by -D{1}", new Object[] { upsCoordinate.getVersion(),
+                    PROPERTY_UPS_VERSION });
+        } else {
+            upsCoordinate = MavenCoordinates.createCoordinate(String.format(upsCanonicalCoordinate, upsVersion));
         }
 
+
+
+        File warFile = resolver
+                .resolve(upsCoordinate.toCanonicalForm())
+                .withoutTransitivity()
+                .asSingleFile();
+
         // https://issues.jboss.org/browse/WFK2-61
-        File warFile = Maven.configureResolver()
-                .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("staging_ups", UPS_STAGING_URL,
-                        "default"))
-                .withMavenCentralRepo(false)
-                .resolve("org.jboss.aerogear.unifiedpush:unifiedpush-server:war:" + version)
-                .withoutTransitivity().asSingle(File.class);
-
-        WebArchive finalArchive = ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(warFile).as
-                (WebArchive.class);
-
-        return finalArchive;
+        return ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(warFile).as(WebArchive.class);
     }
 
-    public static WebArchive getUPSFromStaging() {
-        return getUPSFromStaging(DEFAULT_STAGING_UPS_VERSION);
+    /**
+     * Compiles and returns Unified Push Server from local filesystem. The location of the pom.xml can be altered.
+     */
+    private static WebArchive localUnfiedPushServer() {
+        String upsLocalPom = System.getProperty(PROPERTY_UPS_LOCAL_POM, UPS_LOCAL_POM_DEFAULT);
+
+        return ShrinkWrap.create(MavenImporter.class)
+                .loadPomFromFile(upsLocalPom, getActiveProfiles())
+                .importBuildOutput()
+                .as(WebArchive.class);
     }
 
+    /**
+     * Returns an array of profile names for maven build. This is currently only to pass in code-coverage profile for
+     * ups build.
+     */
     private static String[] getActiveProfiles() {
         List<String> activeProfiles = new ArrayList<String>();
 
@@ -198,6 +232,30 @@ public final class Deployments {
         return activeProfiles.toArray(new String[activeProfiles.size()]);
     }
 
+    private static String getUpsSource() {
+        String upsSource = System.getProperty(PROPERTY_UPS_SOURCE);
+        if (upsSource == null || upsSource.length() == 0) {
+            // FIXME what should be the default behavior?
+            upsSource = UPS_SOURCE_DEFAULT;
+            LOGGER.log(Level.INFO, "Unified Push Server WAR source not specified. Using default source \"{0}\". You " +
+                    "can override it by -D{1}", new Object[] { upsSource, PROPERTY_UPS_SOURCE });
+        }
+        return upsSource;
+    }
+
+    private static String getUpsRemoteUrl() {
+        String remoteRepository = System.getProperty(PROPERTY_UPS_REMOTE_URL);
+        if (remoteRepository == null || remoteRepository.length() == 0) {
+            remoteRepository = UPS_REMOTE_URL_DEFAULT;
+            LOGGER.log(Level.INFO, "Unified Push Server remote repository url not specified. Using default \"{0}\". " +
+                    "You can override it by -D{1}", new Object[] { remoteRepository, PROPERTY_UPS_REMOTE_URL });
+        }
+        return remoteRepository;
+    }
+
+    /**
+     * @return True if code-coverage.active property is set to 'true', false otherwise.
+     */
     private static boolean isCodeCoverageActive() {
         String codeCoverageActive = System.getProperty("code-coverage.active");
         return codeCoverageActive != null && codeCoverageActive.equals("true");

@@ -22,8 +22,10 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.ContentTypes;
+import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
+import org.jboss.aerogear.test.api.application.PushApplicationBlueprint;
 import org.jboss.aerogear.test.api.application.PushApplicationContext;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.model.PushApplication;
@@ -34,20 +36,27 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.ArquillianRule;
 import org.jboss.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
 public class PushApplicationTest {
+
+    private static final String TOO_LONG_NAME = Helper.randomStringOfLength(256);
+    private static final String TOO_LONG_DESCRIPTION = Helper.randomStringOfLength(256);
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
@@ -59,6 +68,11 @@ public class PushApplicationTest {
 
     @Rule
     public CheckingExpectedException thrown = CheckingExpectedException.none();
+
+    @After
+    public void cleanPushApplications() {
+        ups.with(PushApplicationWorker.worker()).findAll().removeAll();
+    }
 
     @BeforeClass
     public static void setup() {
@@ -93,12 +107,89 @@ public class PushApplicationTest {
     }
 
     @Test
+    public void testRegisterWithTooLongName() {
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+        ups.with(PushApplicationWorker.worker()).generate().name(TOO_LONG_NAME).persist();
+    }
+
+    @Test
+    public void testRegisterWithTooLongDescription() {
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+        ups.with(PushApplicationWorker.worker()).generate().description(TOO_LONG_DESCRIPTION).persist();
+    }
+
+    @Test
+    public void testReadNonexistentApplication() {
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(PushApplicationWorker.worker()).find(UUID.randomUUID().toString());
+    }
+
+    @Test
+    public void testUpdateWithTooLongName() {
+        PushApplication application = ups.with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(PushApplicationWorker.worker()).edit(application.getPushApplicationID()).name(TOO_LONG_NAME).merge();
+    }
+
+    @Test
+    public void testUpdateWithTooLongDescription() {
+        PushApplication application = ups.with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+
+        ups.with(PushApplicationWorker.worker())
+                .edit(application.getPushApplicationID()).description(TOO_LONG_DESCRIPTION).merge();
+    }
+
+    @Test
+    public void testUpdateNonexistentApplication() {
+        PushApplication pushApplication = new PushApplication();
+        pushApplication.setPushApplicationID(UUID.randomUUID().toString());
+
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(PushApplicationWorker.worker()).merge(pushApplication);
+    }
+
+    @Test
+    public void testResetMasterSecret() {
+        PushApplication application = ups.with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+
+        ups.with(PushApplicationWorker.worker()).resetMasterSecret(application.getPushApplicationID());
+
+        PushApplication changedApplication = ups.with(PushApplicationWorker.worker())
+                .find(application.getPushApplicationID()).detachEntity();
+
+        assertThat(changedApplication.getPushApplicationID(), is(application.getPushApplicationID()));
+        assertThat(changedApplication.getMasterSecret(), is(not(application.getMasterSecret())));
+
+    }
+
+    @Test
+    public void testResetMasterSecretNonexistentApplication() {
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(PushApplicationWorker.worker()).resetMasterSecret(UUID.randomUUID().toString());
+    }
+
+    @Test
     public void testRegistrationWithoutAuthorization() {
         thrown.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
 
         Session invalidSession = Session.newSession(ups.getSession().getBaseUrl().toExternalForm());
 
         PushApplicationWorker.worker().createContext(invalidSession, null).generate().persist();
+    }
+
+    @Test
+    public void testDeleteNonexistentApplication() {
+        thrown.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
+
+        ups.with(PushApplicationWorker.worker()).removeById(UUID.randomUUID().toString());
+
     }
 
     private void performCRUD(PushApplicationWorker worker) {

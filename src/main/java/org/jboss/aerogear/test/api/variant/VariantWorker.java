@@ -14,30 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.simplepush;
+package org.jboss.aerogear.test.api.variant;
 
-import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.test.api.AbstractUPSWorker;
 
-public abstract class SimplePushVariantExtension<EXTENSION extends SimplePushVariantExtension<EXTENSION>>
-        extends SimplePushVariant {
-    protected final SimplePushVariantContext context;
+public abstract class VariantWorker<
+        ENTITY,
+        ENTITY_ID,
+        BLUEPRINT extends ENTITY,
+        EDITOR extends ENTITY,
+        PARENT,
+        CONTEXT extends VariantContext<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
+        WORKER extends VariantWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>>
 
-    public SimplePushVariantExtension(SimplePushVariantContext context) {
-        this.context = context;
-    }
-
-    public EXTENSION name(String name) {
-        setName(name);
-        return castInstance();
-    }
+        extends AbstractUPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER> {
 
 
-    public EXTENSION description(String description) {
-        setDescription(description);
-        return castInstance();
-    }
-
-    private EXTENSION castInstance() {
-        return (EXTENSION) this;
-    }
+    public abstract void resetSecret(CONTEXT context, ENTITY_ID variantID);
 }

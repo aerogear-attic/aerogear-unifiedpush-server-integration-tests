@@ -3,16 +3,11 @@ package org.jboss.aerogear.test.api.installation;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.Headers;
-import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.test.model.AbstractVariant;
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.Installation;
 import org.jboss.aerogear.test.model.InstallationImpl;
-import org.jboss.aerogear.test.model.PushApplication;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -40,7 +35,7 @@ public abstract class InstallationWorker<
         jsonObject.put("osVersion", entity.getOsVersion());
         jsonObject.put("alias", entity.getAlias());
 
-        if(entity.getCategories() != null) {
+        if (entity.getCategories() != null) {
             // JSONObject doesn't understand Set<String>
             JSONArray categories = new JSONArray();
             for (String category : entity.getCategories()) {
@@ -66,7 +61,7 @@ public abstract class InstallationWorker<
         editor.setSimplePushEndpoint(jsonPath.getString("simplePushEndpoint"));
         HashSet<String> categories = new HashSet<String>();
         List<String> jsonCategories = jsonPath.getList("categories");
-        if(jsonCategories != null) {
+        if (jsonCategories != null) {
             for (String jsonCategory : jsonCategories) {
                 categories.add(jsonCategory);
             }
@@ -159,16 +154,13 @@ public abstract class InstallationWorker<
     }
 
     @Override
-    public void delete(CONTEXT context, Collection<? extends InstallationImpl> entities) {
-        for (InstallationImpl entity : entities) {
-            Response response = context.getSession().given()
-                    .contentType(getContentType())
-                    .header(Headers.acceptJson())
-                    .delete("/rest/applications/{variantID}/installations/{installationID}",
-                            context.getParent().getVariantID(), context.getEntityID(entity));
+    public void deleteById(CONTEXT context, String id) {
+        Response response = context.getSession().given()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .delete("/rest/applications/{variantID}/installations/{installationID}",
+                        context.getParent().getVariantID(), id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
-        }
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
-
 }

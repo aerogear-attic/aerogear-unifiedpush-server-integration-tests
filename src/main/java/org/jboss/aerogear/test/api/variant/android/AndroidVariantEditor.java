@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.android;
+package org.jboss.aerogear.test.api.variant.android;
 
 public class AndroidVariantEditor extends AndroidVariantExtension<AndroidVariantEditor> {
 
