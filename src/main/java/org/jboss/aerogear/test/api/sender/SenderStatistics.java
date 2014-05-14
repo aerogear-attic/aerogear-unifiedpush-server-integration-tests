@@ -29,5 +29,6 @@ public class SenderStatistics {
     public int apnsBadge;
     public String apnsSound;
     public String apnsCustomFields;
+    public long apnsExpiry;
     public String gcmForChromeAlert;
 }

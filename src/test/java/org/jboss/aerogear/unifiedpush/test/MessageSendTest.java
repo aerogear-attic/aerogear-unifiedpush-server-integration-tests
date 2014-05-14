@@ -22,6 +22,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
+import com.notnoop.apns.EnhancedApnsNotification;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -71,6 +72,8 @@ import java.util.concurrent.Callable;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -214,10 +217,14 @@ public class MessageSendTest {
 
         statistics = selectiveSendByAliases(installations);
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+        assertThat(statistics.apnsExpiry, is(EnhancedApnsNotification.MAXIMUM_DATE.getTime()));
 
+        long timestamp = System.currentTimeMillis();
         statistics = selectiveSendByAliasesWithTtl(installations, 5000);
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
-        assertThat(statistics.apnsCustomFields, containsString("ttl=5000"));
+        // FIXME is this safe or can the server have different time?
+        assertThat(statistics.apnsExpiry, is(greaterThan(timestamp)));
+        assertThat(statistics.apnsExpiry, is(not(EnhancedApnsNotification.MAXIMUM_DATE.getTime())));
 
         // FIXME add a way to verify content available!
         statistics = selectiveSendByAliasesWithContentAvailable(installations);

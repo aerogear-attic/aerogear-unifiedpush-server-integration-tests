@@ -48,12 +48,14 @@ public class SenderStatisticsEndpoint {
         }
 
         SenderStatistics senderStatistics = new SenderStatistics();
+
         senderStatistics.deviceTokens = deviceTokens;
         senderStatistics.gcmMessage = Sender.getGcmMessage();
         senderStatistics.apnsAlert = ApnsServiceImpl.getAlert();
         senderStatistics.apnsBadge = ApnsServiceImpl.getBadge();
         senderStatistics.apnsSound = ApnsServiceImpl.getSound();
         senderStatistics.apnsCustomFields = ApnsServiceImpl.getCustomFields();
+        senderStatistics.apnsExpiry = ApnsServiceImpl.getExpiry();
         senderStatistics.gcmForChromeAlert = GCMForChromePushNotificationSender.getAlert();
 
         return Response.ok(senderStatistics).build();

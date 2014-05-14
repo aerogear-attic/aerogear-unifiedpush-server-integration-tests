@@ -71,6 +71,7 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
         statistics.apnsBadge = jsonPath.getInt("apnsBadge");
         statistics.apnsCustomFields = jsonPath.getString("apnsCustomFields");
         statistics.apnsSound = jsonPath.getString("apnsSound");
+        statistics.apnsExpiry = jsonPath.getLong("apnsExpiry");
         statistics.gcmForChromeAlert = jsonPath.getString("gcmForChromeAlert");
 
         return statistics;

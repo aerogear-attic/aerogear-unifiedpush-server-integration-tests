@@ -49,7 +49,10 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
     }*/
 
     public SenderRequest send(UnifiedMessage message) {
-        JavaSender sender = new SenderClient(getSession().getBaseUrl().toExternalForm());
+        SenderClient senderClient = new SenderClient.Builder()
+                .rootServerURL(getSession().getBaseUrl().toExternalForm())
+                .customTrustStore("setup/aerogear.truststore", null, "aerogear")
+                .build();
 
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicInteger statusCode = new AtomicInteger(-1);
@@ -68,7 +71,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
             }
         };
 
-        sender.send(message, callback);
+        senderClient.send(message, callback);
 
         try {
             latch.await(5000, TimeUnit.MILLISECONDS);

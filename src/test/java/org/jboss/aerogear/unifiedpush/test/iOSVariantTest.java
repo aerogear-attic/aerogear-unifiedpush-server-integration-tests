@@ -188,7 +188,7 @@ public class iOSVariantTest {
 
     @Test
     public void resetSecret() {
-        iOSVariant variant = ups.with(iOSVariantWorker.worker(), getRegisteredApplication())
+        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication())
                 .generate().persist().detachEntity();
 
         ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());

@@ -30,6 +30,9 @@
  */
 package com.notnoop.apns.internal;
 
+import com.notnoop.apns.ApnsService;
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -37,11 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.notnoop.apns.ApnsService;
-import org.jboss.aerogear.test.api.sender.SenderStatistics;
-
 /**
- *
  * This class mocks the original com.notnoop.apns.internal.ApnsServiceImpl class and is used for testing reasons.
  * This class should be replaced by Byteman based bytecode manipulation
  */
@@ -61,12 +60,14 @@ public class ApnsServiceImpl implements ApnsService {
 
     private static String customFields;
 
+    private static long expiry = -1;
+
     public Map<String, Date> getInactiveDevices() {
         final HashMap<String, Date> inactiveTokensHM = new HashMap<String, Date>();
 
         if (tokensList != null) {
             for (String token : tokensList) {
-                if(token.toLowerCase().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX)) {
+                if (token.toLowerCase().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX)) {
                     inactiveTokensHM.put(token, new Date());
                 }
             }
@@ -76,18 +77,15 @@ public class ApnsServiceImpl implements ApnsService {
 
     @SuppressWarnings("rawtypes")
     public Collection push(Collection<String> tokens, String message, Date expiry) {
-        Logger.getLogger(ApnsServiceImpl.class.getName()).warning(message);
-
         if (message != null) {
             Map<String, String> parts = parseMessage(message);
-
-            Logger.getLogger(ApnsServiceImpl.class.getName()).warning(parts.toString());
 
             alert = parts.get("alert");
             sound = parts.get("sound");
             badge = parts.get("badge") != null ? Integer.parseInt(parts.get("badge")) : -1;
             customFields = parts.get("customFields");
 
+            ApnsServiceImpl.expiry = expiry.getTime();
         }
         if (tokens != null) {
             tokensList = new ArrayList<String>();
@@ -108,27 +106,27 @@ public class ApnsServiceImpl implements ApnsService {
 
             int backSlashes = 0;
             int charIndex = i - 1;
-            while(charIndex > 0) {
+            while (charIndex > 0) {
                 char cc = message.charAt(charIndex--);
-                if(cc == '\\') {
+                if (cc == '\\') {
                     backSlashes++;
                 } else {
                     break;
                 }
             }
             boolean isCharEscaped = backSlashes % 2 != 0;
-            if(c == ',' && openBrackets == 0 && !isCharEscaped) {
+            if (c == ',' && openBrackets == 0 && !isCharEscaped) {
                 messageParts.put(currentKey.toString(), currentValue.toString());
                 currentKey = new StringBuilder();
                 currentValue = new StringBuilder();
                 key = true;
-            } else if(c == ':' && openBrackets == 0 && !isCharEscaped) {
+            } else if (c == ':' && openBrackets == 0 && !isCharEscaped) {
                 key = false;
-            } else if(c == '{' && !isCharEscaped) {
+            } else if (c == '{' && !isCharEscaped) {
                 openBrackets++;
-            } else if(c == '}' && !isCharEscaped) {
+            } else if (c == '}' && !isCharEscaped) {
                 openBrackets--;
-            } else if(key) {
+            } else if (key) {
                 currentKey.append(c);
             } else {
                 currentValue.append(c);
@@ -169,11 +167,16 @@ public class ApnsServiceImpl implements ApnsService {
         return customFields;
     }
 
+    public static long getExpiry() {
+        return expiry;
+    }
+
     public static void clear() {
         tokensList = null;
         sound = null;
         badge = -1;
         alert = null;
         customFields = null;
+        expiry = -1;
     }
 }
