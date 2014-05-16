@@ -523,8 +523,8 @@
                                 <arq.container.main-server-group.configuration.javaVmArguments>
                                     -Djboss.bind.address=127.0.0.1 -Xmx512m
                                     -XX:MaxPermSize=512m
-                                    -javaagent:${project.build.directory}/jacocoagent.jar=append=true,destfile=${jacoco.report.file}
-                                </arq.container.main-server-group.configuration.javaVmArguments><!-- ,excludes=*$$$$$$* -->
+                                    -javaagent:${project.build.directory}/jacocoagent.jar=append=true,excludes=*$$$$$$*,destfile=${jacoco.report.file}
+                                </arq.container.main-server-group.configuration.javaVmArguments>
                                 <code-coverage.active>${code-coverage.active}</code-coverage.active>
                             </systemPropertyVariables>
                         </configuration>
