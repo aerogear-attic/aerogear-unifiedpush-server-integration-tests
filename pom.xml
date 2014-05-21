@@ -245,6 +245,13 @@
             <artifactId>undertow-core</artifactId>
             <version>1.0.1.Final</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.arquillian.spacelift</groupId>
+            <artifactId>arquillian-spacelift</artifactId>
+            <version>1.0.0.Alpha2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

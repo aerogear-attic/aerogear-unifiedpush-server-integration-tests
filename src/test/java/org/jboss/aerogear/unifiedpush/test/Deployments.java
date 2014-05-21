@@ -28,6 +28,9 @@ import com.notnoop.apns.EnhancedApnsNotification;
 import com.notnoop.apns.PayloadBuilder;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import com.notnoop.exceptions.NetworkIOException;
+import org.arquillian.spacelift.execution.ExecutionException;
+import org.arquillian.spacelift.execution.Tasks;
+import org.arquillian.spacelift.process.impl.CommandTool;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -42,16 +45,17 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
-import org.jboss.shrinkwrap.resolver.api.maven.archive.importer.MavenImporter;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,7 +75,9 @@ public final class Deployments {
 
     private static final String UPS_SOURCE_DEFAULT = UPS_SOURCE_LOCAL;
     private static final String UPS_REMOTE_URL_DEFAULT = "http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/";
-    private static final String UPS_LOCAL_POM_DEFAULT = "aerogear-unifiedpush-server/server/pom.xml";
+    private static final String UPS_LOCAL_POM_DEFAULT = "aerogear-unifiedpush-server/pom.xml";
+
+    private static final AtomicBoolean mavenBuildInvoked = new AtomicBoolean(false);
 
     private Deployments() {
         throw new UnsupportedOperationException("No instantiation.");
@@ -97,8 +103,7 @@ public final class Deployments {
         String upsVersion = System.getProperty(PROPERTY_UPS_VERSION);
         if (upsVersion != null && upsVersion.length() != 0 && upsVersion.startsWith("0.10")) {
             replacePersistenceInWarPreModularization(war);
-        }
-        else {
+        } else {
             replacePersistenceInWar(war);
         }
 
@@ -118,7 +123,7 @@ public final class Deployments {
             @Override
             public boolean include(ArchivePath path) {
                 return (path.get().startsWith("/WEB-INF/lib/apns") ||
-                    path.get().startsWith("/WEB-INF/lib/gcm-server")) && path.get().endsWith(".jar");
+                        path.get().startsWith("/WEB-INF/lib/gcm-server")) && path.get().endsWith(".jar");
 
             }
         });
@@ -128,23 +133,23 @@ public final class Deployments {
         }
 
         war.addClasses(SenderStatisticsEndpoint.class, SenderStatistics.class,
-            GCMForChromePushNotificationSender.class);
+                GCMForChromePushNotificationSender.class);
 
         JavaArchive gcmJar = ShrinkWrap.create(JavaArchive.class, "gcm-server.jar").addClasses(Result.class,
-            Message.class,
-            MulticastResult.class, Message.class, Sender.class);
+                Message.class,
+                MulticastResult.class, Message.class, Sender.class);
         JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns.jar").addClasses(NetworkIOException
-            .class,
-            ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
-            Constants.class, ApnsNotification.class, EnhancedApnsNotification.class
-            );
+                        .class,
+                ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
+                Constants.class, ApnsNotification.class, EnhancedApnsNotification.class
+        );
         war.addAsLibraries(gcmJar, apnsJar);
 
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 
         // here we resolve mockito transitively, other artifact without transitivity
         File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
-            .withoutTransitivity().asFile();
+                .withoutTransitivity().asFile();
         war.addAsLibraries(libs);
         libs = resolver.resolve("org.mockito:mockito-core").withTransitivity().asFile();
         war = war.addAsLibraries(libs);
@@ -196,20 +201,20 @@ public final class Deployments {
         final String upsCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server:war:%s";
 
         ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
-            .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("remote_ups", getUpsRemoteUrl(),
-                "default"))
-            .withMavenCentralRepo(false);
+                .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("remote_ups", getUpsRemoteUrl(),
+                        "default"))
+                .withMavenCentralRepo(false);
 
         MavenCoordinate upsCoordinate;
         String upsVersion = System.getProperty(PROPERTY_UPS_VERSION);
         if (upsVersion == null || upsVersion.length() == 0) {
             upsCoordinate = resolver
-                .resolveVersionRange(String.format(upsCanonicalCoordinate, UPS_MINIMUM_VERSION))
-                .getHighestVersion();
+                    .resolveVersionRange(String.format(upsCanonicalCoordinate, UPS_MINIMUM_VERSION))
+                    .getHighestVersion();
 
             LOGGER.log(Level.INFO, "Unified Push Server version not specified. Using repository''s latest version " +
-                "\"{0}\". You can override it by -D{1}", new Object[] { upsCoordinate.getVersion(),
-                PROPERTY_UPS_VERSION });
+                    "\"{0}\". You can override it by -D{1}", new Object[] { upsCoordinate.getVersion(),
+                    PROPERTY_UPS_VERSION });
         } else {
             upsCoordinate = MavenCoordinates.createCoordinate(String.format(upsCanonicalCoordinate, upsVersion));
         }
@@ -217,9 +222,9 @@ public final class Deployments {
         LOGGER.log(Level.INFO, "Resolving UnifiedPush Server using coordinates: {0}", upsCoordinate.toCanonicalForm());
 
         File warFile = resolver
-            .resolve(upsCoordinate.toCanonicalForm())
-            .withoutTransitivity()
-            .asSingleFile();
+                .resolve(upsCoordinate.toCanonicalForm())
+                .withoutTransitivity()
+                .asSingleFile();
 
         // https://issues.jboss.org/browse/WFK2-61
         return ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(warFile).as(WebArchive.class);
@@ -229,13 +234,36 @@ public final class Deployments {
      * Compiles and returns Unified Push Server from local filesystem. The location of the pom.xml can be altered.
      */
     private static WebArchive localUnfiedPushServer() {
-        String upsLocalPom = System.getProperty(PROPERTY_UPS_LOCAL_POM, UPS_LOCAL_POM_DEFAULT);
+        if (!mavenBuildInvoked.get()) {
+            LOGGER.log(Level.INFO, "Building UnifiedPush Server from sources at: {0}",
+                    getUpsParentDirectory().getAbsolutePath());
 
-        return ShrinkWrap.create(MavenImporter.class)
-            .loadPomFromFile(upsLocalPom, getActiveProfiles())
-            .importBuildOutput()
-            .as(WebArchive.class);
+            try {
+                Tasks.prepare(CommandTool.class)
+                        .workingDir(getUpsParentDirectory().getAbsolutePath())
+                        .programName("mvn")
+                        .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
+                                getActiveProfilesAsMavenParameter())
+                        .execute()
+                        .await();
+            } catch (ExecutionException e) {
+                LOGGER.log(Level.WARNING, "Could not package UnifiedPush Server WAR. It is possible that you do not " +
+                        "have Maven on PATH. Assuming you did compile UnifiedPush yourself and resuming tests.", e);
+            }
+            mavenBuildInvoked.set(true);
+        }
+
+        File[] serverWarFiles = getUpsServerWarFiles();
+        if (serverWarFiles.length == 0) {
+            throw new IllegalStateException("No war file found in directory '" +
+                    getUpsServerTargetDirectory().getAbsolutePath() + "'. Please check that 'mvn clean package' " +
+                    "inside the ups server directory will result in creation of .war file.");
+        }
+
+
+        return ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(serverWarFiles[0]).as(WebArchive.class);
     }
+
 
     /**
      * Returns an array of profile names for maven build. This is currently only to pass in code-coverage profile for
@@ -251,13 +279,26 @@ public final class Deployments {
         return activeProfiles.toArray(new String[activeProfiles.size()]);
     }
 
+    private static String getActiveProfilesAsMavenParameter() {
+        StringBuilder profileBuilder = new StringBuilder("-P");
+        int i = 0;
+        for (String profile : getActiveProfiles()) {
+            if (i++ > 0) {
+                profileBuilder.append(',');
+            }
+            profileBuilder.append(profile);
+        }
+
+        return i > 0 ? profileBuilder.toString() : "";
+    }
+
     private static String getUpsSource() {
         String upsSource = System.getProperty(PROPERTY_UPS_SOURCE);
         if (upsSource == null || upsSource.length() == 0) {
             // FIXME what should be the default behavior?
             upsSource = UPS_SOURCE_DEFAULT;
             LOGGER.log(Level.INFO, "Unified Push Server WAR source not specified. Using default source \"{0}\". You " +
-                "can override it by -D{1}", new Object[] { upsSource, PROPERTY_UPS_SOURCE });
+                    "can override it by -D{1}", new Object[] { upsSource, PROPERTY_UPS_SOURCE });
         }
         return upsSource;
     }
@@ -267,9 +308,35 @@ public final class Deployments {
         if (remoteRepository == null || remoteRepository.length() == 0) {
             remoteRepository = UPS_REMOTE_URL_DEFAULT;
             LOGGER.log(Level.INFO, "Unified Push Server remote repository url not specified. Using default \"{0}\". " +
-                "You can override it by -D{1}", new Object[] { remoteRepository, PROPERTY_UPS_REMOTE_URL });
+                    "You can override it by -D{1}", new Object[] { remoteRepository, PROPERTY_UPS_REMOTE_URL });
         }
         return remoteRepository;
+    }
+
+    private static File getUpsLocalPomFile() {
+        String upsLocalPomPath = System.getProperty(PROPERTY_UPS_LOCAL_POM, UPS_LOCAL_POM_DEFAULT);
+        return new File(upsLocalPomPath);
+    }
+
+    private static File getUpsParentDirectory() {
+        return getUpsLocalPomFile().getParentFile();
+    }
+
+    private static File getUpsServerDirectory() {
+        return new File(getUpsParentDirectory(), "server");
+    }
+
+    private static File getUpsServerTargetDirectory() {
+        return new File(getUpsServerDirectory(), "target");
+    }
+
+    private static File[] getUpsServerWarFiles() {
+        return getUpsServerTargetDirectory().listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".war") && pathname.isFile() && pathname.canRead();
+            }
+        });
     }
 
     /**
