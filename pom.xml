@@ -154,7 +154,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.android.gcm</groupId>
+            <groupId>com.ganyo</groupId>
             <artifactId>gcm-server</artifactId>
             <version>${gcm-server.version}</version>
         </dependency>
@@ -281,21 +281,6 @@
                     <scope>test</scope>
                 </dependency>
             </dependencies>
-
-            <build>
-                <!-- AS 7 is extracted using before the test -->
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <javax.net.ssl.trustStore>setup/aerogear.truststore</javax.net.ssl.trustStore>
-                                <javax.net.ssl.trustStorePassword>aerogear</javax.net.ssl.trustStorePassword>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>
@@ -319,8 +304,6 @@
                         <configuration>
                             <systemPropertyVariables>
                                 <arquillian.xml>arquillian-domain.xml</arquillian.xml>
-                                <javax.net.ssl.trustStore>setup/aerogear.truststore</javax.net.ssl.trustStore>
-                                <javax.net.ssl.trustStorePassword>aerogear</javax.net.ssl.trustStorePassword>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -349,23 +332,13 @@
 
             <build>
                 <!-- JBoss EAP 6.0.1 is not hosted in any Maven repository, you have to unpack it manually -->
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <javax.net.ssl.trustStore>setup/aerogear.truststore</javax.net.ssl.trustStore>
-                                <javax.net.ssl.trustStorePassword>aerogear</javax.net.ssl.trustStorePassword>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </plugin>
-                </plugins>
             </build>
         </profile>
 
         <profile>
             <id>test-release</id>
             <properties>
+                <!-- bintray is not working, it is not complete Maven repository -->
                 <ups.source>remote</ups.source>
                 <ups.remote.url>http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/</ups.remote.url>
             </properties>
@@ -540,14 +513,5 @@
             </build>
         </profile>
     </profiles>
-
-
-    <repositories>
-        <!-- this repository is needed to get GCM server, see https://issues.jboss.org/browse/AGPUSH-556 -->
-        <repository>
-            <id>gcm-server-repository</id>
-            <url>http://raw.github.com/slorber/gcm-server-repository/master/releases/</url>
-        </repository>
-    </repositories>
 
 </project>
