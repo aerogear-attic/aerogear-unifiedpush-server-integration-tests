@@ -16,16 +16,17 @@ package org.jboss.aerogear.unifiedpush.message.sender;
  * limitations under the License.
  */
 
-import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.message.UnifiedPushMessage;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class GCMForChromePushNotificationSender implements Serializable {
+public class GCMForChromePushNotificationSender implements PushNotificationSender, Serializable {
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private final Logger logger = Logger.getLogger(GCMForChromePushNotificationSender.class.getName());
@@ -33,16 +34,16 @@ public class GCMForChromePushNotificationSender implements Serializable {
     private static List<String> channelIDs = new ArrayList<String>();
     private static String alert;
 
-    public void sendMessage(ChromePackagedAppVariant chromePackagedAppVariant, List<String> channelIDs,
-                            UnifiedPushMessage unifiedPushMessage) {
-        logger.warning("Sending to " + channelIDs.size() + " channel IDs.");
+    @Override
+    public void sendPushMessage(Variant variant, Collection<String> tokens, UnifiedPushMessage unifiedPushMessage, NotificationSenderCallback senderCallback) {
+        logger.warning("Sending to " + tokens.size() + " channel IDs.");
 
         // no need to send empty list
-        if (channelIDs.isEmpty()) {
+        if (tokens.isEmpty()) {
             return;
         }
         alert = unifiedPushMessage.getAlert();
-        GCMForChromePushNotificationSender.channelIDs.addAll(channelIDs);
+        GCMForChromePushNotificationSender.channelIDs.addAll(tokens);
     }
 
     public static String getAlert() { return alert; }

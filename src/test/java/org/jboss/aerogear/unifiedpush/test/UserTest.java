@@ -22,24 +22,21 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
-import org.jboss.aerogear.test.api.application.PushApplicationContext;
-import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.user.UserContext;
 import org.jboss.aerogear.test.api.user.UserWorker;
 import org.jboss.aerogear.test.model.Developer;
-import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.arquillian.junit.ArquillianRule;
-import org.jboss.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +50,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+// Ignored because UnifiedPush server no longer
+@Ignore
 @RunWith(ArquillianRules.class)
 public class UserTest {
 
@@ -83,7 +82,13 @@ public class UserTest {
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
     }
 
-    @Deployment(testable = false)
+    @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createAuthServerDeployment() {
+        return Deployments.authServer();
+    }
+
+    @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
@@ -117,14 +122,14 @@ public class UserTest {
         List<String> defaultUserNames = new ArrayList<String>();
         for (Developer defaultUser : defaultUsers) {
             String loginName = defaultUser.getLoginName();
-            if(loginName.equals("admin")) {
-                if(adminUser == null) {
+            if (loginName.equals("admin")) {
+                if (adminUser == null) {
                     adminUser = defaultUser;
                 } else {
                     fail("There can be no more than one admin user!");
                 }
-            } else if(loginName.equals("developer")) {
-                if(developerUser == null) {
+            } else if (loginName.equals("developer")) {
+                if (developerUser == null) {
                     developerUser = defaultUser;
                 } else {
                     fail("There can be no more than one developer user!");

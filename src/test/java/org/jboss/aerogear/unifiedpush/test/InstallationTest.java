@@ -48,8 +48,8 @@ import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.arquillian.junit.ArquillianRule;
-import org.jboss.arquillian.junit.ArquillianRules;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -66,6 +66,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+// TODO all tests except 'testRegisterSimplePushInstallationWithoutEndpoint' are failing because of AGPUSH-680
 @RunWith(ArquillianRules.class)
 public class InstallationTest {
 
@@ -101,7 +102,13 @@ public class InstallationTest {
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
     }
 
-    @Deployment(testable = false)
+    @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createAuthServerDeployment() {
+        return Deployments.authServer();
+    }
+
+    @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();

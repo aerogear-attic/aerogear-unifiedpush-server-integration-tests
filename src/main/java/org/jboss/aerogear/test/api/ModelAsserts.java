@@ -25,6 +25,7 @@ import org.jboss.aerogear.test.model.SimplePushVariant;
 import org.jboss.aerogear.test.model.iOSVariant;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 // FIXME everything here should be in "equals" methods in actual models
 public class ModelAsserts {
@@ -77,6 +78,8 @@ public class ModelAsserts {
         assertEquals(expected.getVariantID(), actual.getVariantID());
         assertEquals(expected.getSecret(), actual.getSecret());
         assertEquals(expected.getDeveloper(), actual.getDeveloper());
+        // FIXME add to unit tests as rest api does no longer show the current passphrase
+        // assertEquals(expected.getPassphrase(), actual.getPassphrase());
     }
 
     public static void assertModelsEqual(PushApplication expected, PushApplication actual) {

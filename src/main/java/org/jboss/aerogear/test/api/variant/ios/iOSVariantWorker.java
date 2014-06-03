@@ -66,7 +66,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
             iOSVariantBlueprint> blueprints) {
         List<iOSVariantEditor> editors = new ArrayList<iOSVariantEditor>();
         for (iOSVariantBlueprint blueprint : blueprints) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(ContentTypes.multipartFormData())
                     .header(Headers.acceptJson())
                     .multiPart("certificate", "certificate.p12", blueprint.getCertificate(), ContentTypes.octetStream())
@@ -85,7 +85,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
 
     @Override
     public List<iOSVariantEditor> readAll(iOSVariantContext context) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/iOS", context.getParent().getPushApplicationID());
@@ -110,7 +110,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
 
     @Override
     public iOSVariantEditor read(iOSVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/iOS/{variantID}",
@@ -124,7 +124,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     @Override
     public void update(iOSVariantContext context, Collection<? extends iOSVariant> entities) {
         for (iOSVariant entity : entities) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(ContentTypes.multipartFormData())
                     .header(Headers.acceptJson())
                     .multiPart("certificate", "certificate.p12", entity.getCertificate(), ContentTypes.octetStream())
@@ -143,7 +143,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
 
     public void updatePatch(iOSVariantContext context, Collection<? extends iOSVariant> entities) {
         for (iOSVariant entity : entities) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
@@ -156,7 +156,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
 
     @Override
     public void deleteById(iOSVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/iOS/{variantID}",
@@ -167,7 +167,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
 
     @Override
     public void resetSecret(iOSVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .body("[]")

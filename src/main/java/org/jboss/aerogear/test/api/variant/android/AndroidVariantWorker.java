@@ -60,7 +60,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
             AndroidVariantBlueprint> blueprints) {
         List<AndroidVariantEditor> editors = new ArrayList<AndroidVariantEditor>();
         for (AndroidVariantBlueprint blueprint : blueprints) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(blueprint))
@@ -75,7 +75,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
 
     @Override
     public List<AndroidVariantEditor> readAll(AndroidVariantContext context) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/android", context.getParent().getPushApplicationID());
@@ -100,7 +100,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
 
     @Override
     public AndroidVariantEditor read(AndroidVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/android/{variantID}",
@@ -114,7 +114,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
     @Override
     public void update(AndroidVariantContext context, Collection<? extends AndroidVariant> entities) {
         for (AndroidVariant entity : entities) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
@@ -129,7 +129,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
 
     @Override
     public void deleteById(AndroidVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/android/{variantID}",
@@ -140,7 +140,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
 
     @Override
     public void resetSecret(AndroidVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .body("[]")

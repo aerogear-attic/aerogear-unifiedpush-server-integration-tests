@@ -16,16 +16,17 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.security;
 
-import java.net.URL;
-
-import org.arquillian.extension.smarturl.SchemeName;
-import org.arquillian.extension.smarturl.UriScheme;
+import com.jayway.restassured.RestAssured;
+import org.jboss.aerogear.arquillian.test.smarturl.SchemeName;
+import org.jboss.aerogear.arquillian.test.smarturl.UriScheme;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
-import com.jayway.restassured.RestAssured;
+import java.net.URL;
 
+@Ignore
 public class SecureAuthenticationEndpointTest extends AuthenticationEndpointTest {
 
     @ArquillianResource

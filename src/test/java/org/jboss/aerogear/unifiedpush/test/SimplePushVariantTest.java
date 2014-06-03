@@ -35,8 +35,8 @@ import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.arquillian.junit.ArquillianRule;
-import org.jboss.arquillian.junit.ArquillianRules;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -97,7 +97,13 @@ public class SimplePushVariantTest {
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
     }
 
-    @Deployment(testable = false)
+    @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createAuthServerDeployment() {
+        return Deployments.authServer();
+    }
+
+    @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();

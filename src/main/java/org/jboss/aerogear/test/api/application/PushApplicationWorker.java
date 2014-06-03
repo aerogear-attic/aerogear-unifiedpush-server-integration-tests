@@ -54,11 +54,13 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
             PushApplicationBlueprint> pushApplications) {
         List<PushApplicationEditor> registeredApplications = new ArrayList<PushApplicationEditor>();
         for (PushApplication pushApplication : pushApplications) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(contentType)
                     .header(Headers.acceptJson())
                     .body(marshall(pushApplication))
                     .post("/rest/applications");
+
+            response.then().log().all();
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
@@ -70,10 +72,12 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     @Override
     public List<PushApplicationEditor> readAll(PushApplicationContext context) {
 
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .get("/rest/applications");
+
+        response.then().log().all();
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
@@ -97,7 +101,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
 
     @Override
     public PushApplicationEditor read(PushApplicationContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}", id);
@@ -110,7 +114,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     @Override
     public void update(PushApplicationContext context, Collection<? extends PushApplication> pushApplications) {
         for (PushApplication pushApplication : pushApplications) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(contentType)
                     .header(Headers.acceptJson())
                     .body(marshall(pushApplication))
@@ -124,7 +128,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
 
     @Override
     public void deleteById(PushApplicationContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}", id);
@@ -133,7 +137,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     }
 
     public void resetMasterSecret(PushApplicationContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(contentType)
                 .header(Headers.acceptJson())
                 .body("[]")

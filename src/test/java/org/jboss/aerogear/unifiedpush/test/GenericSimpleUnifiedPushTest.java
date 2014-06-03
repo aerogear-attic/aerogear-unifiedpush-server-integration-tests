@@ -15,10 +15,16 @@ public abstract class GenericSimpleUnifiedPushTest {
     @ArquillianResource
     protected URL root;
 
-    @Deployment(testable = false)
+    @Deployment(name = Deployments.AG_PUSH, testable = false)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.AUTH_SERVER, testable = false)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createAuthServerDeployment() {
+        return Deployments.authServer();
     }
 
     protected abstract String getContextRoot();

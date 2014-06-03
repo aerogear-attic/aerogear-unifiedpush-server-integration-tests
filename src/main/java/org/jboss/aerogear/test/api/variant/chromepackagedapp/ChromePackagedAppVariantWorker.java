@@ -66,7 +66,7 @@ public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackaged
             ChromePackagedAppVariantBlueprint> blueprints) {
         List<ChromePackagedAppVariantEditor> editors = new ArrayList<ChromePackagedAppVariantEditor>();
         for (ChromePackagedAppVariantBlueprint blueprint : blueprints) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(blueprint))
@@ -81,7 +81,7 @@ public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackaged
 
     @Override
     public List<ChromePackagedAppVariantEditor> readAll(ChromePackagedAppVariantContext context) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/chrome", context.getParent().getPushApplicationID());
@@ -106,7 +106,7 @@ public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackaged
 
     @Override
     public ChromePackagedAppVariantEditor read(ChromePackagedAppVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/chrome/{variantID}",
@@ -121,7 +121,7 @@ public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackaged
     public void update(ChromePackagedAppVariantContext context,
                        Collection<? extends ChromePackagedAppVariant> entities) {
         for (ChromePackagedAppVariant entity : entities) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
@@ -136,7 +136,7 @@ public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackaged
 
     @Override
     public void deleteById(ChromePackagedAppVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/chrome/{variantID}",
@@ -147,7 +147,7 @@ public class ChromePackagedAppVariantWorker extends VariantWorker<ChromePackaged
 
     @Override
     public void resetSecret(ChromePackagedAppVariantContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .body("[]")

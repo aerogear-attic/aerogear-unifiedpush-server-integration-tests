@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+// FIXME remove because of keycloak?
 public class UserWorker extends AbstractUPSWorker<Developer, String, UserBlueprint, UserEditor, Void,
         UserContext, UserWorker> {
 
@@ -65,7 +66,7 @@ public class UserWorker extends AbstractUPSWorker<Developer, String, UserBluepri
             // we need to add password here, because it has to be only present in enrollment
             marshalledBlueprint.put("password", blueprint.getPassword());
 
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshalledBlueprint)
@@ -81,7 +82,7 @@ public class UserWorker extends AbstractUPSWorker<Developer, String, UserBluepri
 
     @Override
     public List<UserEditor> readAll(UserContext context) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/users");
@@ -106,7 +107,7 @@ public class UserWorker extends AbstractUPSWorker<Developer, String, UserBluepri
 
     @Override
     public UserEditor read(UserContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/users/{id}", id);
@@ -119,7 +120,7 @@ public class UserWorker extends AbstractUPSWorker<Developer, String, UserBluepri
     @Override
     public void update(UserContext context, Collection<? extends Developer> developers) {
         for (Developer developer : developers) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(developer))
@@ -131,7 +132,7 @@ public class UserWorker extends AbstractUPSWorker<Developer, String, UserBluepri
 
     @Override
     public void deleteById(UserContext context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .delete("/rest/users/{id}", id);

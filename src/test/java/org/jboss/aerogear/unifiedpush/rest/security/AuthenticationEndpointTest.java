@@ -30,9 +30,12 @@ import org.jboss.aerogear.unifiedpush.utils.AuthenticationUtils;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Session;
 import org.jboss.arquillian.junit.InSequence;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+// Ignored because this is now a Keycloak functionality (FIXME or is it?)
+@Ignore
 public class AuthenticationEndpointTest extends GenericSimpleUnifiedPushTest {
 
     private static Session session;

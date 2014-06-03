@@ -101,7 +101,7 @@ public abstract class InstallationWorker<
 
     @Override
     public List<EDITOR> readAll(CONTEXT context) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations", context.getParent().getVariantID());
@@ -126,7 +126,7 @@ public abstract class InstallationWorker<
 
     @Override
     public EDITOR read(CONTEXT context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations/{installationID}",
@@ -140,7 +140,7 @@ public abstract class InstallationWorker<
     @Override
     public void update(CONTEXT context, Collection<? extends InstallationImpl> entities) {
         for (InstallationImpl entity : entities) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
@@ -155,7 +155,7 @@ public abstract class InstallationWorker<
 
     @Override
     public void deleteById(CONTEXT context, String id) {
-        Response response = context.getSession().given()
+        Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .delete("/rest/applications/{variantID}/installations/{installationID}",

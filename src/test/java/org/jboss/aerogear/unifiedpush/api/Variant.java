@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,24 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.utils;
+package org.jboss.aerogear.unifiedpush.api;
 
 /**
- * FIXME This class should be removed. No hardcoded references should be used.
+ * Interface for our GCMForChromePushNotificationSender to compile
  */
-public final class Constants {
-
-    private Constants() {
-    }
-
-    public final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12";
-    public final static String IOS_CERTIFICATE_PASSPHRASE = "aerogear";
-
-    public static final String KEYSTORE_PATH = "setup/aerogear.keystore";
-
-    public static final String KEYSTORE_PASSWORD = "aerogear";
-
-    public static final int SOCKET_SERVER_PORT = 8081;
-
-
+public abstract class Variant {
 }
