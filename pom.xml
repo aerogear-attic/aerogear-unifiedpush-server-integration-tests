@@ -404,6 +404,28 @@
             </build>
         </profile>
 
+        <profile>
+            <id>db2-10</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <database.name>db2-10</database.name>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <reportNameSuffix>${database.name}</reportNameSuffix>
+                            <reportsDirectory>${project.basedir}/reports/${database.name}</reportsDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- This profile enrich test execution with code coverage. It must be used together with another non-domain container profile -->
         <profile>
             <id>code-coverage</id>
