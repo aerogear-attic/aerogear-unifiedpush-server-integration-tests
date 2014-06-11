@@ -15,6 +15,7 @@ DOWNLOAD_URL="http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-a
 JBOSS_ZIP="$BASE_DIR/jboss-as-7.1.1.Final.zip"
 JBOSS_HOME="$BASE_DIR/jboss-as-7.1.1.Final"
 AG_UPS_REPO="$BASE_DIR/aerogear-unifiedpush-server"
+AG_PUSH_COMMIT="a17360ec7bf274f25ef36412cc4d8c34a5438648"
 
 function cloneRepository() {
 
@@ -27,9 +28,9 @@ function cloneRepository() {
 
     # We are cloning 0.10.2
     if [ ! -d "$AG_UPS_REPO" ]; then
-        git clone -q https://github.com/TadeasKriz/aerogear-unifiedpush-server.git $AG_UPS_REPO
+        git clone -q https://github.com/aerogear/aerogear-unifiedpush-server.git $AG_UPS_REPO
         cd $AG_UPS_REPO
-        git checkout code-coverage
+        git checkout $AG_PUSH_COMMIT
         cd ..
     fi
 }
