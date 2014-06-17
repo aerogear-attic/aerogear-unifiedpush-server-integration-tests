@@ -23,18 +23,13 @@ package org.jboss.aerogear.unifiedpush.api;
 import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.VariantType;
 
-import javax.validation.constraints.NotNull;
-
 public class ChromePackagedAppVariant extends AbstractVariant {
     private static final long serialVersionUID = -5473752252296190311L;
 
-    @NotNull
     private String clientId;
 
-    @NotNull
     private String clientSecret;
 
-    @NotNull
     private String refreshToken;
 
     /**
