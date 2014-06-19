@@ -166,6 +166,7 @@ public class PushApplicationTest {
         assertThat(changedApplication.getPushApplicationID(), is(application.getPushApplicationID()));
         assertThat(changedApplication.getMasterSecret(), is(not(application.getMasterSecret())));
 
+        ups.with(PushApplicationWorker.worker()).removeById(application.getPushApplicationID());
     }
 
     @Test
