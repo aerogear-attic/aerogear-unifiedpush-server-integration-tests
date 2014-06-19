@@ -297,12 +297,12 @@
             </dependencies>
 
             <build>
-                <!-- AS 7 is extracted using before the test -->
                 <plugins>
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
+                                <ups.initPerSession>true</ups.initPerSession>
                                 <arquillian.xml>arquillian-domain.xml</arquillian.xml>
                             </systemPropertyVariables>
                         </configuration>
@@ -329,10 +329,6 @@
                     <scope>test</scope>
                 </dependency>
             </dependencies>
-
-            <build>
-                <!-- JBoss EAP 6.0.1 is not hosted in any Maven repository, you have to unpack it manually -->
-            </build>
         </profile>
 
         <profile>
@@ -355,6 +351,10 @@
 
         <profile>
             <id>test-local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
             <properties>
                 <ups.source>local</ups.source>
             </properties>

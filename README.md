@@ -34,10 +34,12 @@ The integration tests execution is done through Maven. Navigate to the project's
 
     mvn test
 
-If you want to execute tests using domain mode, just run
+If you want to execute tests using domain mode, just run:
 
     mvn test -Pas711-domain-managed
     
+Profile will automatically activate different arquillian.xml and data initialization per session.
+
 Note, if you need to run tests against different directory, just specify following:
 
     mvn test -Dunified.push.server.location=/path/to/pom.xml/that/should/be/build/instead
