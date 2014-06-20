@@ -60,8 +60,6 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
                     .body(marshall(pushApplication))
                     .post("/rest/applications");
 
-            response.then().log().all();
-
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
             registeredApplications.add(demarshall(context, response.jsonPath()));
@@ -76,8 +74,6 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
                 .get("/rest/applications");
-
-        response.then().log().all();
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 

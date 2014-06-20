@@ -61,7 +61,7 @@ public class Session {
         RestAssured.basePath = basePath;
 
         return RestAssured
-                .given().log().all()
+                .given()
                 .redirects().follow(false)
                 .cookies(cookies);
     }
