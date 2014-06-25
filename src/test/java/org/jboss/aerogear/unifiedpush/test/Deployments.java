@@ -30,6 +30,7 @@ import com.notnoop.apns.EnhancedApnsNotification;
 import com.notnoop.apns.PayloadBuilder;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 import com.notnoop.exceptions.NetworkIOException;
+
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
 import org.arquillian.spacelift.process.impl.CommandTool;
@@ -77,9 +78,12 @@ public final class Deployments {
     private static final String PROPERTY_UPS_VERSION = "ups.version";
     private static final String PROPERTY_UPS_REMOTE_URL = "ups.remote.url";
     private static final String PROPERTY_UPS_LOCAL_POM = "ups.local.pom";
+    private static final String PROPERTY_UPS_ARCHIVE_SERVER_PATH = "ups.server.archive.path";
+    private static final String PROPERTY_UPS_ARCHIVE_AUTH_PATH = "ups.auth.archive.path";
 
     private static final String UPS_SOURCE_REMOTE = "remote";
     private static final String UPS_SOURCE_LOCAL = "local";
+    private static final String UPS_SOURCE_ARCHIVE = "archive";
 
     private static final String UPS_MINIMUM_VERSION = "[0.10.0,)";
 
@@ -94,8 +98,8 @@ public final class Deployments {
     }
 
     /**
-     * Gets WebArchive of Unified Push Server with replaced persistence.xml files. The source of the server can be
-     * configured and defaults to release.
+     * Gets WebArchive of Unified Push Server with replaced persistence.xml files. The source of the server can be configured
+     * and defaults to release.
      */
     public static WebArchive unifiedPushServer() {
         String upsSource = getUpsSource();
@@ -105,6 +109,8 @@ public final class Deployments {
             war = remoteUnifiedPushServer();
         } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_LOCAL)) {
             war = localUnfiedPushServer();
+        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_ARCHIVE)) {
+            war = archiveUnifiedPushServer();
         } else {
             throw new IllegalArgumentException("Unsupported source of Unified Push Server WAR: " + upsSource + "!");
         }
@@ -125,8 +131,8 @@ public final class Deployments {
     }
 
     /**
-     * Gets WebArchive of Unified Push Server with replaced persistence.xml files, custom sender libraries (GCM
-     * and APNS) and bundled SenderStatisticsEndpoint for Message testing.
+     * Gets WebArchive of Unified Push Server with replaced persistence.xml files, custom sender libraries (GCM and APNS) and
+     * bundled SenderStatisticsEndpoint for Message testing.
      *
      * @see Deployments#unifiedPushServer()
      */
@@ -137,7 +143,7 @@ public final class Deployments {
             @Override
             public boolean include(ArchivePath path) {
                 return (path.get().startsWith("/WEB-INF/lib/apns") ||
-                        path.get().startsWith("/WEB-INF/lib/gcm-server")) && path.get().endsWith(".jar");
+                    path.get().startsWith("/WEB-INF/lib/gcm-server")) && path.get().endsWith(".jar");
 
             }
         });
@@ -147,22 +153,22 @@ public final class Deployments {
         }
 
         war.addClasses(SenderStatisticsEndpoint.class, SenderStatistics.class,
-                GCMForChromePushNotificationSender.class);
+            GCMForChromePushNotificationSender.class);
 
         JavaArchive gcmJar = ShrinkWrap.create(JavaArchive.class, "gcm-server.jar").addClasses(Result.class,
-                Message.class, MulticastResult.class, Message.class, Sender.class);
+            Message.class, MulticastResult.class, Message.class, Sender.class);
         JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns.jar").addClasses(NetworkIOException.class,
-                ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
-                Constants.class, ApnsNotification.class, EnhancedApnsNotification.class, ApnsDelegateAdapter.class,
-                ApnsDelegate.class
-        );
+            ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
+            Constants.class, ApnsNotification.class, EnhancedApnsNotification.class, ApnsDelegateAdapter.class,
+            ApnsDelegate.class
+            );
         war.addAsLibraries(gcmJar, apnsJar);
 
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 
         // here we resolve mockito transitively, other artifact without transitivity
         File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
-                .withoutTransitivity().asFile();
+            .withoutTransitivity().asFile();
         war.addAsLibraries(libs);
         libs = resolver.resolve("org.mockito:mockito-core").withTransitivity().asFile();
         war = war.addAsLibraries(libs);
@@ -171,8 +177,8 @@ public final class Deployments {
     }
 
     /**
-     * Removes original persistence.xml files from unfiedpush-model-jpa JAR and from the war and replaces them with
-     * custom ones. This way we change what kind of storage is used.
+     * Removes original persistence.xml files from unfiedpush-model-jpa JAR and from the war and replaces them with custom ones.
+     * This way we change what kind of storage is used.
      *
      * @param war WebArchive to be modified.
      */
@@ -189,13 +195,13 @@ public final class Deployments {
             jpaModel.addAsResource("META-INF/persistence-model-jpa.xml", "META-INF/persistence.xml");
         }
 
-        //war.delete("/WEB-INF/classes/META-INF/persistence.xml");
-        //war.addAsResource("META-INF/persistence-auth-server.xml", "META-INF/persistence.xml");
+        // war.delete("/WEB-INF/classes/META-INF/persistence.xml");
+        // war.addAsResource("META-INF/persistence-auth-server.xml", "META-INF/persistence.xml");
     }
 
     /**
-     * Removes original persistence.xml files from unfiedpush-model-jpa JAR and from the war and replaces them with
-     * custom ones. This way we change what kind of storage is used.
+     * Removes original persistence.xml files from unfiedpush-model-jpa JAR and from the war and replaces them with custom ones.
+     * This way we change what kind of storage is used.
      *
      * @param war WebArchive to be modified.
      */
@@ -207,27 +213,35 @@ public final class Deployments {
     }
 
     /**
-     * Gets Unified Push Server from remote repository. If no version has been specified,
-     * latest version in repository will be used.
+     * 
+     * @return ups server as already built distribution war file
+     */
+    private static WebArchive archiveUnifiedPushServer() {
+        return ShrinkWrap.createFromZipFile(WebArchive.class, getUpsArchiveServer());
+    }
+
+    /**
+     * Gets Unified Push Server from remote repository. If no version has been specified, latest version in repository will be
+     * used.
      */
     private static WebArchive remoteUnifiedPushServer() {
         final String upsCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server:war:%s";
 
         ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
-                .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("remote_ups", getUpsRemoteUrl(),
-                        "default"))
-                .withMavenCentralRepo(false);
+            .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("remote_ups", getUpsRemoteUrl(),
+                "default"))
+            .withMavenCentralRepo(false);
 
         MavenCoordinate upsCoordinate;
         String upsVersion = System.getProperty(PROPERTY_UPS_VERSION);
         if (upsVersion == null || upsVersion.length() == 0) {
             upsCoordinate = resolver
-                    .resolveVersionRange(String.format(upsCanonicalCoordinate, UPS_MINIMUM_VERSION))
-                    .getHighestVersion();
+                .resolveVersionRange(String.format(upsCanonicalCoordinate, UPS_MINIMUM_VERSION))
+                .getHighestVersion();
 
             LOGGER.log(Level.INFO, "Unified Push Server version not specified. Using repository''s latest version " +
-                    "\"{0}\". You can override it by -D{1}", new Object[] { upsCoordinate.getVersion(),
-                    PROPERTY_UPS_VERSION });
+                "\"{0}\". You can override it by -D{1}", new Object[] { upsCoordinate.getVersion(),
+                PROPERTY_UPS_VERSION });
         } else {
             upsCoordinate = MavenCoordinates.createCoordinate(String.format(upsCanonicalCoordinate, upsVersion));
         }
@@ -235,9 +249,9 @@ public final class Deployments {
         LOGGER.log(Level.INFO, "Resolving UnifiedPush Server using coordinates: {0}", upsCoordinate.toCanonicalForm());
 
         File warFile = resolver
-                .resolve(upsCoordinate.toCanonicalForm())
-                .withoutTransitivity()
-                .asSingleFile();
+            .resolve(upsCoordinate.toCanonicalForm())
+            .withoutTransitivity()
+            .asSingleFile();
 
         // https://issues.jboss.org/browse/WFK2-61
         return ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(warFile).as(WebArchive.class);
@@ -252,10 +266,9 @@ public final class Deployments {
         File[] serverWarFiles = getUpsServerWarFiles();
         if (serverWarFiles.length == 0) {
             throw new IllegalStateException("No war file found in directory '" +
-                    getUpsServerTargetDirectory().getAbsolutePath() + "'. Please check that 'mvn clean package' " +
-                    "inside the ups server directory will result in creation of .war file.");
+                getUpsServerTargetDirectory().getAbsolutePath() + "'. Please check that 'mvn clean package' " +
+                "inside the ups server directory will result in creation of .war file.");
         }
-
 
         return ShrinkWrap.create(ZipImporter.class, "ag-push.war").importFrom(serverWarFiles[0]).as(WebArchive.class);
     }
@@ -267,6 +280,8 @@ public final class Deployments {
             war = remoteAuthServer();
         } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_LOCAL)) {
             war = localAuthServer();
+        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_ARCHIVE)) {
+            war = archiveAuthServer();
         } else {
             throw new IllegalArgumentException("Unsupported source of Unified Push Server WAR: " + upsSource + "!");
         }
@@ -307,8 +322,8 @@ public final class Deployments {
         JSONArray scopeMappings = config.optJSONArray("scopeMappings");
 
         JSONObject integrationTestsScopeMapping = new JSONObject()
-                .put("client", "integration-tests")
-                .put("roles", new String[] { "user", "admin" });
+            .put("client", "integration-tests")
+            .put("roles", new String[] { "user", "admin" });
 
         scopeMappings.put(integrationTestsScopeMapping);
 
@@ -319,10 +334,10 @@ public final class Deployments {
         JSONArray oauthClients = config.optJSONArray("oauthClients");
 
         JSONObject integrationTestsClient = new JSONObject()
-                .put("name", "integration-tests")
-                .put("enabled", true)
-                .put("publicClient", true)
-                .put("directGrantsOnly", true);
+            .put("name", "integration-tests")
+            .put("enabled", true)
+            .put("publicClient", true)
+            .put("directGrantsOnly", true);
 
         oauthClients.put(integrationTestsClient);
 
@@ -341,39 +356,45 @@ public final class Deployments {
         File[] authServerWarFiles = getAuthServerWarFiles();
         if (authServerWarFiles.length == 0) {
             throw new IllegalStateException("No war file found in directory '" + getAuthServerTargetDirectory()
-                    .getAbsolutePath() + "'. Please check that 'mvn clean package' inside the ups auth-server " +
-                    "directory will result in creation of .war file.");
+                .getAbsolutePath() + "'. Please check that 'mvn clean package' inside the ups auth-server " +
+                "directory will result in creation of .war file.");
         }
 
         return ShrinkWrap.create(ZipImporter.class, "auth-server.war").importFrom(authServerWarFiles[0])
-                .as(WebArchive.class);
+            .as(WebArchive.class);
     }
 
+    /**
+     * 
+     * @return ups auth server as already built distribution war file
+     */
+    private static WebArchive archiveAuthServer() {
+        return ShrinkWrap.createFromZipFile(WebArchive.class, getUpsArchiveAuth()); 
+    }
+    
     private static void buildLocalServerIfNeeded() {
         if (!mavenBuildInvoked.get()) {
             LOGGER.log(Level.INFO, "Building UnifiedPush Server from sources at: {0}",
-                    getUpsParentDirectory().getAbsolutePath());
+                getUpsParentDirectory().getAbsolutePath());
 
             try {
                 Tasks.prepare(CommandTool.class)
-                        .workingDir(getUpsParentDirectory().getAbsolutePath())
-                        .programName("mvn")
-                        .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
-                                getActiveProfilesAsMavenParameter())
-                        .execute()
-                        .await();
+                    .workingDir(getUpsParentDirectory().getAbsolutePath())
+                    .programName("mvn")
+                    .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
+                        getActiveProfilesAsMavenParameter())
+                    .execute()
+                    .await();
             } catch (ExecutionException e) {
                 LOGGER.log(Level.WARNING, "Could not package UnifiedPush Server WAR. It is possible that you do not " +
-                        "have Maven on PATH. Assuming you did compile UnifiedPush yourself and resuming tests.", e);
+                    "have Maven on PATH. Assuming you did compile UnifiedPush yourself and resuming tests.", e);
             }
             mavenBuildInvoked.set(true);
         }
     }
 
     /**
-     * Returns an array of profile names for maven build. This is currently only to pass in code-coverage profile
-     * for
-     * ups build.
+     * Returns an array of profile names for maven build. This is currently only to pass in code-coverage profile for ups build.
      */
     private static String[] getActiveProfiles() {
         List<String> activeProfiles = new ArrayList<String>();
@@ -404,7 +425,7 @@ public final class Deployments {
             // FIXME what should be the default behavior?
             upsSource = UPS_SOURCE_DEFAULT;
             LOGGER.log(Level.INFO, "Unified Push Server WAR source not specified. Using default source \"{0}\". You " +
-                    "can override it by -D{1}", new Object[] { upsSource, PROPERTY_UPS_SOURCE });
+                "can override it by -D{1}", new Object[] { upsSource, PROPERTY_UPS_SOURCE });
         }
         return upsSource;
     }
@@ -414,7 +435,7 @@ public final class Deployments {
         if (remoteRepository == null || remoteRepository.length() == 0) {
             remoteRepository = UPS_REMOTE_URL_DEFAULT;
             LOGGER.log(Level.INFO, "Unified Push Server remote repository url not specified. Using default \"{0}\". " +
-                    "You can override it by -D{1}", new Object[] { remoteRepository, PROPERTY_UPS_REMOTE_URL });
+                "You can override it by -D{1}", new Object[] { remoteRepository, PROPERTY_UPS_REMOTE_URL });
         }
         return remoteRepository;
     }
@@ -460,6 +481,26 @@ public final class Deployments {
                 return pathname.getName().endsWith(".war") && pathname.isFile() && pathname.canRead();
             }
         });
+    }
+
+    private static File getUpsArchiveServer() {
+        String upsArchiveServerPath = System.getProperty(PROPERTY_UPS_ARCHIVE_SERVER_PATH);
+
+        if (upsArchiveServerPath == null || upsArchiveServerPath.isEmpty()) {
+            throw new IllegalStateException("ups.server.archive.path is null or empty string");
+        }
+
+        return new File(upsArchiveServerPath);
+    }
+
+    private static File getUpsArchiveAuth() {
+        String upsArchiveAuthPath = System.getProperty(PROPERTY_UPS_ARCHIVE_AUTH_PATH);
+
+        if (upsArchiveAuthPath == null || upsArchiveAuthPath.isEmpty()) {
+            throw new IllegalStateException("ups.auth.archive.path is null object or empty string.");
+        }
+
+        return new File(upsArchiveAuthPath);
     }
 
     /**

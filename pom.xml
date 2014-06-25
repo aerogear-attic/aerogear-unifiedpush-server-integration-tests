@@ -402,6 +402,13 @@
         </profile>
 
         <profile>
+            <id>test-archive</id>
+            <properties>
+                <ups.source>archive</ups.source>
+            </properties>
+        </profile>
+
+        <profile>
             <id>mysql55</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
