@@ -337,7 +337,8 @@ public final class Deployments {
             .put("name", "integration-tests")
             .put("enabled", true)
             .put("publicClient", true)
-            .put("directGrantsOnly", true);
+            .put("directGrantsOnly", true)
+            .put("claims", new JSONObject().put("username", true));
 
         oauthClients.put(integrationTestsClient);
 
