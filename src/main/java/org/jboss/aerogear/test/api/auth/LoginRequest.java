@@ -64,7 +64,6 @@ public class LoginRequest extends AbstractAuthRequest<LoginRequest> {
             try {
                 AccessTokenResponse tokenResponse =
                         JsonSerialization.readValue(response.asString(), AccessTokenResponse.class);
-                response.prettyPrint();
 
                 return new Session(getUnifiedPushServerUrl(), tokenResponse);
                 // FIXME handle the possible io exception!

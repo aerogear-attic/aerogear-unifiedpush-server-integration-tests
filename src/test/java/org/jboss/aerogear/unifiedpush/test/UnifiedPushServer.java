@@ -195,14 +195,6 @@ public abstract class UnifiedPushServer implements MethodRule {
     protected List<Session> initializeSessions(String username, String oldPassword,
                                                String newPassword) throws Exception {
 
-        if (!"".equals("")) {
-            try {
-                Thread.sleep(1000000000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         List<Session> sessions = new ArrayList<Session>();
 
         // check all fields that are injecting URL via ArquillianResource

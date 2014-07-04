@@ -149,6 +149,7 @@
             <groupId>com.notnoop.apns</groupId>
             <artifactId>apns</artifactId>
             <version>${notnoop.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.jackson</groupId>

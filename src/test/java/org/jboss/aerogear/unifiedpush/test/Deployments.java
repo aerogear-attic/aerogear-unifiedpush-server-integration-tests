@@ -142,8 +142,7 @@ public final class Deployments {
         Map<ArchivePath, Node> librariesToRemove = war.getContent(new Filter<ArchivePath>() {
             @Override
             public boolean include(ArchivePath path) {
-                return (path.get().startsWith("/WEB-INF/lib/apns") ||
-                    path.get().startsWith("/WEB-INF/lib/gcm-server")) && path.get().endsWith(".jar");
+                return path.get().startsWith("/WEB-INF/lib/gcm-server") && path.get().endsWith(".jar");
 
             }
         });
@@ -157,12 +156,22 @@ public final class Deployments {
 
         JavaArchive gcmJar = ShrinkWrap.create(JavaArchive.class, "gcm-server.jar").addClasses(Result.class,
             Message.class, MulticastResult.class, Message.class, Sender.class);
-        JavaArchive apnsJar = ShrinkWrap.create(JavaArchive.class, "apns.jar").addClasses(NetworkIOException.class,
-            ApnsService.class, ApnsServiceImpl.class, ApnsServiceBuilder.class, PayloadBuilder.class, APNS.class,
-            Constants.class, ApnsNotification.class, EnhancedApnsNotification.class, ApnsDelegateAdapter.class,
-            ApnsDelegate.class
-            );
-        war.addAsLibraries(gcmJar, apnsJar);
+        war.addAsLibraries(gcmJar);
+
+        Collection<JavaArchive> apnsLibs = war.getAsType(JavaArchive.class, new Filter<ArchivePath>() {
+            @Override
+            public boolean include(ArchivePath path) {
+                return path.get().startsWith("/WEB-INF/lib/apns") && path.get().endsWith(".jar");
+            }
+        });
+
+        for (JavaArchive apnsLib : apnsLibs) {
+            apnsLib.deleteClass(ApnsServiceImpl.class);
+            apnsLib.addClass(ApnsServiceImpl.class);
+        }
+
+        war.addPackage(Package.getPackage("org.json"));
+
 
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 

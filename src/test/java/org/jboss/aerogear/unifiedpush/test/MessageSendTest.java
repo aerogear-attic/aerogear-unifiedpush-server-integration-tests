@@ -56,6 +56,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -245,8 +246,9 @@ public class MessageSendTest {
         statistics = selectiveSendByAliasesWithAttributes(installations, attributes);
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
 
+        JSONObject apnsCustomFieldsJson = new JSONObject(statistics.apnsCustomFields);
         for (String key : attributes.keySet()) {
-            assertThat(statistics.apnsCustomFields, containsString(key + "=" + attributes.get(key)));
+            assertThat(apnsCustomFieldsJson.optString(key), is(attributes.get(key)));
         }
 
     }

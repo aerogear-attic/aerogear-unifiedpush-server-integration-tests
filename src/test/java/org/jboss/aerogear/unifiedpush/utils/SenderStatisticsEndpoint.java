@@ -54,7 +54,7 @@ public class SenderStatisticsEndpoint {
         senderStatistics.apnsAlert = ApnsServiceImpl.getAlert();
         senderStatistics.apnsBadge = ApnsServiceImpl.getBadge();
         senderStatistics.apnsSound = ApnsServiceImpl.getSound();
-        senderStatistics.apnsCustomFields = ApnsServiceImpl.getCustomFields();
+        senderStatistics.apnsCustomFields = ApnsServiceImpl.getCustomFields() != null ? ApnsServiceImpl.getCustomFields().toString() : null;
         senderStatistics.apnsExpiry = ApnsServiceImpl.getExpiry();
         senderStatistics.gcmForChromeAlert = GCMForChromePushNotificationSender.getAlert();
 

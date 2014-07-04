@@ -72,11 +72,6 @@ public class AndroidVariantTest {
     public CheckingExpectedException exception = new CheckingExpectedException() {
         @Override
         protected void afterExceptionAssert() {
-            List<AndroidVariant> variants = ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
-                    .findAll()
-                    .detachEntities();
-
-            assertThat(variants.size(), is(0));
         }
     };
 
@@ -139,17 +134,21 @@ public class AndroidVariantTest {
 
     @Test
     public void registerWithTooLongGoogleKey() {
+        PushApplication pushApplication = getRegisteredApplication();
+
         exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
 
-        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+        ups.with(AndroidVariantWorker.worker(), pushApplication)
                 .generate().googleKey(TOO_LONG_GOOGLE_KEY).persist();
     }
 
     @Test
     public void registerWithTooLongProjectNumber() {
+        PushApplication pushApplication = getRegisteredApplication();
+
         exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
 
-        ups.with(AndroidVariantWorker.worker(), getRegisteredApplication())
+        ups.with(AndroidVariantWorker.worker(), pushApplication)
                 .generate().projectNumber(TOO_LONG_PROJECT_NUMBER).persist();
     }
 

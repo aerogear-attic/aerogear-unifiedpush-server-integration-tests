@@ -15,7 +15,7 @@ DOWNLOAD_URL="http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-a
 JBOSS_ZIP="$BASE_DIR/jboss-as-7.1.1.Final.zip"
 JBOSS_HOME="$BASE_DIR/jboss-as-7.1.1.Final"
 AG_UPS_REPO="$BASE_DIR/aerogear-unifiedpush-server"
-AG_PUSH_COMMIT="d3b7898b3d5de87219606382906b19c3c433c868"
+AG_PUSH_COMMIT="c9d612eacf5342783e64c3336e8ae4db1510b23f"
 
 function cloneRepository() {
 

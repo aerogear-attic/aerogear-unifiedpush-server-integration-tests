@@ -30,8 +30,12 @@
  */
 package com.notnoop.apns.internal;
 
+import com.notnoop.apns.ApnsNotification;
 import com.notnoop.apns.ApnsService;
+import com.notnoop.apns.EnhancedApnsNotification;
+import com.notnoop.exceptions.NetworkIOException;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,9 +49,10 @@ import java.util.logging.Logger;
  * This class should be replaced by Byteman based bytecode manipulation
  */
 @Deprecated
-public class ApnsServiceImpl implements ApnsService {
+public class ApnsServiceImpl extends AbstractApnsService {
 
-    public ApnsServiceImpl() {
+    public ApnsServiceImpl(ApnsConnection connection, ApnsFeedbackConnection feedback) {
+        super(feedback);
     }
 
     private static Collection<String> tokensList = null;
@@ -58,10 +63,11 @@ public class ApnsServiceImpl implements ApnsService {
 
     private static int badge = -1;
 
-    private static String customFields;
+    private static JSONObject customFields;
 
     private static long expiry = -1;
 
+    @Override
     public Map<String, Date> getInactiveDevices() {
         final HashMap<String, Date> inactiveTokensHM = new HashMap<String, Date>();
 
@@ -75,74 +81,47 @@ public class ApnsServiceImpl implements ApnsService {
         return inactiveTokensHM;
     }
 
-    @SuppressWarnings("rawtypes")
-    public Collection push(Collection<String> tokens, String message, Date expiry) {
-        if (message != null) {
-            Map<String, String> parts = parseMessage(message);
+    @Override
+    public Collection<EnhancedApnsNotification> push(Collection<String> deviceTokens, String payload,
+                                                     Date expiry) throws NetworkIOException {
+        if (payload != null) {
+            JSONObject jsonPayload = new JSONObject(payload);
+            JSONObject aps = jsonPayload.getJSONObject("aps");
 
-            alert = parts.get("alert");
-            sound = parts.get("sound");
-            badge = parts.get("badge") != null ? Integer.parseInt(parts.get("badge")) : -1;
-            customFields = parts.get("customFields");
+            System.out.println("Payload JSON: " + jsonPayload.toString());
+            System.out.println("APS JSON: " + aps.toString());
+
+            alert = aps.optString("alert");
+            sound = aps.optString("sound");
+            badge = aps.optInt("badge", -1);
+
+            jsonPayload.remove("aps");
+            customFields = jsonPayload;
 
             ApnsServiceImpl.expiry = expiry.getTime();
         }
-        if (tokens != null) {
+        if (deviceTokens != null) {
             tokensList = new ArrayList<String>();
-            tokensList.addAll(tokens);
+            tokensList.addAll(deviceTokens);
         }
         return null;
     }
 
-    private Map<String, String> parseMessage(String message) {
-        Map<String, String> messageParts = new HashMap<String, String>();
-
-        int openBrackets = 0;
-        boolean key = true;
-        StringBuilder currentKey = new StringBuilder();
-        StringBuilder currentValue = new StringBuilder();
-        for (int i = 0; i < message.length(); i++) {
-            char c = message.charAt(i);
-
-            int backSlashes = 0;
-            int charIndex = i - 1;
-            while (charIndex > 0) {
-                char cc = message.charAt(charIndex--);
-                if (cc == '\\') {
-                    backSlashes++;
-                } else {
-                    break;
-                }
-            }
-            boolean isCharEscaped = backSlashes % 2 != 0;
-            if (c == ',' && openBrackets == 0 && !isCharEscaped) {
-                messageParts.put(currentKey.toString(), currentValue.toString());
-                currentKey = new StringBuilder();
-                currentValue = new StringBuilder();
-                key = true;
-            } else if (c == ':' && openBrackets == 0 && !isCharEscaped) {
-                key = false;
-            } else if (c == '{' && !isCharEscaped) {
-                openBrackets++;
-            } else if (c == '}' && !isCharEscaped) {
-                openBrackets--;
-            } else if (key) {
-                currentKey.append(c);
-            } else {
-                currentValue.append(c);
-            }
-        }
-        messageParts.put(currentKey.toString(), currentValue.toString());
-
-        return messageParts;
+    //@SuppressWarnings("rawtypes")
+    @Override
+    public void push(ApnsNotification notification) {
+        // Nothing to do here
     }
 
+    @Override
     public void start() {
     }
 
+    @Override
     public void stop() {
     }
 
+    @Override
     public void testConnection() {
 
     }
@@ -163,7 +142,7 @@ public class ApnsServiceImpl implements ApnsService {
         return badge;
     }
 
-    public static String getCustomFields() {
+    public static JSONObject getCustomFields() {
         return customFields;
     }
 

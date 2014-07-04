@@ -69,11 +69,6 @@ public class iOSVariantTest {
     public CheckingExpectedException exception = new CheckingExpectedException() {
         @Override
         protected void afterExceptionAssert() {
-            List<iOSVariant> variants = ups.with(defaultWorker(), getRegisteredApplication())
-                    .findAll()
-                    .detachEntities();
-
-//            assertThat(variants.size(), is(0));
         }
     };
 
