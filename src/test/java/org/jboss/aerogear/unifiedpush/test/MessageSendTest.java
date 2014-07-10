@@ -16,6 +16,8 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
+import category.ChromePackagedApp;
+import category.SimplePush;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 import com.jayway.restassured.RestAssured;
@@ -28,18 +30,20 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
-import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.installation.InstallationWorker;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
-import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.sender.SenderRequest;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.test.api.sender.SenderStatisticsRequest;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
+import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
+import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.test.model.AbstractVariant;
 import org.jboss.aerogear.test.model.AndroidVariant;
@@ -53,14 +57,13 @@ import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.aerogear.arquillian.junit.ArquillianRule;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -70,11 +73,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
+import static org.jboss.aerogear.unifiedpush.utils.TestUtils.chromePackagedAppTestsEnabled;
+import static org.jboss.aerogear.unifiedpush.utils.TestUtils.simplePushTestsEnabled;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -97,6 +101,10 @@ public class MessageSendTest {
                     .generate().persist()
                     .detachEntity();
 
+            with(AndroidInstallationWorker.worker(), androidVariant)
+                    .generate(3).persist();
+
+
             iOSVariant iosVariant = with(
                     iOSVariantWorker.worker()
                             .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
@@ -105,27 +113,28 @@ public class MessageSendTest {
                     .generate().persist()
                     .detachEntity();
 
-            SimplePushVariant simplePushVariant = with(SimplePushVariantWorker.worker(), application)
-                    .generate().persist()
-                    .detachEntity();
-
-            ChromePackagedAppVariant chromePackagedAppVariant =
-                    with(ChromePackagedAppVariantWorker.worker(), application)
-                            .generate().persist()
-                            .detachEntity();
-
-            with(AndroidInstallationWorker.worker(), androidVariant)
-                    .generate(3).persist();
-
             with(iOSInstallationWorker.worker(), iosVariant)
                     .generate(3).persist();
 
-            with(SimplePushInstallationWorker.worker(), simplePushVariant)
-                    .generate(3).persist();
+            if (simplePushTestsEnabled()) {
+                SimplePushVariant simplePushVariant = with(SimplePushVariantWorker.worker(), application)
+                        .generate().persist()
+                        .detachEntity();
 
-            with(ChromePackagedAppInstallationWorker.worker(), chromePackagedAppVariant)
-                    .generate(3).persist();
+                with(SimplePushInstallationWorker.worker(), simplePushVariant)
+                        .generate(3).persist();
+            }
 
+            if (chromePackagedAppTestsEnabled()) {
+                ChromePackagedAppVariant chromePackagedAppVariant =
+                        with(ChromePackagedAppVariantWorker.worker(), application)
+                                .generate().persist()
+                                .detachEntity();
+
+                with(ChromePackagedAppInstallationWorker.worker(), chromePackagedAppVariant)
+                        .generate(3).persist();
+
+            }
             return this;
         }
     };
@@ -254,6 +263,7 @@ public class MessageSendTest {
     }
 
     //  This tests
+    @Category(SimplePush.class)
     @Test
     public void simplePushSelectiveSendByAliases() throws Exception {
         List<InstallationImpl> installations = ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant())
@@ -286,6 +296,7 @@ public class MessageSendTest {
         }
     }
 
+    @Category(ChromePackagedApp.class)
     @Test
     public void chromePackagedAppSelectiveSendByAliases() {
         List<InstallationImpl> installations = ups.with(ChromePackagedAppInstallationWorker.worker(),
@@ -309,18 +320,24 @@ public class MessageSendTest {
                 .detachEntity();
         commonAliasInstallations.add(iosInstallation);
 
-        InstallationImpl gcmForChromeInstallation = ups.with(ChromePackagedAppInstallationWorker.worker(),
-                getChromePackagedAppVariant())
-                .generate().alias(alias).persist()
-                .detachEntity();
-        commonAliasInstallations.add(gcmForChromeInstallation);
+        InstallationImpl gcmForChromeInstallation = null;
+        if (chromePackagedAppTestsEnabled()) {
+            gcmForChromeInstallation = ups.with(ChromePackagedAppInstallationWorker.worker(),
+                    getChromePackagedAppVariant())
+                    .generate().alias(alias).persist()
+                    .detachEntity();
+            commonAliasInstallations.add(gcmForChromeInstallation);
+        }
 
         List<InstallationImpl> simplePushInstallations = new ArrayList<InstallationImpl>();
-        InstallationImpl simplePushInstallation =
-                ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant())
-                        .generate().alias(alias).persist()
-                        .detachEntity();
-        simplePushInstallations.add(simplePushInstallation);
+        InstallationImpl simplePushInstallation = null;
+        if (simplePushTestsEnabled()) {
+            simplePushInstallation =
+                    ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant())
+                            .generate().alias(alias).persist()
+                            .detachEntity();
+            simplePushInstallations.add(simplePushInstallation);
+        }
 
         SimplePushServerSimulator simulator = SimplePushServerSimulator.create().start();
 
@@ -359,11 +376,19 @@ public class MessageSendTest {
         assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
         assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
-        assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
+        if(chromePackagedAppTestsEnabled()) {
+            assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
+        }
 
         ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
         ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
-        ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
+        if (chromePackagedAppTestsEnabled()) {
+            ups.with(ChromePackagedAppInstallationWorker.worker(), getChromePackagedAppVariant()).unregister
+                    (gcmForChromeInstallation);
+        }
+        if (simplePushTestsEnabled()) {
+            ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
+        }
     }
 
     @Test
@@ -457,11 +482,13 @@ public class MessageSendTest {
         commonAliasInstallations.add(iosInstallation);
 
         List<InstallationImpl> simplePushInstallations = new ArrayList<InstallationImpl>();
-        InstallationImpl simplePushInstallation =
-                ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant())
-                        .generate().categories(category).persist()
-                        .detachEntity();
-        simplePushInstallations.add(simplePushInstallation);
+        InstallationImpl simplePushInstallation = null;
+        if (simplePushTestsEnabled()) {
+            simplePushInstallation = ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant())
+                    .generate().categories(category).persist()
+                    .detachEntity();
+            simplePushInstallations.add(simplePushInstallation);
+        }
 
         SimplePushServerSimulator simulator = SimplePushServerSimulator.create().start();
 
@@ -503,7 +530,9 @@ public class MessageSendTest {
 
         ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
         ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
-        ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
+        if(simplePushTestsEnabled()) {
+            ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
+        }
     }
 
     @Test

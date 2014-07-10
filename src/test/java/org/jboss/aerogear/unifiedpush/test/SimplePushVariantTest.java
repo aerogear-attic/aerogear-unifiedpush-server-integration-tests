@@ -16,7 +16,7 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-
+import category.SimplePush;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
@@ -30,6 +30,7 @@ import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantContext;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.test.model.Variant;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
@@ -42,6 +43,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -50,9 +52,11 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
+@Category(SimplePush.class)
 public class SimplePushVariantTest {
 
     private static final String TOO_LONG_NAME = Helper.randomStringOfLength(256);
@@ -266,7 +270,7 @@ public class SimplePushVariantTest {
         // UPDATE
         ups.with(worker, application)
                 .edit(persistedVariant.getVariantID()).name("newname").description("newdescription").merge();
-        SimplePushVariant readVariant = ups.with(worker, application)
+        Variant readVariant = ups.with(worker, application)
                 .find(persistedVariant.getVariantID()).detachEntity();
 
         assertThat(readVariant.getName(), is("newname"));

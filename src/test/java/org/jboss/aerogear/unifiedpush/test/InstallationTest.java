@@ -16,6 +16,8 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
+import category.ChromePackagedApp;
+import category.SimplePush;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
@@ -55,6 +57,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -162,6 +165,7 @@ public class InstallationTest {
         performInstallationCRUD(iOSInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
     }
 
+    @Category(SimplePush.class)
     @Test
     public void testSimplePushInstallations() {
         SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
@@ -171,6 +175,7 @@ public class InstallationTest {
         performInstallationCRUD(SimplePushInstallationWorker.worker(), variant);
     }
 
+    @Category(SimplePush.class)
     @Test
     public void testSimplePushInstallationsUTF8() {
         SimplePushVariant variant = ups.with(
@@ -181,6 +186,7 @@ public class InstallationTest {
         performInstallationCRUD(SimplePushInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
     }
 
+    @Category(SimplePush.class)
     @Test
     public void testRegisterSimplePushInstallationWithoutEndpoint() {
         SimplePushVariant variant = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
@@ -191,6 +197,7 @@ public class InstallationTest {
         ups.with(SimplePushInstallationWorker.worker(), variant).generate().simplePushEndpoint(null).persist();
     }
 
+    @Category(ChromePackagedApp.class)
     @Test
     public void testChromePackagedAppInstallations() {
         ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
@@ -200,6 +207,7 @@ public class InstallationTest {
         performInstallationCRUD(ChromePackagedAppInstallationWorker.worker(), variant);
     }
 
+    @Category(ChromePackagedApp.class)
     @Test
     public void testChromePackagedAppInstallationsUTF8() {
         ChromePackagedAppVariant variant = ups.with(

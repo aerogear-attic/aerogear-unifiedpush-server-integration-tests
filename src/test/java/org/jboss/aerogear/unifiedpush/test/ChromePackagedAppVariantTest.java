@@ -16,7 +16,7 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-
+import category.ChromePackagedApp;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
@@ -41,6 +41,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -52,13 +53,13 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
+@Category(ChromePackagedApp.class)
 public class ChromePackagedAppVariantTest {
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
-
             PushApplication application = with(PushApplicationWorker.worker()).generate().persist().detachEntity();
 
             return this;

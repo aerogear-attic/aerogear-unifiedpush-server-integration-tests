@@ -17,10 +17,10 @@
 package org.jboss.aerogear.test.api.variant.simplepush;
 
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.api.AbstractUPSContext;
 import org.jboss.aerogear.test.api.variant.VariantContext;
 import org.jboss.aerogear.test.model.PushApplication;
 import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.test.model.Variant;
 
 public class SimplePushVariantContext extends VariantContext<SimplePushVariant, String, SimplePushVariantBlueprint,
         SimplePushVariantEditor, PushApplication, SimplePushVariantWorker, SimplePushVariantContext> {
