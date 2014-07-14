@@ -316,6 +316,13 @@ public final class Deployments {
         // Enable Direct Grant API
         config.put("passwordCredentialGrantAllowed", true);
 
+        // Make sure the session won't expire even when the testing runs very slow
+        config.put("accessTokenLifespan", 3600);
+        config.put("accessCodeLifespan", 3600);
+        config.put("accessCodeLifespanUserAction", 3600);
+        config.put("ssoSessionIdleTimeout", 3600);
+
+
         // Any required action would prevent us to login
         JSONArray users = config.optJSONArray("users");
         for (int i = 0; i < users.length(); i++) {
