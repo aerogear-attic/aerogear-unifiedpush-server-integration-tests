@@ -7,9 +7,8 @@ import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
-import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.SimplePushVariant;
-import org.jboss.aerogear.test.model.Variant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -17,7 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, String, SimplePushVariantBlueprint, SimplePushVariantEditor, PushApplication, SimplePushVariantContext, SimplePushVariantWorker> {
+public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, String, SimplePushVariantBlueprint,
+        SimplePushVariantEditor, PushApplication, SimplePushVariantContext, SimplePushVariantWorker> {
 
     private SimplePushVariantWorker() {
 
@@ -25,7 +25,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
 
     @Override
     public SimplePushVariantContext createContext(Session session, PushApplication parent) {
-        if(parent == null) {
+        if (parent == null) {
             throw new IllegalArgumentException("Parent cannot be null!");
         }
         return new SimplePushVariantContext(this, parent, session);
@@ -61,7 +61,8 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(blueprint))
-                    .post("/rest/applications/{pushApplicationID}/simplePush", context.getParent().getPushApplicationID());
+                    .post("/rest/applications/{pushApplicationID}/simplePush",
+                            context.getParent().getPushApplicationID());
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
@@ -126,13 +127,13 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
 
     @Override
     public void deleteById(SimplePushVariantContext context, String id) {
-            Response response = context.getSession().givenAuthorized()
-                    .contentType(getContentType())
-                    .header(Headers.acceptJson())
-                    .delete("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
-                            context.getParent().getPushApplicationID(), id);
+        Response response = context.getSession().givenAuthorized()
+                .contentType(getContentType())
+                .header(Headers.acceptJson())
+                .delete("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
+                        context.getParent().getPushApplicationID(), id);
 
-            UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
+        UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
 
     @Override

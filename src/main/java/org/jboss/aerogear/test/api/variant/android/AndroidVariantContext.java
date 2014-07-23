@@ -17,10 +17,9 @@
 package org.jboss.aerogear.test.api.variant.android;
 
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.api.AbstractUPSContext;
 import org.jboss.aerogear.test.api.variant.VariantContext;
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 
 public class AndroidVariantContext extends VariantContext<AndroidVariant, String, AndroidVariantBlueprint,
         AndroidVariantEditor, PushApplication, AndroidVariantWorker, AndroidVariantContext> {

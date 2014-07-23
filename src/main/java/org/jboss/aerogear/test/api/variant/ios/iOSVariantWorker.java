@@ -8,10 +8,9 @@ import org.jboss.aerogear.test.FileUtils;
 import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
-import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
-import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -74,7 +73,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
                     .multiPart("passphrase", blueprint.getPassphrase())
                     .multiPart("name", blueprint.getName())
                     .multiPart("description", blueprint.getDescription())
-                    .post("/rest/applications/{pushApplicationID}/iOS", context.getParent().getPushApplicationID());
+                    .post("/rest/applications/{pushApplicationID}/ios", context.getParent().getPushApplicationID());
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_CREATED);
 
@@ -88,7 +87,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
-                .get("/rest/applications/{pushApplicationID}/iOS", context.getParent().getPushApplicationID());
+                .get("/rest/applications/{pushApplicationID}/ios", context.getParent().getPushApplicationID());
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
@@ -113,7 +112,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
-                .get("/rest/applications/{pushApplicationID}/iOS/{variantID}",
+                .get("/rest/applications/{pushApplicationID}/ios/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -132,7 +131,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
                     .multiPart("passphrase", entity.getPassphrase())
                     .multiPart("name", entity.getName())
                     .multiPart("description", entity.getDescription())
-                    .put("/rest/applications/{pushApplicationID}/iOS/{variantID}",
+                    .put("/rest/applications/{pushApplicationID}/ios/{variantID}",
                             context.getParent().getPushApplicationID(), context.getEntityID(entity));
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
@@ -147,7 +146,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
                     .contentType(getContentType())
                     .header(Headers.acceptJson())
                     .body(marshall(entity))
-                    .patch("/rest/applications/{pushApplicationID}/iOS/{variantID}",
+                    .patch("/rest/applications/{pushApplicationID}/ios/{variantID}",
                             context.getParent().getPushApplicationID(), context.getEntityID(entity));
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
@@ -159,7 +158,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
-                .delete("/rest/applications/{pushApplicationID}/iOS/{variantID}",
+                .delete("/rest/applications/{pushApplicationID}/ios/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
@@ -171,7 +170,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
                 .contentType(getContentType())
                 .header(Headers.acceptJson())
                 .body("[]")
-                .put("/rest/applications/{pushApplicationID}/iOS/{variantID}/reset",
+                .put("/rest/applications/{pushApplicationID}/ios/{variantID}/reset",
                         context.getParent().getPushApplicationID(), id);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);

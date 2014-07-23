@@ -17,7 +17,7 @@
 package org.jboss.aerogear.test.api.variant.ios;
 
 import org.jboss.aerogear.test.FileUtils;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 
 import java.io.File;
 

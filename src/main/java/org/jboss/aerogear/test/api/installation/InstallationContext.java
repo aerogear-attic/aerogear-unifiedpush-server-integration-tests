@@ -18,8 +18,8 @@ package org.jboss.aerogear.test.api.installation;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.AbstractUPSContext;
-import org.jboss.aerogear.test.model.AbstractVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.api.Installation;
+import org.jboss.aerogear.unifiedpush.api.Variant;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,19 +27,19 @@ import java.util.Collections;
 public abstract class InstallationContext<
         BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         EDITOR extends InstallationEditor<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
-        PARENT extends AbstractVariant,
+        PARENT extends Variant,
         WORKER extends InstallationWorker<BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>,
         CONTEXT extends InstallationContext<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>>
 
 
-        extends AbstractUPSContext<InstallationImpl, String, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT> {
+        extends AbstractUPSContext<Installation, String, BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT> {
 
     public InstallationContext(WORKER worker, PARENT parent, Session session) {
         super(worker, parent, session);
     }
 
     @Override
-    public String getEntityID(InstallationImpl installation) {
+    public String getEntityID(Installation installation) {
         return installation.getId();
     }
 
@@ -51,13 +51,13 @@ public abstract class InstallationContext<
         return unregister(retrieve(id));
     }
 
-    public CONTEXT unregister(InstallationImpl installation) {
+    public CONTEXT unregister(Installation installation) {
         return unregister(Collections.singleton(installation));
     }
 
-    public CONTEXT unregister(Collection<? extends InstallationImpl> installations) {
+    public CONTEXT unregister(Collection<? extends Installation> installations) {
         getWorker().unregister(castInstance(), installations);
-        for (InstallationImpl installation : installations) {
+        for (Installation installation : installations) {
             localRemove(getEntityID(installation));
         }
         return castInstance();

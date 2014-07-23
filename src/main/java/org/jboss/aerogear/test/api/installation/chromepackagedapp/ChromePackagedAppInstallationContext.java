@@ -18,7 +18,7 @@ package org.jboss.aerogear.test.api.installation.chromepackagedapp;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 
 public class ChromePackagedAppInstallationContext extends InstallationContext<ChromePackagedAppInstallationBlueprint,
         ChromePackagedAppInstallationEditor, ChromePackagedAppVariant, ChromePackagedAppInstallationWorker,

@@ -23,12 +23,12 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.ModelAsserts;
-import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
@@ -37,21 +37,21 @@ import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorke
 import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
+import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
-import org.jboss.aerogear.test.model.AbstractVariant;
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
-import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.SimplePushVariant;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.Installation;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.api.Variant;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.aerogear.arquillian.junit.ArquillianRule;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -194,7 +194,7 @@ public class InstallationTest {
                 .detachEntity();
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
-        ups.with(SimplePushInstallationWorker.worker(), variant).generate().simplePushEndpoint(null).persist();
+        ups.with(SimplePushInstallationWorker.worker(), variant).generate().deviceToken(null).persist();
     }
 
     @Category(ChromePackagedApp.class)
@@ -222,21 +222,21 @@ public class InstallationTest {
 
     public <BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
             EDITOR extends InstallationEditor<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
-            PARENT extends AbstractVariant,
+            PARENT extends Variant,
             CONTEXT extends InstallationContext<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
             WORKER extends InstallationWorker<BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>>
 
     void performInstallationCRUD(WORKER worker, PARENT parent) {
         // CREATE
-        List<InstallationImpl> persistedInstallations = ups.with(worker, parent)
+        List<Installation> persistedInstallations = ups.with(worker, parent)
                 .generate().alias("AwesomeAppěščřžýáíéňľ").persist()
                 .generate().alias("AwesomeAppவான்வழிe").persist()
                 .detachEntities();
         assertThat(persistedInstallations, is(notNullValue()));
         assertThat(persistedInstallations.size(), is(2));
 
-        InstallationImpl persistedInstallation = persistedInstallations.get(0);
-        InstallationImpl persistedInstallation1 = persistedInstallations.get(1);
+        Installation persistedInstallation = persistedInstallations.get(0);
+        Installation persistedInstallation1 = persistedInstallations.get(1);
 
         // CREATE without deviceToken
         try {
@@ -248,7 +248,7 @@ public class InstallationTest {
 
         // READ
         CONTEXT context = ups.with(worker, parent).findAll();
-        List<InstallationImpl> readInstallations = context.detachEntities();
+        List<Installation> readInstallations = context.detachEntities();
         assertThat(readInstallations, is(notNullValue()));
         assertThat(readInstallations.size(), is(2));
 
@@ -265,10 +265,10 @@ public class InstallationTest {
         }
 
         // UPDATE by CREATE
-        InstallationImpl updatedInstallation = ups.with(worker, parent)
+        Installation updatedInstallation = ups.with(worker, parent)
                 .generate().deviceToken(persistedInstallation.getDeviceToken()).alias("newalias").persist()
                 .detachEntity();
-        InstallationImpl readInstallation = ups.with(worker, parent)
+        Installation readInstallation = ups.with(worker, parent)
                 .find(persistedInstallation.getId())
                 .detachEntity();
         assertThat(updatedInstallation.getAlias(), is(not(persistedInstallation.getAlias())));
@@ -276,7 +276,7 @@ public class InstallationTest {
 
         // UPDATE
         ups.with(worker, parent).edit(persistedInstallation1.getId()).alias("newalias").merge();
-        InstallationImpl readInstallation1 = ups.with(worker, parent)
+        Installation readInstallation1 = ups.with(worker, parent)
                 .find(persistedInstallation1.getId())
                 .detachEntity();
 

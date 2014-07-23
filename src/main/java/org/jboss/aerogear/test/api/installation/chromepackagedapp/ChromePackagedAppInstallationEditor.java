@@ -17,7 +17,7 @@
 package org.jboss.aerogear.test.api.installation.chromepackagedapp;
 
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 
 public class ChromePackagedAppInstallationEditor extends InstallationEditor<ChromePackagedAppInstallationBlueprint,
         ChromePackagedAppInstallationEditor, ChromePackagedAppVariant, ChromePackagedAppInstallationWorker,

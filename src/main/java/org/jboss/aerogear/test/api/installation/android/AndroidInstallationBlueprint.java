@@ -17,8 +17,7 @@
 package org.jboss.aerogear.test.api.installation.android;
 
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
-import org.jboss.aerogear.test.api.installation.InstallationExtension;
-import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 
 public class AndroidInstallationBlueprint extends InstallationBlueprint<AndroidInstallationBlueprint,
         AndroidInstallationEditor, AndroidVariant, AndroidInstallationWorker, AndroidInstallationContext> {

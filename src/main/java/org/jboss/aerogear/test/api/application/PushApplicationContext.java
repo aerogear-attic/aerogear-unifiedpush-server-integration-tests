@@ -18,7 +18,7 @@ package org.jboss.aerogear.test.api.application;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.AbstractUPSContext;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 
 import java.util.UUID;
 

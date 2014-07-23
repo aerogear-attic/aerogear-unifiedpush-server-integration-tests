@@ -18,8 +18,7 @@ package org.jboss.aerogear.test.api.installation.simplepush;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
 
 public class SimplePushInstallationContext extends InstallationContext<SimplePushInstallationBlueprint,
         SimplePushInstallationEditor, SimplePushVariant, SimplePushInstallationWorker, SimplePushInstallationContext> {
@@ -45,11 +44,8 @@ public class SimplePushInstallationContext extends InstallationContext<SimplePus
 
     @Override
     public SimplePushInstallationBlueprint generate() {
-        String deviceToken = randomString();
-
         return create()
-                .deviceToken(deviceToken)
-                .simplePushEndpoint("http://localhost:8081/endpoint/" + deviceToken)
+                .deviceToken("http://localhost:8081/" + randomString())
                 .alias(randomString());
     }
 }

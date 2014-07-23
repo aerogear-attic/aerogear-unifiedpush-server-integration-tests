@@ -17,10 +17,9 @@
 package org.jboss.aerogear.test.api.variant.chromepackagedapp;
 
 import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.api.AbstractUPSContext;
 import org.jboss.aerogear.test.api.variant.VariantContext;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 
 public class ChromePackagedAppVariantContext extends VariantContext<ChromePackagedAppVariant, String,
         ChromePackagedAppVariantBlueprint, ChromePackagedAppVariantEditor, PushApplication,

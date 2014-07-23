@@ -16,9 +16,10 @@
  */
 package org.jboss.aerogear.test.api.variant.android;
 
-import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 
-public abstract class AndroidVariantExtension<EXTENSION extends AndroidVariantExtension<EXTENSION>> extends AndroidVariant {
+public abstract class AndroidVariantExtension<EXTENSION extends AndroidVariantExtension<EXTENSION>> extends
+        AndroidVariant {
     protected final AndroidVariantContext context;
 
     public AndroidVariantExtension(AndroidVariantContext context) {

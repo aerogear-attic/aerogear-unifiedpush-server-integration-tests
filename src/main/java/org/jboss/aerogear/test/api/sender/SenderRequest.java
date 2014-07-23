@@ -19,11 +19,10 @@ package org.jboss.aerogear.test.api.sender;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractSessionRequest;
-import org.jboss.aerogear.test.model.Installation;
-import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.Variant;
-import org.jboss.aerogear.unifiedpush.JavaSender;
 import org.jboss.aerogear.unifiedpush.SenderClient;
+import org.jboss.aerogear.unifiedpush.api.Installation;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.message.MessageResponseCallback;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 

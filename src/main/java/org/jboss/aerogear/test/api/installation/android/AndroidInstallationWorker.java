@@ -2,7 +2,7 @@ package org.jboss.aerogear.test.api.installation.android;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.installation.InstallationWorker;
-import org.jboss.aerogear.test.model.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 
 public class AndroidInstallationWorker extends InstallationWorker<AndroidInstallationBlueprint,
         AndroidInstallationEditor, AndroidVariant, AndroidInstallationContext, AndroidInstallationWorker> {

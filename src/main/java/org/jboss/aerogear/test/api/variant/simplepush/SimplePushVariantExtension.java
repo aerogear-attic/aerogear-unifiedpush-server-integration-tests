@@ -16,7 +16,7 @@
  */
 package org.jboss.aerogear.test.api.variant.simplepush;
 
-import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
 
 public abstract class SimplePushVariantExtension<EXTENSION extends SimplePushVariantExtension<EXTENSION>>
         extends SimplePushVariant {

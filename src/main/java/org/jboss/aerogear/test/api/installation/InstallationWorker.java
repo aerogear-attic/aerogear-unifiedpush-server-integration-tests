@@ -6,11 +6,13 @@ import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
-import org.jboss.aerogear.test.model.AbstractVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.api.Variant;
+import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,14 +22,14 @@ import java.util.Map;
 public abstract class InstallationWorker<
         BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         EDITOR extends InstallationEditor<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
-        PARENT extends AbstractVariant,
+        PARENT extends Variant,
         CONTEXT extends InstallationContext<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         WORKER extends InstallationWorker<BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>>
 
-        extends AbstractUPSWorker<InstallationImpl, String, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER> {
+        extends AbstractUPSWorker<Installation, String, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER> {
 
     @Override
-    public JSONObject marshall(InstallationImpl entity) {
+    public JSONObject marshall(Installation entity) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("deviceToken", entity.getDeviceToken());
         jsonObject.put("deviceType", entity.getDeviceType());
@@ -43,7 +45,6 @@ public abstract class InstallationWorker<
             }
             jsonObject.put("categories", categories);
         }
-        jsonObject.put("simplePushEndpoint", entity.getSimplePushEndpoint());
         return jsonObject;
     }
 
@@ -58,7 +59,6 @@ public abstract class InstallationWorker<
         editor.setAlias(jsonPath.getString("alias"));
         editor.setDeviceType(jsonPath.getString("deviceType"));
         editor.setDeviceToken(jsonPath.getString("deviceToken"));
-        editor.setSimplePushEndpoint(jsonPath.getString("simplePushEndpoint"));
         HashSet<String> categories = new HashSet<String>();
         List<String> jsonCategories = jsonPath.getList("categories");
         if (jsonCategories != null) {
@@ -88,12 +88,19 @@ public abstract class InstallationWorker<
         return editors;
     }
 
-    public void unregister(CONTEXT context, Collection<? extends InstallationImpl> entities) {
-        for (InstallationImpl entity : entities) {
-            Response response = context.getSession().given()
+    public void unregister(CONTEXT context, Collection<? extends Installation> entities) {
+        for (Installation entity : entities) {
+            String token = entity.getDeviceToken();
+            System.out.println("Installation token: " + token);
+            token = URLEncoder.encode(token);
+            System.out.println("Installation token encoded: " + token);
+            token = URLEncoder.encode(token);
+            //System.out.println("Installation token double-encoded: " + token);
+
+            Response response = context.getSession().given().log().all()
                     .contentType(getContentType())
                     .auth().basic(context.getParent().getVariantID(), context.getParent().getSecret())
-                    .delete("/rest/registry/device/{deviceToken}", entity.getDeviceToken());
+                    .delete(URI.create("/rest/registry/device/" + token));
 
             UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
         }
@@ -138,8 +145,8 @@ public abstract class InstallationWorker<
     }
 
     @Override
-    public void update(CONTEXT context, Collection<? extends InstallationImpl> entities) {
-        for (InstallationImpl entity : entities) {
+    public void update(CONTEXT context, Collection<? extends Installation> entities) {
+        for (Installation entity : entities) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
                     .header(Headers.acceptJson())

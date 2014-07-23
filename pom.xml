@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
-    <version>0.10.2</version>
+    <version>1.0.0.Beta1-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -62,7 +62,8 @@
         <mockito.version>1.9.5</mockito.version>
         <notnoop.version>0.2.3</notnoop.version>
         <gcm-server.version>1.0.2</gcm-server.version>
-        <aerogear.unifiedpush-java-client.version>0.6.0</aerogear.unifiedpush-java-client.version>
+        <aerogear.unifiedpush-java-client.version>0.8.0</aerogear.unifiedpush-java-client.version>
+        <aerogear.unifiedpush-server-model.version>${project.version}</aerogear.unifiedpush-server-model.version>
         <awaitility.version>1.5.0</awaitility.version>
 
         <code-coverage.active>false</code-coverage.active>
@@ -181,6 +182,13 @@
             <groupId>org.jboss.aerogear</groupId>
             <artifactId>unifiedpush-java-client</artifactId>
             <version>${aerogear.unifiedpush-java-client.version}</version>
+        </dependency>
+
+        <!-- UnifiedPush Server model API -->
+        <dependency>
+            <groupId>org.jboss.aerogear.unifiedpush</groupId>
+            <artifactId>unifiedpush-model-api</artifactId>
+            <version>${aerogear.unifiedpush-server-model.version}</version>
         </dependency>
 
         <!-- Test stuff -->

@@ -18,7 +18,7 @@ package org.jboss.aerogear.test.api.installation.ios;
 
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 
 public class iOSInstallationContext extends InstallationContext<iOSInstallationBlueprint,
         iOSInstallationEditor, iOSVariant, iOSInstallationWorker, iOSInstallationContext> {

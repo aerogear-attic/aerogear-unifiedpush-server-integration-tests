@@ -16,6 +16,7 @@ package org.jboss.aerogear.unifiedpush.message.sender;
  * limitations under the License.
  */
 
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.message.UnifiedPushMessage;
 
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
+@SenderType(ChromePackagedAppVariant.class)
 public class GCMForChromePushNotificationSender implements PushNotificationSender, Serializable {
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");

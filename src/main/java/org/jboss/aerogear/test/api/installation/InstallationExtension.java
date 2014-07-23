@@ -17,8 +17,8 @@
 package org.jboss.aerogear.test.api.installation;
 
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
-import org.jboss.aerogear.test.model.AbstractVariant;
-import org.jboss.aerogear.test.model.InstallationImpl;
+import org.jboss.aerogear.unifiedpush.api.Variant;
+import org.jboss.aerogear.unifiedpush.api.Installation;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,12 +27,12 @@ import java.util.Set;
 public abstract class InstallationExtension<
         BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         EDITOR extends InstallationEditor<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
-        PARENT extends AbstractVariant,
+        PARENT extends Variant,
         WORKER extends InstallationWorker<BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>,
         CONTEXT extends InstallationContext<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         EXTENSION extends InstallationExtension<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT, EXTENSION>>
 
-        extends InstallationImpl {
+        extends Installation {
     protected final CONTEXT context;
 
     public InstallationExtension(CONTEXT context) {
@@ -88,11 +88,6 @@ public abstract class InstallationExtension<
 
     public EXTENSION platform(String platform) {
         setPlatform(platform);
-        return castInstance();
-    }
-
-    public EXTENSION simplePushEndpoint(String simplePushEndpoint) {
-        setSimplePushEndpoint(simplePushEndpoint);
         return castInstance();
     }
 

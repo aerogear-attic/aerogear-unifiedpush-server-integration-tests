@@ -8,8 +8,8 @@ import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;

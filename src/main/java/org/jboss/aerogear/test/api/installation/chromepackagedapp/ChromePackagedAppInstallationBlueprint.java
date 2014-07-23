@@ -17,7 +17,7 @@
 package org.jboss.aerogear.test.api.installation.chromepackagedapp;
 
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 
 public class ChromePackagedAppInstallationBlueprint extends
         InstallationBlueprint<ChromePackagedAppInstallationBlueprint, ChromePackagedAppInstallationEditor,

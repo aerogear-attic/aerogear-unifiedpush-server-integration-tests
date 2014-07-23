@@ -16,24 +16,17 @@
  */
 package org.jboss.aerogear.test.api;
 
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
-import org.jboss.aerogear.test.model.Developer;
-import org.jboss.aerogear.test.model.InstallationImpl;
-import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.SimplePushVariant;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.Installation;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 // FIXME everything here should be in "equals" methods in actual models
 public class ModelAsserts {
-
-    public static void assertModelsEqual(Developer expected, Developer actual) {
-        assertEquals("ID doesn't match!", expected.getId(), actual.getId());
-        assertEquals("LoginName doesn't match!", expected.getLoginName(), actual.getLoginName());
-    }
 
     public static void assertModelsEqual(AndroidVariant expected, AndroidVariant actual) {
         assertEquals("Name is not equal!", expected.getName(), actual.getName());
@@ -61,7 +54,7 @@ public class ModelAsserts {
         // assertEquals(expected.getSimplePushVariants(), actual.getSimplePushVariants());
     }
 
-    public static void assertModelsEqual(InstallationImpl expected, InstallationImpl actual) {
+    public static void assertModelsEqual(Installation expected, Installation actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getDeviceToken(), actual.getDeviceToken());
         assertEquals(expected.getDeviceType(), actual.getDeviceType());
@@ -69,7 +62,6 @@ public class ModelAsserts {
         assertEquals(expected.getOsVersion(), actual.getOsVersion());
         assertEquals(expected.getAlias(), actual.getAlias());
         assertEquals(expected.getCategories(), actual.getCategories());
-        assertEquals(expected.getSimplePushEndpoint(), actual.getSimplePushEndpoint());
     }
 
     public static void assertModelsEqual(iOSVariant expected, iOSVariant actual) {

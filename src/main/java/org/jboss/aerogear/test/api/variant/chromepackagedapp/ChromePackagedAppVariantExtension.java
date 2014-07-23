@@ -16,7 +16,7 @@
  */
 package org.jboss.aerogear.test.api.variant.chromepackagedapp;
 
-import org.jboss.aerogear.test.model.ChromePackagedAppVariant;
+import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 
 public abstract class ChromePackagedAppVariantExtension<EXTENSION extends ChromePackagedAppVariantExtension<EXTENSION>>
         extends ChromePackagedAppVariant {

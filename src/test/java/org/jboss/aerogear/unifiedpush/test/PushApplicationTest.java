@@ -21,20 +21,19 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
-import org.jboss.aerogear.test.api.application.PushApplicationBlueprint;
 import org.jboss.aerogear.test.api.application.PushApplicationContext;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.aerogear.arquillian.junit.ArquillianRule;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,7 +42,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.UUID;
 
@@ -225,7 +223,8 @@ public class PushApplicationTest {
 
         // UPDATE
         ups.with(worker)
-                .edit(persistedApplication.getPushApplicationID()).name("newname").description("newdescription").merge();
+                .edit(persistedApplication.getPushApplicationID()).name("newname").description("newdescription")
+                .merge();
         PushApplication readApplication = ups.with(worker)
                 .find(persistedApplication.getPushApplicationID())
                 .detachEntity();

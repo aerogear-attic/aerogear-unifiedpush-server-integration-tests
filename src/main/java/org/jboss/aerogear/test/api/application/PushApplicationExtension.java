@@ -16,9 +16,7 @@
  */
 package org.jboss.aerogear.test.api.application;
 
-import org.jboss.aerogear.test.model.PushApplication;
-
-import java.util.UUID;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 
 public abstract class PushApplicationExtension<EXTENSION extends PushApplicationExtension<EXTENSION>> extends PushApplication {
     protected final PushApplicationContext context;

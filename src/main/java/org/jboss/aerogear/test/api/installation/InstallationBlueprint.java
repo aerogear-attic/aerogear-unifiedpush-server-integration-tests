@@ -16,12 +16,12 @@
  */
 package org.jboss.aerogear.test.api.installation;
 
-import org.jboss.aerogear.test.model.AbstractVariant;
+import org.jboss.aerogear.unifiedpush.api.Variant;
 
 public abstract class InstallationBlueprint<
         BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
         EDITOR extends InstallationEditor<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,
-        PARENT extends AbstractVariant,
+        PARENT extends Variant,
         WORKER extends InstallationWorker<BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER>,
         CONTEXT extends InstallationContext<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>>
 

@@ -21,20 +21,20 @@ import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
+import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantContext;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
-import org.jboss.aerogear.test.model.PushApplication;
-import org.jboss.aerogear.test.model.iOSVariant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.aerogear.arquillian.junit.ArquillianRule;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -47,6 +47,7 @@ import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
@@ -232,10 +233,10 @@ public class iOSVariantTest {
 
         assertThat(persistedVariants, is(notNullValue()));
         assertThat(persistedVariants.size(), is(2));
-        
+
         iOSVariant persistedVariant = persistedVariants.get(0);
         iOSVariant persistedVariant1 = persistedVariants.get(1);
-        
+
         // READ
         iOSVariantContext context = ups.with(worker, application).findAll();
         List<iOSVariant> readVariants = context.detachEntities();
@@ -248,15 +249,15 @@ public class iOSVariantTest {
         // UPDATE, method: PUT
         ups.with(worker, application)
                 .edit(persistedVariant.getVariantID())
-                    .name("newname")
-                    .description("newdescription")
-                    .certificate(Constants.IOS_CERTIFICATE_PATH)
-                    .passphrase(Constants.IOS_CERTIFICATE_PASSPHRASE)
-                    .merge();
+                .name("newname")
+                .description("newdescription")
+                .certificate(Constants.IOS_CERTIFICATE_PATH)
+                .passphrase(Constants.IOS_CERTIFICATE_PASSPHRASE)
+                .merge();
         iOSVariant readVariant = ups.with(worker, application).find(persistedVariant.getVariantID()).detachEntity();
         assertThat(readVariant.getName(), is("newname"));
         assertThat(readVariant.getDescription(), is("newdescription"));
-        assertThat(readVariant.getPassphrase(), is(Constants.IOS_CERTIFICATE_PASSPHRASE));
+        assertThat(readVariant.getPassphrase(), is(nullValue()));
 
         // UPDATE, method: PATCH
         ups.with(worker, application)

@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * 	http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,20 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.model;
+package org.jboss.aerogear.unifiedpush.message.sender;
 
-/**
- * The SimplePush variant class encapsulates SimplePush specific behavior.
- */
-public class SimplePushVariant extends AbstractVariant {
-    private static final long serialVersionUID = 9046963507735955449L;
+import org.jboss.aerogear.unifiedpush.api.Variant;
 
-    public SimplePushVariant() {
-        super();
-    }
+import javax.inject.Qualifier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    @Override
-    public VariantType getType() {
-        return VariantType.SIMPLE_PUSH;
-    }
+@Qualifier
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SenderType {
+    Class<? extends Variant> value();
 }

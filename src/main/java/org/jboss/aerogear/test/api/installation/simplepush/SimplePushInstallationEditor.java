@@ -17,8 +17,7 @@
 package org.jboss.aerogear.test.api.installation.simplepush;
 
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
 
 public class SimplePushInstallationEditor extends InstallationEditor<SimplePushInstallationBlueprint,
         SimplePushInstallationEditor, SimplePushVariant, SimplePushInstallationWorker, SimplePushInstallationContext> {

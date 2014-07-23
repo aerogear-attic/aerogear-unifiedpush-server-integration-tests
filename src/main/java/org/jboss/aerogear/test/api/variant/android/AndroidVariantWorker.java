@@ -6,10 +6,9 @@ import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
-import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
-import org.jboss.aerogear.test.model.AndroidVariant;
-import org.jboss.aerogear.test.model.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -17,7 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, AndroidVariantBlueprint, AndroidVariantEditor, PushApplication, AndroidVariantContext, AndroidVariantWorker> {
+public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, AndroidVariantBlueprint,
+        AndroidVariantEditor, PushApplication, AndroidVariantContext, AndroidVariantWorker> {
 
     private AndroidVariantWorker() {
 
@@ -25,7 +25,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
 
     @Override
     public AndroidVariantContext createContext(Session session, PushApplication parent) {
-        if(parent == null) {
+        if (parent == null) {
             throw new IllegalArgumentException("Parent cannot be null!");
         }
         return new AndroidVariantContext(this, parent, session);

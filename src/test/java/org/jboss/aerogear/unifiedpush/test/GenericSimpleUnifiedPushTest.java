@@ -1,13 +1,13 @@
 package org.jboss.aerogear.unifiedpush.test;
 
-import java.net.URL;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.runner.RunWith;
+
+import java.net.URL;
 
 @RunWith(Arquillian.class)
 public abstract class GenericSimpleUnifiedPushTest {
