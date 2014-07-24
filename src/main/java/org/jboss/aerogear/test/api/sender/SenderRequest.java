@@ -48,8 +48,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
     }*/
 
     public SenderRequest send(UnifiedMessage message) {
-        SenderClient senderClient = new SenderClient.Builder()
-                .rootServerURL(getSession().getBaseUrl().toExternalForm())
+        SenderClient senderClient = new SenderClient.Builder(getSession().getBaseUrl().toExternalForm())
                 .customTrustStore("setup/aerogear.truststore", null, "aerogear")
                 .build();
 
