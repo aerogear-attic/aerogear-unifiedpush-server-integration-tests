@@ -1,0 +1,9 @@
+language: java
+jdk: openjdk7
+install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - cd ..
+  - git clone git://github.com/aerogear/aerogear-unifiedpush-server.git
+  - mvn -f aerogear-unifiedpush-server/pom.xml clean install
+script: mvn -f aerogear-unifiedpush-server-admin-ui-tests/pom.xml test
