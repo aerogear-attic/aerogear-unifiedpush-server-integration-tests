@@ -9,7 +9,6 @@ import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
-import org.jboss.arquillian.container.spi.event.DeployManagedDeployments;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
