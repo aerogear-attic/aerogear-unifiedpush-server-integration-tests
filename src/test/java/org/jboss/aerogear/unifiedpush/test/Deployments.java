@@ -273,7 +273,7 @@ public final class Deployments {
         buildLocalServerIfNeeded();
 
         File[] serverWarFiles = getUpsServerWarFiles();
-        if (serverWarFiles.length == 0) {
+        if (serverWarFiles == null || serverWarFiles.length == 0) {
             throw new IllegalStateException("No war file found in directory '" +
                 getUpsServerTargetDirectory().getAbsolutePath() + "'. Please check that 'mvn clean package' " +
                 "inside the ups server directory will result in creation of .war file.");
@@ -400,7 +400,7 @@ public final class Deployments {
         buildLocalServerIfNeeded();
 
         File[] authServerWarFiles = getAuthServerWarFiles();
-        if (authServerWarFiles.length == 0) {
+        if (authServerWarFiles == null || authServerWarFiles.length == 0) {
             throw new IllegalStateException("No war file found in directory '" + getAuthServerTargetDirectory()
                 .getAbsolutePath() + "'. Please check that 'mvn clean package' inside the ups auth-server " +
                 "directory will result in creation of .war file.");
