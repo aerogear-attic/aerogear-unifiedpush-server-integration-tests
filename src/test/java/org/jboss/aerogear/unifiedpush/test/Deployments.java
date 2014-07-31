@@ -33,6 +33,7 @@ import com.notnoop.exceptions.NetworkIOException;
 
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
+import org.arquillian.spacelift.process.ProcessInteractionBuilder;
 import org.arquillian.spacelift.process.impl.CommandTool;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.unifiedpush.keycloak.BootstrapListener;
@@ -222,7 +223,7 @@ public final class Deployments {
     }
 
     /**
-     * 
+     *
      * @return ups server as already built distribution war file
      */
     private static WebArchive archiveUnifiedPushServer() {
@@ -411,13 +412,13 @@ public final class Deployments {
     }
 
     /**
-     * 
+     *
      * @return ups auth server as already built distribution war file
      */
     private static WebArchive archiveAuthServer() {
-        return ShrinkWrap.createFromZipFile(WebArchive.class, getUpsArchiveAuth()); 
+        return ShrinkWrap.createFromZipFile(WebArchive.class, getUpsArchiveAuth());
     }
-    
+
     private static void buildLocalServerIfNeeded() {
         if (!mavenBuildInvoked.get()) {
             LOGGER.log(Level.INFO, "Building UnifiedPush Server from sources at: {0}",
@@ -429,6 +430,8 @@ public final class Deployments {
                     .programName("mvn")
                     .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
                         getActiveProfilesAsMavenParameter())
+                    // echo build interactions
+                    .interaction(new ProcessInteractionBuilder().outputPrefix("ups-maven-build: ").when(".*").printToOut())
                     .execute()
                     .await();
             } catch (ExecutionException e) {
