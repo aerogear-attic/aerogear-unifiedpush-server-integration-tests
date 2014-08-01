@@ -364,7 +364,36 @@ public final class Deployments {
     }
 
     private static WebArchive remoteAuthServer() {
-        throw new UnsupportedOperationException("Remote auth server not yet supported!");
+        final String authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:%s";
+
+        ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
+                .withRemoteRepo(MavenRemoteRepositories.createRemoteRepository("remote_ups", getUpsRemoteUrl(),
+                        "default"))
+                .withMavenCentralRepo(false);
+
+        MavenCoordinate upsCoordinate;
+        String upsVersion = System.getProperty(PROPERTY_UPS_VERSION);
+        if (upsVersion == null || upsVersion.length() == 0) {
+            upsCoordinate = resolver
+                    .resolveVersionRange(String.format(authServerCanonicalCoordinate, UPS_MINIMUM_VERSION))
+                    .getHighestVersion();
+
+            LOGGER.log(Level.INFO, "Unified Push Server version not specified. Using repository''s latest version " +
+                    "\"{0}\". You can override it by -D{1}", new Object[] { upsCoordinate.getVersion(),
+                    PROPERTY_UPS_VERSION });
+        } else {
+            upsCoordinate = MavenCoordinates.createCoordinate(String.format(authServerCanonicalCoordinate, upsVersion));
+        }
+
+        LOGGER.log(Level.INFO, "Resolving UnifiedPush Auth Server using coordinates: {0}", upsCoordinate.toCanonicalForm());
+
+        File warFile = resolver
+                .resolve(upsCoordinate.toCanonicalForm())
+                .withoutTransitivity()
+                .asSingleFile();
+
+        // https://issues.jboss.org/browse/WFK2-61
+        return ShrinkWrap.create(ZipImporter.class, "auth-server.war").importFrom(warFile).as(WebArchive.class);
     }
 
     private static WebArchive localAuthServer() {
