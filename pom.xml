@@ -45,7 +45,7 @@
     
 
         <!-- Testing -->
-        <org.jboss.aerogear.bom.version>0.2.3</org.jboss.aerogear.bom.version>
+        <org.jboss.aerogear.bom.version>0.2.5</org.jboss.aerogear.bom.version>
         
         <!-- Code coverage -->
         <org.jacoco.ant.version>0.6.3.201306030806</org.jacoco.ant.version>
