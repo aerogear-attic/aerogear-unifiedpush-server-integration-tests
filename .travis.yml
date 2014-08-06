@@ -1,9 +1,9 @@
 language: java
 jdk:
- - openjdk7
- - oraclejdk7
+    - openjdk7
+    - oraclejdk7
 before_install:
- - ./setup/setup.sh
- - export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
+    - ./setup/setup.sh
+    - export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
 script:
- - mvn clean test
+    - mvn clean test -s .settings.xml
