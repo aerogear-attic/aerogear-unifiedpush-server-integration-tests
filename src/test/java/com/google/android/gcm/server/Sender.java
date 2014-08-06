@@ -15,16 +15,16 @@
  */
 package com.google.android.gcm.server;
 
-import org.jboss.aerogear.test.api.sender.SenderStatistics;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import javax.enterprise.context.ApplicationScoped;
+
+import org.jboss.aerogear.test.api.installation.Tokens;
 
 /**
  * This class mocks the original com.google.android.gcm.server.Sender class and is used for testing reasons.
@@ -70,7 +70,7 @@ public class Sender {
 
             for (String regId : regIds) {
                 Result result = mock(Result.class);
-                if (regId.toLowerCase().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX)) {
+                if (regId.toLowerCase().startsWith(Tokens.TOKEN_INVALIDATION_PREFIX)) {
                     when(result.getErrorCodeName()).thenReturn(Constants.ERROR_INVALID_REGISTRATION);
                 } else {
                     when(result.getErrorCodeName()).thenReturn(null);

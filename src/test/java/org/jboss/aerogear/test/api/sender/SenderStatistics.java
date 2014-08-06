@@ -14,16 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.test.api.variant.simplepush;
+package org.jboss.aerogear.test.api.sender;
 
-public class SimplePushVariantBlueprint extends SimplePushVariantExtension<SimplePushVariantBlueprint> {
+import com.google.android.gcm.server.Message;
 
-    public SimplePushVariantBlueprint(SimplePushVariantContext context) {
-        super(context);
-    }
+import java.util.List;
 
-    public SimplePushVariantContext persist() {
-        return context.persist(this);
-    }
-
+public class SenderStatistics {
+    public List<String> deviceTokens;
+    public Message gcmMessage;
+    public String apnsAlert;
+    public int apnsBadge;
+    public String apnsSound;
+    public String apnsCustomFields;
+    public long apnsExpiry;
+    public String gcmForChromeAlert;
 }

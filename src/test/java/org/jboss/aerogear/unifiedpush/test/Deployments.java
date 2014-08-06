@@ -16,29 +16,24 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import com.google.android.gcm.server.Message;
-import com.google.android.gcm.server.MulticastResult;
-import com.google.android.gcm.server.Result;
-import com.google.android.gcm.server.Sender;
-import com.notnoop.apns.APNS;
-import com.notnoop.apns.ApnsDelegate;
-import com.notnoop.apns.ApnsDelegateAdapter;
-import com.notnoop.apns.ApnsNotification;
-import com.notnoop.apns.ApnsService;
-import com.notnoop.apns.ApnsServiceBuilder;
-import com.notnoop.apns.EnhancedApnsNotification;
-import com.notnoop.apns.PayloadBuilder;
-import com.notnoop.apns.internal.ApnsServiceImpl;
-import com.notnoop.exceptions.NetworkIOException;
+import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
 import org.arquillian.spacelift.process.ProcessInteractionBuilder;
 import org.arquillian.spacelift.process.impl.CommandTool;
+import org.jboss.aerogear.test.api.installation.Tokens;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.unifiedpush.keycloak.BootstrapListener;
 import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.Filter;
@@ -58,15 +53,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.google.android.gcm.server.Message;
+import com.google.android.gcm.server.MulticastResult;
+import com.google.android.gcm.server.Result;
+import com.google.android.gcm.server.Sender;
+import com.notnoop.apns.internal.ApnsServiceImpl;
 
 public final class Deployments {
 
@@ -153,7 +144,7 @@ public final class Deployments {
         }
 
         war.addClasses(SenderStatisticsEndpoint.class, SenderStatistics.class,
-            GCMForChromePushNotificationSender.class);
+            GCMForChromePushNotificationSender.class, Tokens.class);
 
         JavaArchive gcmJar = ShrinkWrap.create(JavaArchive.class, "gcm-server.jar").addClasses(Result.class,
             Message.class, MulticastResult.class, Message.class, Sender.class);

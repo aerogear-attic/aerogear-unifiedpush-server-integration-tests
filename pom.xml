@@ -31,19 +31,15 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-
         <maven.compiler.argument.target>${maven.compiler.target}</maven.compiler.argument.target>
         <maven.compiler.argument.source>${maven.compiler.source}</maven.compiler.argument.source>
 
-        <keycloak.version>1.0-beta-3</keycloak.version>
-        <javase.version>2.2</javase.version>
-
-        <!-- Secured endpoint for SenderStatictics -->
-        <aerogear.security.version>1.3.1</aerogear.security.version>
-
         <jboss-javaee-6.0.version>3.0.2.Final</jboss-javaee-6.0.version>
+        <keycloak.version>1.0-beta-3</keycloak.version>
+        <notnoop.version>0.2.3</notnoop.version>
+        <gcm-server.version>1.0.2</gcm-server.version>
+        <aerogear.unifiedpush-server-rest-api.version>${project.version}</aerogear.unifiedpush-server-rest-api.version>        
     
-
         <!-- Testing -->
         <org.jboss.aerogear.bom.version>0.2.5</org.jboss.aerogear.bom.version>
         
@@ -51,12 +47,6 @@
         <org.jacoco.ant.version>0.6.3.201306030806</org.jacoco.ant.version>
         <org.jacoco.agent.version>0.6.3.201306030806</org.jacoco.agent.version>
         <ant.contrib.version>20020829</ant.contrib.version>
-
-        <notnoop.version>0.2.3</notnoop.version>
-        <gcm-server.version>1.0.2</gcm-server.version>
-        <aerogear.unifiedpush-java-client.version>0.8.0</aerogear.unifiedpush-java-client.version>
-        <aerogear.unifiedpush-server-model.version>${project.version}</aerogear.unifiedpush-server-model.version>
-        <awaitility.version>1.5.0</awaitility.version>
 
         <code-coverage.active>false</code-coverage.active>
 
@@ -112,6 +102,20 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Dependencies needed for additional Statistics Endpoint definition -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.servlet</groupId>
+            <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-as7-adapter</artifactId>
+            <version>${keycloak.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.notnoop.apns</groupId>
             <artifactId>apns</artifactId>
@@ -129,53 +133,7 @@
             <groupId>com.ganyo</groupId>
             <artifactId>gcm-server</artifactId>
             <version>${gcm-server.version}</version>
-        </dependency>
-
-
-        <!-- Sender Statistics Endpoint is secured via Aerogear/PL -->
-        <dependency>
-            <groupId>org.jboss.aerogear</groupId>
-            <artifactId>aerogear-security</artifactId>
-            <version>${aerogear.security.version}</version>
-        </dependency>
-
-        <!-- UnifiedPush Java Sender is used -->
-        <dependency>
-            <groupId>org.jboss.aerogear</groupId>
-            <artifactId>unifiedpush-java-client</artifactId>
-            <version>${aerogear.unifiedpush-java-client.version}</version>
-        </dependency>
-
-        <!-- UnifiedPush Server model API -->
-        <dependency>
-            <groupId>org.jboss.aerogear.unifiedpush</groupId>
-            <artifactId>unifiedpush-model-api</artifactId>
-            <version>${aerogear.unifiedpush-server-model.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-core</artifactId>
-            <version>${keycloak.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-as7-adapter</artifactId>
-            <version>${keycloak.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.spec.javax.servlet</groupId>
-            <artifactId>jboss-servlet-api_3.0_spec</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20140107</version>
         </dependency>
 
         <!-- Test stuff -->
@@ -198,36 +156,24 @@
             <scope>test</scope>
         </dependency>
 
-        <!--  FIXME these are test scope dependencies, yet they are part of main sources -->
-
         <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>            
-            <!-- <scope>test</scope> -->
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>json-path</artifactId>            
-            <!-- <scope>test</scope> -->
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <!-- <scope>test</scope> -->
+            <groupId>org.jboss.aerogear.test</groupId>
+            <artifactId>aerogear-ups-rest-api</artifactId>
+            <scope>test</scope>
+            <version>${aerogear.unifiedpush-server-rest-api.version}</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <!--  <scope>test</scope> -->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <!-- <scope>test</scope> -->
+            <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
             <artifactId>arquillian-junit-container</artifactId>
@@ -250,6 +196,14 @@
             <groupId>io.undertow</groupId>
             <artifactId>undertow-core</artifactId>
             <version>1.0.1.Final</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- FIXME we have 2 different JSON implementations here -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
             <scope>test</scope>
         </dependency>
 

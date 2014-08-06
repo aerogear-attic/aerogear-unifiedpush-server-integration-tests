@@ -1,11 +1,7 @@
 package org.jboss.aerogear.unifiedpush.utils;
 
-import com.google.android.gcm.server.Sender;
-import com.notnoop.apns.ApnsService;
-import com.notnoop.apns.internal.ApnsServiceImpl;
-import org.jboss.aerogear.security.authz.Secure;
-import org.jboss.aerogear.test.api.sender.SenderStatistics;
-import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -15,10 +11,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.jboss.aerogear.test.api.sender.SenderStatistics;
+import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
+
+import com.google.android.gcm.server.Sender;
+import com.notnoop.apns.internal.ApnsServiceImpl;
 
 /**
  * @author <a href="mailto:tkriz@redhat.com">Tadeas Kriz</a>
@@ -26,7 +24,6 @@ import java.util.logging.Logger;
 @Stateless
 @TransactionAttribute
 @Path("/senderStats")
-@Secure( { "admin" } )
 // FIXME move to src/main
 public class SenderStatisticsEndpoint {
 

@@ -19,8 +19,10 @@ package org.jboss.aerogear.test.api.sender;
 import com.google.android.gcm.server.Message;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
+import com.jayway.awaitility.core.ConditionTimeoutException;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
+
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.Headers;
@@ -95,14 +97,22 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
     }
 
     public void await(final int expectedTokenCount, Duration timeout) {
+
+        final LastResult found = new LastResult();
+
+        try {
         Awaitility.await().atMost(timeout).until(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 SenderStatistics statistics = get();
-                // FIXME we should report how many tokens we found before failing!
-                return statistics.deviceTokens != null && statistics.deviceTokens.size() == expectedTokenCount;
+                found.setResult(statistics.deviceTokens != null ? statistics.deviceTokens.size(): 0);
+                return found.getResult()== expectedTokenCount;
             }
         });
+        }
+        catch(ConditionTimeoutException e) {
+            System.err.println("SenderStats: Was expecting " + expectedTokenCount + " tokens but " + found.getResult() + " were found.");
+        }
     }
 
     public SenderStatistics awaitAndGet(int expectedTokenCount, Duration timeout) {
@@ -120,6 +130,19 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
 
     public static SenderStatisticsRequest request() {
         return new SenderStatisticsRequest();
+    }
+
+    private static class LastResult {
+        int result=0;
+
+        public void setResult(int result) {
+            this.result = result;
+        }
+
+        public int getResult() {
+            return result;
+        }
+
     }
 
 

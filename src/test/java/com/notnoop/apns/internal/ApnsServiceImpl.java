@@ -30,19 +30,18 @@
  */
 package com.notnoop.apns.internal;
 
-import com.notnoop.apns.ApnsNotification;
-import com.notnoop.apns.ApnsService;
-import com.notnoop.apns.EnhancedApnsNotification;
-import com.notnoop.exceptions.NetworkIOException;
-import org.jboss.aerogear.test.api.sender.SenderStatistics;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+
+import org.jboss.aerogear.test.api.installation.Tokens;
+import org.json.JSONObject;
+
+import com.notnoop.apns.ApnsNotification;
+import com.notnoop.apns.EnhancedApnsNotification;
+import com.notnoop.exceptions.NetworkIOException;
 
 /**
  * This class mocks the original com.notnoop.apns.internal.ApnsServiceImpl class and is used for testing reasons.
@@ -73,7 +72,7 @@ public class ApnsServiceImpl extends AbstractApnsService {
 
         if (tokensList != null) {
             for (String token : tokensList) {
-                if (token.toLowerCase().startsWith(SenderStatistics.TOKEN_INVALIDATION_PREFIX)) {
+                if (token.toLowerCase().startsWith(Tokens.TOKEN_INVALIDATION_PREFIX)) {
                     inactiveTokensHM.put(token, new Date());
                 }
             }
