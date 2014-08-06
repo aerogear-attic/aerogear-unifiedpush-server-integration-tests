@@ -1,6 +1,10 @@
 package org.jboss.aerogear.unifiedpush.test;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.DecoderConfig;
+import com.jayway.restassured.config.EncoderConfig;
+import com.jayway.restassured.config.RestAssuredConfig;
+
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
@@ -9,6 +13,7 @@ import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +48,18 @@ public class UpsWithRuleTest {
 
     @BeforeClass
     public static void setup() {
+        RestAssured.config = RestAssuredConfig.newConfig()
+                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
+                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
+
         RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        RestAssured.config = RestAssuredConfig.newConfig()
+                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
+                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
     }
 
     @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)
