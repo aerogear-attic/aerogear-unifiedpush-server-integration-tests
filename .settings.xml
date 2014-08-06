@@ -114,6 +114,7 @@ under the License.
       <passphrase>optional; leave empty if not used.</passphrase>
     </server>
     -->
+    </servers>
 
   <!-- mirrors
    | This is a list of mirrors to be used in downloading artifacts from remote repositories.
