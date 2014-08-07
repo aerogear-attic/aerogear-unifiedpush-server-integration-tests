@@ -162,16 +162,13 @@ public final class Deployments {
             apnsLib.addClass(ApnsServiceImpl.class);
         }
 
-        war.addPackage(Package.getPackage("org.json"));
-
-
         PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
 
-        // here we resolve mockito transitively, other artifact without transitivity
+        // here we resolve mockito and json transitively, other artifact without transitivity
         File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
             .withoutTransitivity().asFile();
         war.addAsLibraries(libs);
-        libs = resolver.resolve("org.mockito:mockito-core").withTransitivity().asFile();
+        libs = resolver.resolve("org.mockito:mockito-core", "org.json:json").withTransitivity().asFile();
         war = war.addAsLibraries(libs);
 
         return war;

@@ -199,7 +199,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- FIXME we have 2 different JSON implementations here -->
+        <!-- FIXME we have 2 different JSON implementations here, this one is the one that should be used -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
