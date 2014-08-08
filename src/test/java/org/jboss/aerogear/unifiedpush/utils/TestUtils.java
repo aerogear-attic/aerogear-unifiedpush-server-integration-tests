@@ -16,8 +16,7 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
 import category.AdminUI;
@@ -51,28 +50,23 @@ public class TestUtils {
     }
 
     private static boolean shouldRun(Class<?> category) {
-        List<String> excludedGroups = Arrays.asList(System.getProperty("excludedGroups", "").split(","));
-        List<String> includedGroups = Arrays.asList(System.getProperty("groups", "").split(","));
-
-        // trim
-        for (int i = 0; i < excludedGroups.size(); i++) {
-            excludedGroups.set(i, excludedGroups.get(i).trim());
-        }
-        for (int i = 0; i < includedGroups.size(); i++) {
-            includedGroups.set(i, includedGroups.get(i).trim());
-        }
-
-        // delete empty strings
-        Iterator<String> excluded = excludedGroups.iterator();
-        while (excluded.hasNext()) {
-            if (excluded.next().isEmpty()) {
-                excluded.remove();
+        List<String> excludedGroups = new ArrayList<String>();
+        for (String excluded : System.getProperty("excludedGroups", "").split(",")) {
+            if (excluded != null) {
+                excluded = excluded.trim();
+                if (!excluded.equals("")) {
+                    excludedGroups.add(excluded);
+                }
             }
         }
-        Iterator<String> included = includedGroups.iterator();
-        while (included.hasNext()) {
-            if (included.next().isEmpty()) {
-                included.remove();
+
+        List<String> includedGroups = new ArrayList<String>();
+        for (String included : System.getProperty("groups", "").split(",")) {
+            if (included != null) {
+                included = included.trim();
+                if (!included.equals("")) {
+                    includedGroups.add(included);
+                }
             }
         }
 
