@@ -38,4 +38,25 @@
         </configuration>
     </container>
 
+    <!--
+    <group qualifier="openshift">
+        <container qualifier="openshift-non-deployingcontainer" default="true">
+            <configuration>
+                <property name="baseURI">https://${openshift.app:aerogear}-${openshift.namespace:okiss}.${openshift.brooker:rhcloud.com}</property>
+                <property name="contextRootRemap">{'ag-push' : '/'}</property>
+            </configuration>
+        </container>
+    </group>
+    -->
+
+    <extension qualifier="graphene">
+        <!-- we set wait to 20 seconds, to pass on OpenShift -->
+        <property name="waitModelInterval">20</property>
+    </extension>
+
+    <extension qualifier="webdriver">
+        <property name="browser">${browser:firefox}</property>
+    </extension>
+
+
 </arquillian>
