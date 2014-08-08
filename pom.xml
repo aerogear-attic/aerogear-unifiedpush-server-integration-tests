@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-parent</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.5</version>
         <relativePath />
     </parent>
 
@@ -48,18 +48,27 @@
         <org.jacoco.agent.version>0.6.3.201306030806</org.jacoco.agent.version>
         <ant.contrib.version>20020829</ant.contrib.version>
 
+        <version.httpclient>4.3.4</version.httpclient>
+
         <code-coverage.active>false</code-coverage.active>
 
         <ups.source />
         <ups.remote.url />
 
-        <simplePush.enable>true</simplePush.enable>
-        <chromePackagedApp.enable>true</chromePackagedApp.enable>
         <excludedGroups />
+        <groups />
     </properties>
 
     <dependencyManagement>
         <dependencies>
+        
+            <!-- Http Client version has to be aligned across REST Assured, Selenium and Keycloak -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${version.httpclient}</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.jboss.aerogear</groupId>
@@ -137,6 +146,22 @@
         </dependency>
 
         <!-- Test stuff -->
+        
+        <!-- Starting point for integration Graphene test suites. -->
+        <dependency>
+            <groupId>org.jboss.arquillian.graphene</groupId>
+            <artifactId>graphene-webdriver</artifactId>
+            <type>pom</type>
+        </dependency>
+
+        <!-- FIXME this dependency should be in test BOM -->
+        <dependency>
+            <groupId>org.jboss.arquillian.extension</groupId>
+            <artifactId>arquillian-angularjs-graphene</artifactId>
+            <version>1.2.0.Alpha1</version>
+            <type>pom</type>
+        </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -222,10 +247,11 @@
                     <systemPropertyVariables>
                         <ups.source>${ups.source}</ups.source>
                         <ups.remote.url>${ups.remote.url}</ups.remote.url>
-                        <simplePush.enable>${simplePush.enable}</simplePush.enable>
-                        <chromePackagedApp.enable>${chromePackagedApp.enable}</chromePackagedApp.enable>
+                        <excludedGroups>${excludedGroups}</excludedGroups>
+                        <groups>${groups}</groups>
                     </systemPropertyVariables>
-                    <excludedGroups>${excludedGroups}</excludedGroups>
+                    <!-- <excludedGroups>${excludedGroups}</excludedGroups>-->
+                    <groups>${groups}</groups>
                 </configuration>
             </plugin>
         </plugins>
@@ -416,20 +442,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>ignoreSimplePush</id>
-            <properties>
-                <simplePush.enable>false</simplePush.enable>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>ignoreChromePackagedApp</id>
-            <properties>
-                <chromePackagedApp.enable>false</chromePackagedApp.enable>
-            </properties>
         </profile>
 
         <!-- This profile enrich test execution with code coverage. It must be used together with another non-domain container profile -->

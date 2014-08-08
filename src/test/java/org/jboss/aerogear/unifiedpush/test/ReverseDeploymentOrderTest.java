@@ -18,37 +18,19 @@ package org.jboss.aerogear.unifiedpush.test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import java.util.List;
-import java.util.UUID;
 
-import javax.validation.constraints.Null;
-
-import org.apache.http.HttpStatus;
-import org.hibernate.validator.constraints.impl.NullValidator;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
-import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationContext;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
-import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
-import org.jboss.aerogear.test.api.installation.InstallationContext;
-import org.jboss.aerogear.test.api.installation.InstallationEditor;
-import org.jboss.aerogear.test.api.installation.InstallationWorker;
-import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
-import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
-import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
-import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -65,7 +47,7 @@ import com.jayway.restassured.config.RestAssuredConfig;
  */
 @RunWith(ArquillianRules.class)
 public class ReverseDeploymentOrderTest {
-    
+
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
@@ -73,7 +55,7 @@ public class ReverseDeploymentOrderTest {
             return this;
         }
     };
-    
+
     @BeforeClass
     public static void setup() {
         RestAssured.config = RestAssuredConfig.newConfig()
@@ -89,7 +71,7 @@ public class ReverseDeploymentOrderTest {
                 .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
     }
-    
+
     @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createAuthServerDeployment() {
@@ -101,12 +83,12 @@ public class ReverseDeploymentOrderTest {
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServerWithCustomSenders();
     }
-    
+
     @Test
     public void testCRUD() {
         performCRUD(PushApplicationWorker.worker());
     }
-    
+
     private void performCRUD(PushApplicationWorker worker) {
         // CREATE
         List<PushApplication> persistedApplications = ups.with(worker)
@@ -116,7 +98,7 @@ public class ReverseDeploymentOrderTest {
 
         assertThat(persistedApplications, is(notNullValue()));
         assertThat(persistedApplications.size(), is(2));
-        
+
         PushApplication persistedApplication = persistedApplications.get(0);
         PushApplication persistedApplication1 = persistedApplications.get(1);
 
