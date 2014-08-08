@@ -55,7 +55,8 @@
         <ups.source />
         <ups.remote.url />
 
-        <excludedGroups />
+        <!-- Admin UI tests are not executed by default -->
+        <excludedGroups>category.AdminUI</excludedGroups>
         <groups />
     </properties>
 
