@@ -52,12 +52,15 @@
 
         <code-coverage.active>false</code-coverage.active>
 
-        <ups.source />
-        <ups.remote.url />
-
+        <!-- Surefire Specific configuration -->
         <!-- Admin UI tests are not executed by default -->
         <excludedGroups>category.AdminUI</excludedGroups>
         <groups />
+        <ups.source />
+        <ups.remote.url />
+
+        <reportNameSuffix />
+        <reportsDirectory>${project.basedir}/target/surefire-reports</reportsDirectory>
     </properties>
 
     <dependencyManagement>
@@ -251,14 +254,58 @@
                         <excludedGroups>${excludedGroups}</excludedGroups>
                         <groups>${groups}</groups>
                     </systemPropertyVariables>
-                    <!-- <excludedGroups>${excludedGroups}</excludedGroups>-->
+                    <excludedGroups>${excludedGroups}</excludedGroups>
                     <groups>${groups}</groups>
+                    <reportNameSuffix>${reportNameSuffix}</reportNameSuffix>
+                    <reportsDirectory>${reportsDirectory}</reportsDirectory>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
+
+        <!-- Unified Push Server location -->
+        <!-- Test from local directory -->
+        <profile>
+            <id>test-local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <properties>
+                <ups.source>local</ups.source>
+            </properties>
+        </profile>
+
+        <!-- Test from release repository -->
+        <profile>
+            <id>test-release</id>
+            <properties>
+                <!-- bintray is not working, it is not complete Maven repository -->
+                <ups.source>remote</ups.source>
+                <ups.remote.url>http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/</ups.remote.url>
+            </properties>
+        </profile>
+
+        <!-- Test from staging repository -->
+        <profile>
+            <id>test-staging</id>
+            <properties>
+                <ups.source>remote</ups.source>
+                <ups.remote.url>http://people.apache.org/~matzew/aerogear-staging/</ups.remote.url>
+            </properties>
+        </profile>
+
+        <!-- Test from WAR archives -->
+        <profile>
+            <id>test-archive</id>
+            <properties>
+                <ups.source>archive</ups.source>
+            </properties>
+        </profile>
+        
+        <!-- Test Containers -->
         <profile>
             <id>as711-managed</id>
             <activation>
@@ -302,7 +349,7 @@
         </profile>
 
         <profile>
-            <id>eap601-managed</id>
+            <id>eap6-managed</id>
 
             <activation>
                 <activeByDefault>false</activeByDefault>
@@ -322,123 +369,33 @@
         </profile>
 
         <profile>
-            <id>test-release</id>
-            <properties>
-                <!-- bintray is not working, it is not complete Maven repository -->
-                <ups.source>remote</ups.source>
-                <ups.remote.url>http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/</ups.remote.url>
-            </properties>
-        </profile>
+            <id>eap6-domain-managed</id>
 
-
-        <profile>
-            <id>test-staging</id>
-            <properties>
-                <ups.source>remote</ups.source>
-                <ups.remote.url>http://people.apache.org/~matzew/aerogear-staging/</ups.remote.url>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>test-local</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-
-            <properties>
-                <ups.source>local</ups.source>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>test-archive</id>
-            <properties>
-                <ups.source>archive</ups.source>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>mysql55</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
-            <properties>
-                <database.name>mysql55</database.name>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <reportNameSuffix>${database.name}</reportNameSuffix>
-                            <reportsDirectory>${project.basedir}/reports/${database.name}</reportsDirectory>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
 
-        <profile>
-            <id>postgresql92</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <properties>
-                <database.name>postgresql92</database.name>
+                <org.jboss.arquillian.as7.version>7.2.0.Final</org.jboss.arquillian.as7.version>
             </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <reportNameSuffix>${database.name}</reportNameSuffix>
-                            <reportsDirectory>${project.basedir}/reports/${database.name}</reportsDirectory>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
 
-        <profile>
-            <id>db2-10</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <database.name>db2-10</database.name>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <reportNameSuffix>${database.name}</reportNameSuffix>
-                            <reportsDirectory>${project.basedir}/reports/${database.name}</reportsDirectory>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.as</groupId>
+                    <artifactId>jboss-as-arquillian-container-domain-managed</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
 
-        <profile>
-            <id>mssql2012</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <database.name>mssql2012</database.name>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <reportNameSuffix>${database.name}</reportNameSuffix>
-                            <reportsDirectory>${project.basedir}/reports/${database.name}</reportsDirectory>
+                            <systemPropertyVariables>
+                                <ups.initPerSession>true</ups.initPerSession>
+                                <arquillian.xml>arquillian-domain.xml</arquillian.xml>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>
