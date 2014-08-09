@@ -91,4 +91,4 @@ Example that executes Admin UI tests on Firefox:
 
 ## Additional Documentation
 
-* [Arquillian Guides](http://arquillian.org/guides/)
+*  http://arquillian.org/guides/[Arquillian Guides]
