@@ -89,6 +89,6 @@ Example that executes Admin UI tests on Firefox:
     
     mvn test -Dgroups=category.AdminUi -Dbrowser=firefox
 
-## Additional Documentation
+== Additional Documentation
 
 *  http://arquillian.org/guides/[Arquillian Guides]
