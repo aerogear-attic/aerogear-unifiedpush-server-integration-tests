@@ -72,6 +72,7 @@ public final class Deployments {
     private static final String PROPERTY_UPS_LOCAL_POM = "ups.local.pom";
     private static final String PROPERTY_UPS_ARCHIVE_SERVER_PATH = "ups.server.archive.path";
     private static final String PROPERTY_UPS_ARCHIVE_AUTH_PATH = "ups.auth.archive.path";
+    private static final String PROPERTY_UPS_DISABLE_REBUILD = "ups.disable.rebuild";
 
     private static final String UPS_SOURCE_REMOTE = "remote";
     private static final String UPS_SOURCE_LOCAL = "local";
@@ -113,9 +114,6 @@ public final class Deployments {
         if (upsVersion != null && upsVersion.length() != 0 && upsVersion.startsWith("0.10")) {
             replacePersistenceInWarPreModularization(war);
         } else {
-            war.deleteClass(BootstrapListener.class);
-            war.addClass(BootstrapListener.class);
-
             replacePersistenceInWar(war);
         }
 
@@ -192,9 +190,6 @@ public final class Deployments {
             jpaModel.delete("/META-INF/persistence.xml");
             jpaModel.addAsResource("META-INF/persistence-model-jpa.xml", "META-INF/persistence.xml");
         }
-
-        // war.delete("/WEB-INF/classes/META-INF/persistence.xml");
-        // war.addAsResource("META-INF/persistence-auth-server.xml", "META-INF/persistence.xml");
     }
 
     /**
@@ -261,10 +256,10 @@ public final class Deployments {
     private static WebArchive localUnfiedPushServer() {
         buildLocalServerIfNeeded();
 
-        File[] serverWarFiles = getUpsServerWarFiles();
+        File[] serverWarFiles = getUpsServerAS7WarFiles();
         if (serverWarFiles == null || serverWarFiles.length == 0) {
             throw new IllegalStateException("No war file found in directory '" +
-                getUpsServerTargetDirectory().getAbsolutePath() + "'. Please check that 'mvn clean package' " +
+                getUpsServerAS7TargetDirectory().getAbsolutePath() + "'. Please check that 'mvn clean package' " +
                 "inside the ups server directory will result in creation of .war file.");
         }
 
@@ -291,8 +286,20 @@ public final class Deployments {
     }
 
     private static void replaceAuthServerPersistence(WebArchive war) {
-        war.delete("/WEB-INF/classes/META-INF/persistence.xml");
-        war.addAsResource("META-INF/persistence-auth-server.xml", "META-INF/persistence.xml");
+        Node keycloakServerJson = war.get("WEB-INF/classes/META-INF/keycloak-server.json");
+
+        JSONTokener tokener = new JSONTokener(keycloakServerJson.getAsset().openStream());
+
+        JSONObject keycloakServerConfig = new JSONObject(tokener);
+
+        JSONObject connectionsJpa = keycloakServerConfig.optJSONObject("connectionsJpa");
+        JSONObject defaultJpaConnection = connectionsJpa.optJSONObject("default");
+
+        defaultJpaConnection.put("dataSource", "java:jboss/datasources/ExampleDS");
+        defaultJpaConnection.remove("user");
+        defaultJpaConnection.remove("password");
+
+        war.add(new StringAsset(keycloakServerConfig.toString()), keycloakServerJson.getPath());
     }
 
     private static void fixAerogearAuthServerConfiguration(WebArchive war) {
@@ -408,7 +415,7 @@ public final class Deployments {
     }
 
     private static void buildLocalServerIfNeeded() {
-        if (!mavenBuildInvoked.get()) {
+        if (isUpsBuildNeeded()) {
             LOGGER.log(Level.INFO, "Building UnifiedPush Server from sources at: {0}",
                 getUpsParentDirectory().getAbsolutePath());
 
@@ -486,16 +493,37 @@ public final class Deployments {
         return getUpsLocalPomFile().getParentFile();
     }
 
-    private static File getUpsServerDirectory() {
-        return new File(getUpsParentDirectory(), "server");
+    private static File getUpsServersDirectory() {
+        return new File(getUpsParentDirectory(), "servers");
     }
 
-    private static File getUpsServerTargetDirectory() {
-        return new File(getUpsServerDirectory(), "target");
+    private static File getUpsServerAS7Directory() {
+        return new File(getUpsServersDirectory(), "ups-as7");
     }
 
-    private static File[] getUpsServerWarFiles() {
-        return getUpsServerTargetDirectory().listFiles(new FileFilter() {
+    private static File getUpsServerAS7TargetDirectory() {
+        return new File(getUpsServerAS7Directory(), "target");
+    }
+
+    private static File[] getUpsServerAS7WarFiles() {
+        return getUpsServerAS7TargetDirectory().listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".war") && pathname.isFile() && pathname.canRead();
+            }
+        });
+    }
+
+    private static File getUpsServerWildflyDirectory() {
+        return new File(getUpsServersDirectory(), "ups-wildfly");
+    }
+
+    private static File getUpsServerWildflyTargetDirectory() {
+        return new File(getUpsServerWildflyDirectory(), "target");
+    }
+
+    private static File[] getUpsServerWildflyWarFiles() {
+        return getUpsServerWildflyTargetDirectory().listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
                 return pathname.getName().endsWith(".war") && pathname.isFile() && pathname.canRead();
@@ -504,7 +532,7 @@ public final class Deployments {
     }
 
     private static File getAuthServerDirectory() {
-        return new File(getUpsParentDirectory(), "auth-server");
+        return new File(getUpsServersDirectory(), "auth-server");
     }
 
     private static File getAuthServerTargetDirectory() {
@@ -538,6 +566,13 @@ public final class Deployments {
         }
 
         return new File(upsArchiveAuthPath);
+    }
+
+    private static boolean isUpsBuildNeeded() {
+        Boolean upsDisableRebuild = Boolean.getBoolean(PROPERTY_UPS_DISABLE_REBUILD);
+        File[] serverWarFiles = getUpsServerAS7WarFiles();
+        return !mavenBuildInvoked.get() && !(upsDisableRebuild && serverWarFiles != null && serverWarFiles.length > 0);
+
     }
 
     /**
