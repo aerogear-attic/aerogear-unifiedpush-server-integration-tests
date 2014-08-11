@@ -789,7 +789,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 
     private static final String DEFAULT_ADMIN_PASSWORD = "123";
 
-    private static final String NEW_ADMIN_PASSWORD = "aerogear";
+    private static final String NEW_ADMIN_PASSWORD = "123";
 
     private static final String PUSH_APP_NAME = "MyApp";
 

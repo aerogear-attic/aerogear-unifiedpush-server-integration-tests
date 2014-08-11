@@ -284,7 +284,7 @@
             <properties>
                 <!-- bintray is not working, it is not complete Maven repository -->
                 <ups.source>remote</ups.source>
-                <ups.remote.url>http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/</ups.remote.url>
+                <ups.remote.url>http://repo1.maven.org/maven2</ups.remote.url>
             </properties>
         </profile>
 
@@ -293,7 +293,7 @@
             <id>test-staging</id>
             <properties>
                 <ups.source>remote</ups.source>
-                <ups.remote.url>http://people.apache.org/~matzew/aerogear-staging/</ups.remote.url>
+                <ups.remote.url>https://repository.jboss.org/nexus/content/groups/staging/</ups.remote.url>
             </properties>
         </profile>
 
@@ -395,6 +395,32 @@
                             <systemPropertyVariables>
                                 <ups.initPerSession>true</ups.initPerSession>
                                 <arquillian.xml>arquillian-domain.xml</arquillian.xml>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>openshift</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                 <dependency>
+                     <groupId>org.jboss.aerogear.test.arquillian</groupId>
+                     <artifactId>arquillian-non-deploying-container</artifactId>
+                     <!--<version>${version.arquillian.non.deploying.container}</version>-->
+                     <scope>test</scope>
+                 </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <arquillian.xml>arquillian-openshift.xml</arquillian.xml>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
