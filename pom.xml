@@ -355,15 +355,13 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
 
-            <properties>
-                <org.jboss.arquillian.as7.version>7.2.0.Final</org.jboss.arquillian.as7.version>
-            </properties>
-
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-managed</artifactId>
                     <scope>test</scope>
+                    <!-- this property overrides Arquillian AS7 adapter version from aerogear-test-bom for EAP usage -->
+                    <version>7.2.0.Final</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -375,15 +373,13 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
 
-            <properties>
-                <org.jboss.arquillian.as7.version>7.2.0.Final</org.jboss.arquillian.as7.version>
-            </properties>
-
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.as</groupId>
                     <artifactId>jboss-as-arquillian-container-domain-managed</artifactId>
                     <scope>test</scope>
+                    <!-- this property overrides Arquillian AS7 adapter version from aerogear-test-bom for EAP usage -->
+                    <version>7.2.0.Final</version>
                 </dependency>
             </dependencies>
 
