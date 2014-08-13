@@ -37,7 +37,7 @@ public class VariantsPage {
     @FindByJQuery("table tr:contains('Master Secret') td:last")
     private WebElement masterSecret;
 
-    @FindByNg(repeat = "variant in variants")
+    @FindByNg(repeat = "variant in application.variants")
     private List<Variant> variantsList;
 
     @FindByJQuery(".breadcrumb a")
@@ -45,7 +45,7 @@ public class VariantsPage {
 
     public void navigateToPushAppsPage() {
         backToPushAppsLink.click();
-    } //todo
+    }
 
     public void addVariant() {
         addVariantButton.click();

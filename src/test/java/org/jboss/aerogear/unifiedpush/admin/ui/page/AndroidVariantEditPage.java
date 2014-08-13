@@ -22,7 +22,7 @@ import org.jboss.arquillian.graphene.findby.FindByJQuery;
 
 public class AndroidVariantEditPage {
 
-    @FindByJQuery("[ng-show='variantType == \'android\'']")
+    @FindByJQuery("[ng-show='variant.type == \'android\'']")
     private AndroidVariantForm androidForm;
 
     @FindByJQuery(".modal")

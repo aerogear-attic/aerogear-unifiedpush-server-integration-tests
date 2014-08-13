@@ -16,20 +16,14 @@ public class Variant {
     @FindByNg(action = "expand(variant)")
     private WebElement name;
 
-    @FindByJQuery("span:eq(0)")
+    @FindByJQuery("li span:eq(0)")
     private WebElement description;
 
-    @FindByJQuery("span:eq(1) span:visible")
+    @FindByJQuery("li span:eq(1) span:visible")
     private WebElement installations;
 
-    @FindByJQuery(".dropdown-toggle")
-    private WebElement dropdownToggle;
-
-    @FindByNg(action = "editVariant(variant, type)")
-    private WebElement editButton;
-
-    @FindByNg(action = "removeVariant(variant, type)")
-    private WebElement removeButton;
+    @FindByJQuery(".dropdown")
+    private Dropdown dropdown;
 
     @FindByJQuery(".ups-toggle-box")
     private WebElement details;
@@ -71,17 +65,15 @@ public class Variant {
     }
 
     public void edit() {
-        dropdownToggle.click();
-        editButton.click();
+        dropdown.click("Edit");
     }
 
     public void remove() {
-        dropdownToggle.click();
-        removeButton.click();
+        dropdown.click("Remove");
     }
 
     public String getType() {
-        return (String) js.executeScript("return arguments[0].parentNode.parentNode.getAttribute('type')", root);
+        return (String) js.executeScript("return $(arguments[0]).prevAll().addBack().find('.ups-panel-variants h2').last().text()", root);
     }
 
 }

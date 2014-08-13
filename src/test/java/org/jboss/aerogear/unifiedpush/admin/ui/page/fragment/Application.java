@@ -23,14 +23,8 @@ public class Application {
     @FindByJQuery(".lo-app-opts li:eq(2) a")
     private WebElement sendPush;
 
-    @FindByJQuery(".dropdown-toggle")
-    private WebElement dropdownToggle;
-
-    @FindByNg(action = "edit(application)")
-    private WebElement editButton;
-
-    @FindByNg(action = "remove(application)")
-    private WebElement removeButton;
+    @FindByJQuery(".dropdown")
+    private Dropdown dropdown;
 
     public String getName() {
         return name.getText();
@@ -62,13 +56,11 @@ public class Application {
     }
 
     public void edit() {
-        dropdownToggle.click();
-        editButton.click();
+        dropdown.click("Edit");
     }
 
     public void remove() {
-        dropdownToggle.click();
-        removeButton.click();
+        dropdown.click("Remove");
     }
 
 

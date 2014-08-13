@@ -24,7 +24,7 @@ import org.jboss.arquillian.graphene.findby.FindByJQuery;
 
 public class iOSVariantEditPage {
 
-    @FindByJQuery("[ng-show='variantType == \'iOS\'']")
+    @FindByJQuery("[ng-show='variant.type == \'ios\'']")
     private IOSVariantForm iOSForm;
 
     @FindByJQuery(".modal")

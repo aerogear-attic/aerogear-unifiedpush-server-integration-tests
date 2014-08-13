@@ -22,14 +22,10 @@ import org.openqa.selenium.WebElement;
 
 public class Header {
 
-    @FindByNg(action = "logout()")
-    private WebElement LOGOUT_LINK;
-
-    @FindByJQuery(".dropdown-toggle")
-    private WebElement DROPDOWN_TOGGLE;
+    @FindByJQuery(".dropdown")
+    private Dropdown dropdown;
 
     public void logout() {
-        DROPDOWN_TOGGLE.click();
-        LOGOUT_LINK.click();
+        dropdown.click("Log Out");
     }
 }
