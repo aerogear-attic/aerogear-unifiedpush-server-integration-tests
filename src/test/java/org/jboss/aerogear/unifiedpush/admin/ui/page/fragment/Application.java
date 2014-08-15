@@ -1,7 +1,6 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
 import org.jboss.aerogear.unifiedpush.admin.ui.utils.StringUtilities;
-import org.jboss.arquillian.graphene.angular.findby.FindByNg;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
