@@ -58,6 +58,7 @@
         <groups />
         <ups.source />
         <ups.remote.url />
+        <ups.server.type>as7</ups.server.type>
 
         <reportNameSuffix />
         <reportsDirectory>${project.basedir}/target/surefire-reports</reportsDirectory>
@@ -251,6 +252,7 @@
                     <systemPropertyVariables>
                         <ups.source>${ups.source}</ups.source>
                         <ups.remote.url>${ups.remote.url}</ups.remote.url>
+                        <ups.server.type>${ups.server.type}</ups.server.type>
                         <excludedGroups>${excludedGroups}</excludedGroups>
                         <groups>${groups}</groups>
                     </systemPropertyVariables>
@@ -397,6 +399,61 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>wildfly-managed</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <properties>
+                <ups.server.type>wildfly</ups.server.type>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <version>8.1.0.Final</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>wildfly-domain-managed</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <properties>
+                <ups.server.type>wildfly</ups.server.type>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly</groupId>
+                    <artifactId>wildfly-arquillian-container-domain-managed</artifactId>
+                    <version>8.1.0.Final</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <ups.initPerSession>true</ups.initPerSession>
+                                <arquillian.xml>arquillian-domain.xml</arquillian.xml>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>openshift</id>
             <activation>

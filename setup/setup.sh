@@ -12,10 +12,13 @@ BASE_DIR=`pwd`
 READLINK_F="$(dirname $0)/readlink_f.sh"
 SCRIPT_DIR=$(dirname $($READLINK_F $0))
 DOWNLOAD_URL="http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip"
-JBOSS_ZIP="$BASE_DIR/jboss-as-7.1.1.Final.zip"
-JBOSS_HOME="$BASE_DIR/jboss-as-7.1.1.Final"
+JBOSS_AS_ZIP="$BASE_DIR/jboss-as-7.1.1.Final.zip"
+JBOSS_AS_HOME="$BASE_DIR/jboss-as-7.1.1.Final"
+WILDFLY_DOWNLOAD_URL="http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.0.Final.zip"
+WILDFLY_ZIP="$BASE_DIR/wildfly-8.1.0.Final.zip"
+WILDFLY_HOME="$BASE_DIR/wildfly-8.1.0.Final"
 AG_UPS_REPO="$BASE_DIR/aerogear-unifiedpush-server"
-AG_PUSH_COMMIT="1.0.0.Beta1"
+AG_PUSH_COMMIT="1.0.0.Beta2"
 
 function cloneRepository() {
 
@@ -38,22 +41,44 @@ function cloneRepository() {
 function getAS7() {
     echo "[INFO] Downloading JBoss AS7 distribution"
 
-    if [ ! -f "$JBOSS_ZIP" ]; then
+    if [ ! -f "$JBOSS_AS_ZIP" ]; then
         echo $DOWNLOAD_URL
         wget -c $DOWNLOAD_URL -P $BASE_DIR/
     fi
 
     # FIXME this might not be necessary
-    if [ -d "$JBOSS_HOME" ]; then
-        rm -rf $JBOSS_HOME
+    if [ -d "$JBOSS_AS_HOME" ]; then
+        rm -rf $JBOSS_AS_HOME
     fi
 
     echo "[INFO] Extracting JBoss AS7 distribution"
 
-    if [ -f "$JBOSS_ZIP" ]; then
-        unzip -qo $JBOSS_ZIP -d $BASE_DIR/
+    if [ -f "$JBOSS_AS_ZIP" ]; then
+        unzip -qo $JBOSS_AS_ZIP -d $BASE_DIR/
     else
         echo "[ERROR] The path does not contain a JBoss distribution" 1>&2
+        exit 3
+    fi
+}
+
+function getWildFly() {
+    echo "[INFO] Downloading Wildfly 8.1.0.Final distribution"
+
+    if [ ! -f "$WILDFLY_ZIP" ]; then
+        echo $WILDFLY_DOWNLOAD_URL
+        wget -c $WILDFLY_DOWNLOAD_URL -P $BASE_DIR/
+    fi
+
+    if [ -d "$WILDFLY_HOME" ]; then
+        rm -rf $WILDFLY_HOME
+    fi
+
+    echo "[INFO] Extracting Wildfly 8.1.0.Final distribution"
+
+    if [ -f "$WILDFLY_ZIP" ]; then
+        unzip -qo $WILDFLY_ZIP -d $BASE_DIR/
+    else
+        echo "[ERROR] The path does not contain a Wildfly distribution" 1>&2
         exit 3
     fi
 }
@@ -71,7 +96,7 @@ function patchContainer() {
     echo "[DEBUG] Starting JBoss container at $1"
 
     # runs JBoss container
-    $1/bin/$2.sh > /dev/null & 
+    $1/bin/$2.sh > /dev/null &
 
     echo "[DEBUG] Waiting for JBoss container to start"
 
@@ -136,17 +161,35 @@ function patchContainer() {
 }
 
 cloneRepository
-getAS7
+#getAS7
+getWildFly
 
-patchContainer $JBOSS_HOME standalone $AG_UPS_REPO/databases/h2-database-config.cli 7
-patchContainer $JBOSS_HOME domain $SCRIPT_DIR/h2_database_config_domain.cli 7
+JBOSS_HOME=$JBOSS_AS_HOME
+#patchContainer $JBOSS_AS_HOME standalone $AG_UPS_REPO/databases/h2-database-config.cli 7
+#patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/h2_database_config_domain.cli 7
+
+JBOSS_HOME=$WILDFLY_HOME
+#patchContainer $WILDFLY_HOME standalone $AG_UPS_REPO/databases/h2-database-config-wildfly.cli 7
+patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/h2_database_config_domain_wildfly.cli 7
 
 # copy keystore and truststore to the right directories
-cp $SCRIPT_DIR/aerogear.keystore $JBOSS_HOME/standalone/configuration
-cp $SCRIPT_DIR/aerogear.keystore $JBOSS_HOME/domain/configuration
+cp $SCRIPT_DIR/aerogear.keystore $JBOSS_AS_HOME/standalone/configuration
+cp $SCRIPT_DIR/aerogear.keystore $JBOSS_AS_HOME/domain/configuration
 
-cp $SCRIPT_DIR/aerogear.truststore $JBOSS_HOME/standalone/configuration
-cp $SCRIPT_DIR/aerogear.truststore $JBOSS_HOME/domain/configuration
+cp $SCRIPT_DIR/aerogear.truststore $JBOSS_AS_HOME/standalone/configuration
+cp $SCRIPT_DIR/aerogear.truststore $JBOSS_AS_HOME/domain/configuration
 
-patchContainer $JBOSS_HOME standalone $SCRIPT_DIR/enable_https.cli 7
-patchContainer $JBOSS_HOME domain $SCRIPT_DIR/enable_https_domain.cli 7
+cp $SCRIPT_DIR/aerogear.keystore $WILDFLY_HOME/standalone/configuration
+cp $SCRIPT_DIR/aerogear.keystore $WILDFLY_HOME/domain/configuration
+
+cp $SCRIPT_DIR/aerogear.truststore $WILDFLY_HOME/standalone/configuration
+cp $SCRIPT_DIR/aerogear.truststore $WILDFLY_HOME/domain/configuration
+
+JBOSS_HOME=$JBOSS_AS_HOME
+#patchContainer $JBOSS_AS_HOME standalone $SCRIPT_DIR/enable_https.cli 7
+#patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/enable_https_domain.cli 7
+
+JBOSS_HOME=$WILDFLY_HOME
+#patchContainer $WILDFLY_HOME standalone $SCRIPT_DIR/enable_https_wildfly.cli 7
+patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_sslrealm.cli 7
+patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_https_listener.cli 7

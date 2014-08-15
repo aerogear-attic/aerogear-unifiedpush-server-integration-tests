@@ -1,0 +1,7 @@
+connect
+batch
+
+/host=master/core-service=management/security-realm=SSLRealm:add()
+/host=master/core-service=management/security-realm=SSLRealm/server-identity=ssl:add(alias="aerogear",key-password="aerogear",keystore-password="aerogear",keystore-path="${jboss.domain.config.dir}/aerogear.keystore")
+
+run-batch
