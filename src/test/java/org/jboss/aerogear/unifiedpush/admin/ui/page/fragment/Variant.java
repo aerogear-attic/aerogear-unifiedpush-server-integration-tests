@@ -28,10 +28,10 @@ public class Variant {
     @FindByJQuery(".ups-toggle-box")
     private WebElement details;
 
-    @FindByJQuery(".ups-tip-panel tr:contains('Variant ID') td:last")
+    @FindByJQuery(".ups-tip-panel tr:contains('Variant ID') td:last input")
     private WebElement id;
 
-    @FindByJQuery(".ups-tip-panel tr:contains('Secret') td:last")
+    @FindByJQuery(".ups-tip-panel tr:contains('Secret') td:last input")
     private WebElement secret;
 
     @ArquillianResource
@@ -47,11 +47,11 @@ public class Variant {
     }
 
     public String getId() {
-        return id.getText();
+        return id.getAttribute("value");
     }
 
     public String getSecret() {
-        return secret.getText();
+        return secret.getAttribute("value");
     }
 
     public int getInstallationCount() {

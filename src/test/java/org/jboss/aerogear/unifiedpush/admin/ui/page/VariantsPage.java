@@ -31,10 +31,10 @@ public class VariantsPage {
     @FindByJQuery(".breadcrumb li:last span")
     private WebElement headerTitle;
 
-    @FindByJQuery("table tr:contains('Application ID') td:last")
+    @FindByJQuery("table tr:contains('Application ID') td:last input")
     private WebElement applicationId;
 
-    @FindByJQuery("table tr:contains('Master Secret') td:last")
+    @FindByJQuery("table tr:contains('Master Secret') td:last input")
     private WebElement masterSecret;
 
     @FindByNg(repeat = "variant in application.variants")
@@ -56,11 +56,11 @@ public class VariantsPage {
     }
 
     public String getApplicationId() {
-        return applicationId.getText();
+        return applicationId.getAttribute("value");
     }
 
     public String getMasterSecret() {
-        return masterSecret.getText();
+        return masterSecret.getAttribute("value");
     }
 
     public int countVariants() {

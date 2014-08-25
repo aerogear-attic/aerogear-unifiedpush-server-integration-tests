@@ -18,7 +18,7 @@ WILDFLY_DOWNLOAD_URL="http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.
 WILDFLY_ZIP="$BASE_DIR/wildfly-8.1.0.Final.zip"
 WILDFLY_HOME="$BASE_DIR/wildfly-8.1.0.Final"
 AG_UPS_REPO="$BASE_DIR/aerogear-unifiedpush-server"
-AG_PUSH_COMMIT="1.0.0.Beta2"
+AG_PUSH_COMMIT="1.0.0.Final"
 
 function cloneRepository() {
 
@@ -165,11 +165,11 @@ cloneRepository
 getWildFly
 
 JBOSS_HOME=$JBOSS_AS_HOME
-#patchContainer $JBOSS_AS_HOME standalone $AG_UPS_REPO/databases/h2-database-config.cli 7
-#patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/h2_database_config_domain.cli 7
+patchContainer $JBOSS_AS_HOME standalone $AG_UPS_REPO/databases/h2-database-config.cli 7
+patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/h2_database_config_domain.cli 7
 
 JBOSS_HOME=$WILDFLY_HOME
-#patchContainer $WILDFLY_HOME standalone $AG_UPS_REPO/databases/h2-database-config-wildfly.cli 7
+patchContainer $WILDFLY_HOME standalone $AG_UPS_REPO/databases/h2-database-config-wildfly.cli 7
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/h2_database_config_domain_wildfly.cli 7
 
 # copy keystore and truststore to the right directories
@@ -186,10 +186,10 @@ cp $SCRIPT_DIR/aerogear.truststore $WILDFLY_HOME/standalone/configuration
 cp $SCRIPT_DIR/aerogear.truststore $WILDFLY_HOME/domain/configuration
 
 JBOSS_HOME=$JBOSS_AS_HOME
-#patchContainer $JBOSS_AS_HOME standalone $SCRIPT_DIR/enable_https.cli 7
-#patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/enable_https_domain.cli 7
+patchContainer $JBOSS_AS_HOME standalone $SCRIPT_DIR/enable_https.cli 7
+patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/enable_https_domain.cli 7
 
 JBOSS_HOME=$WILDFLY_HOME
-#patchContainer $WILDFLY_HOME standalone $SCRIPT_DIR/enable_https_wildfly.cli 7
+patchContainer $WILDFLY_HOME standalone $SCRIPT_DIR/enable_https_wildfly.cli 7
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_sslrealm.cli 7
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_https_listener.cli 7
