@@ -27,10 +27,10 @@ import org.openqa.selenium.support.FindBy;
 
 public class VariantRegistrationPage {
 
-    @FindByJQuery("[ng-show='variant.type == \'android\'']")
+    @FindByJQuery(".modal [ng-show='variant.type == \'android\'']")
     private AndroidVariantForm androidForm;
 
-    @FindByJQuery("[ng-show='variant.type == \'ios\'']")
+    @FindByJQuery(".modal [ng-show='variant.type == \'ios\'']")
     private IOSVariantForm iOSForm;
 
     @FindBy(id = "variantTypeAndroid")

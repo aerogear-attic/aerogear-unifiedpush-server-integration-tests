@@ -48,6 +48,7 @@ import org.jboss.aerogear.unifiedpush.admin.ui.utils.InstallationUtils;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.page.Page;
 import org.jboss.arquillian.junit.InSequence;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openqa.selenium.WebDriverException;
@@ -138,10 +139,12 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         navigation.goToApplications();
         // initially there shouldn't exist any push applications
         while (!pushAppsPage.getApplicationList().isEmpty()) {
-            pushAppsPage.getApplicationList().get(0).remove();
+            Application application = pushAppsPage.getApplicationList().get(0);
+            application.remove();
+            modal.confirmName(application.getName());
             modal.remove();
         }
-        assertTrue("Initially there are 0 push apps", pushAppsPage.countApplications() == 0);
+        assertEquals("Initially there are 0 push apps", pushAppsPage.countApplications(), 0);
         // register a new push application
         try {
             Thread.sleep(2500);
@@ -154,7 +157,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // navigate to push apps page
         final List<Application> pushAppsList = pushAppsPage.getApplicationList();
         // there should exist one push application
-        assertTrue("There should exist 1 push app", pushAppsList.size() == 1);
+        assertEquals("There should exist 1 push app", pushAppsList.size(), 1);
         // The push app row should contain the right info name, desc, variants
         assertFalse(pushAppsList.isEmpty());
         assertEquals(PUSH_APP_NAME, pushAppsList.get(0).getName());
@@ -166,7 +169,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @InSequence(4)
     public void testPushAppCancellation() {
         // there should exist one push application
-        assertTrue("There should exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should exist 1 push app", pushAppsPage.countApplications(), 1);
         pushAppsPage.pressCreateButton();
         // press cancel
         try {
@@ -176,14 +179,14 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         }
         pushAppEditPage.cancel();
         // there should exist one push application
-        assertTrue("There should still exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
     }
 
     @Test
     @InSequence(5)
     public void testPushAppEdit() {
         // there should exist one push application
-        assertTrue("There should still exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         // press the edit link
         pushAppsPage.getApplicationList().get(0).edit();
         // the push app details should be the expected ones
@@ -208,7 +211,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @InSequence(6)
     public void testAndroidVariantRegistration() {
         // there should exist one push application
-        assertTrue("There should still exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         // press the variants link
         pushAppsPage.getApplicationList().get(0).goToVariants();
         // assert header title
@@ -221,7 +224,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // application id & master secret should exist
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
         // initially there are zero variants
-        assertTrue("initially there are zero variants", variantsPage.countVariants() == 0);
+        assertEquals("initially there are zero variants", variantsPage.countVariants(), 0);
         // add a new variant
         variantsPage.addVariant();
         // register new android variant
@@ -232,7 +235,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         }
         variantRegistrationPage.registerAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC, ANDROID_VARIANT_PROJECT_NUMBER, ANDROID_VARIANT_GOOGLE_KEY);
         // one variant should exist
-        assertTrue(variantsPage.getVariantList().size() == 1);
+        assertEquals(variantsPage.getVariantList().size(), 1);
         Variant variant = variantsPage.findVariantRow(ANDROID_VARIANT_NAME);
         assertNotNull(variant);
         assertEquals(ANDROID_VARIANT_NAME, variant.getName());
@@ -282,7 +285,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @InSequence(8)
     public void testAndroidVariantEdit() {
         // there should exist one variant
-        assertTrue("There should still exist 1 variant", variantsPage.countVariants() == 1);
+        assertEquals("There should still exist 1 variant", variantsPage.countVariants(), 1);
         // press the variants edit link
         variantsPage.getVariantList().get(0).edit();
         // the variant details should be the expected ones
@@ -322,7 +325,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // register a push application
         modal.cancel();
         // there should exist one variant
-        assertTrue("There should still exist 1 variant", variantsPage.countVariants() == 1);
+        assertEquals("There should still exist 1 variant", variantsPage.countVariants(), 1);
     }
 
     @Test
@@ -336,7 +339,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
             e.printStackTrace();
         }
         // there should exist one push application
-        assertTrue("There should still exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         // press the variants link
         pushAppsPage.getApplicationList().get(0).goToVariants();
         // assert header title
@@ -349,13 +352,13 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // application id & master secret should exist
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
         // initially there is one variant
-        assertTrue("There should exist one variant", variantsPage.countVariants() == 1);
+        assertEquals("There should exist one variant", variantsPage.countVariants(), 1);
         // add a new variant
         variantsPage.addVariant();
         // register ios variant
         variantRegistrationPage.registeriOSVariant(IOS_VARIANT_NAME, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE,
             false);
-        assertTrue("There should exist two variants", variantsPage.countVariants() == 2);
+        assertEquals("There should exist two variants", variantsPage.countVariants(), 2);
     }
 
     @Test
@@ -394,7 +397,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         }
         iOSVariantEditPage.updateVariant(UPDATED_IOS_VARIANT_NAME_PATCH, UPDATED_IOS_VARIANT_DESC, null, null);
         List<Variant> variantList = variantsPage.getVariantList();
-        assertTrue(variantList.size() == 2);
+        assertEquals(variantList.size(), 2);
         assertEquals(variantList.get(1).getName(), UPDATED_IOS_VARIANT_NAME_PATCH);
         assertEquals(variantList.get(1).getDescription(), UPDATED_IOS_VARIANT_DESC);
     }
@@ -415,7 +418,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         iOSVariantEditPage
             .updateVariant(UPDATED_IOS_VARIANT_NAME, UPDATED_IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE);
         List<Variant> variantList = variantsPage.getVariantList();
-        assertTrue(variantList.size() == 2);
+        assertEquals(variantList.size(), 2);
         assertEquals(variantList.get(1).getName(), UPDATED_IOS_VARIANT_NAME);
         assertEquals(variantList.get(1).getDescription(), UPDATED_IOS_VARIANT_DESC);
     }
@@ -433,11 +436,12 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
             System.out.println();
         }
         // there should exist one variant
-        assertTrue("There should still exist 2 variants", variantsPage.countVariants() == 2);
+        assertEquals("There should still exist 2 variants", variantsPage.countVariants(), 2);
     }
 
     @Test
     @InSequence(15)
+    @Ignore("Simple Push is not available")
     public void testSimplePushVariantRegistration() {
         // go to push apps page
         // assert header title
@@ -445,7 +449,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // application id & master secret should exist
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
         // initially there are two variants
-        assertTrue("There should exist two variants", variantsPage.countVariants() == 2);
+        assertEquals("There should exist two variants", variantsPage.countVariants(), 2);
         // add a new variant
         variantsPage.addVariant();
         // register ios variant
@@ -460,11 +464,12 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assertTrue("There should exist three variants", variantsPage.countVariants() == 3);
+        assertEquals("There should exist three variants", variantsPage.countVariants(), 3);
     }
 
     @Test
     @InSequence(16)
+    @Ignore("Simple Push is not available")
     public void testSimplePushVariantDetailsPage() {
         Variant variant = variantsPage.findVariantRow(SIMPLE_PUSH_VARIANT_NAME);
         assertNotNull(variant);
@@ -481,6 +486,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 
     @Test
     @InSequence(17)
+    @Ignore("Simple Push is not available")
     public void testSimplePushVariantEdit() {
         Variant variant = variantsPage.findVariantRow(SIMPLE_PUSH_VARIANT_NAME);
         assertNotNull(variant);
@@ -495,7 +501,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         simplePushVariantEditPage.updateVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME, UPDATED_SIMPLE_PUSH_VARIANT_DESC);
         variant = variantsPage.findVariantRow(SIMPLE_PUSH_VARIANT_NAME);
         assertNotNull(variant);
-        assertTrue(variantsPage.getVariantList().size() == 3);
+        assertEquals(variantsPage.getVariantList().size(), 3);
         assertEquals(variant.getName(), UPDATED_SIMPLE_PUSH_VARIANT_NAME);
         assertEquals(variant.getDescription(), UPDATED_SIMPLE_PUSH_VARIANT_DESC);
     }
@@ -508,7 +514,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // application id & master secret should exist
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
         // initially there is one variant
-        assertTrue("There should exist one variant", variantsPage.countVariants() == 3);
+        assertEquals("There should exist one variant", variantsPage.countVariants(), 2);
         // add a new variant
         variantsPage.addVariant();
         // register ios variant
@@ -524,7 +530,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assertEquals("There should exist four variants", variantsPage.countVariants(), 4);
+        assertEquals("There should exist four variants", variantsPage.countVariants(), 3);
         Variant variant = variantsPage.findVariantRow(IOS_VARIANT_NAME_2);
         assertNotNull(variant);
         // edit the last iOS variant
@@ -695,6 +701,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 
     @Test
     @InSequence(21)
+    @Ignore("Simple Push is not available")
     public void registerSimplePushInstallations() {
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         // application id & master secret should exist
@@ -771,7 +778,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 
         navigation.goToApplications();
         // initially there shouldn't exist any push applications
-        assertTrue("Initially there is 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("Initially there is 1 push app", pushAppsPage.countApplications(), 1);
         // register a new push application
         pushAppsPage.pressCreateButton();
         // register a push application
@@ -780,13 +787,14 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         final List<Application> pushAppsList = pushAppsPage.getApplicationList();
         assertTrue(pushAppsPage.applicationExists(SECOND_PUSH_APP_NAME, PUSH_APP_DESC));
         // there should exist two push applications
-        assertTrue("There should exist 2 push apps", pushAppsList.size() == 2);
+        assertEquals("There should exist 2 push apps", pushAppsList.size(), 2);
     }
 
     @Test
     @InSequence(23)
     public void testPushAppRemoval() {
         pushAppsPage.findApplication(SECOND_PUSH_APP_NAME).remove();
+        modal.confirmName(SECOND_PUSH_APP_NAME);
         modal.remove();
         // the deleted push app should not exist
         assertFalse(pushAppsPage.applicationExists(SECOND_PUSH_APP_NAME, PUSH_APP_DESC));
@@ -795,18 +803,18 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @Test
     @InSequence(24)
     public void testSecondAndroidVariantRegistration() {
-        assertTrue("There should still exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         pushAppsPage.getApplicationList().get(0).goToVariants();
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
-        assertTrue("there has to be already four variants registered", variantsPage.countVariants() == 4);
+        assertEquals("there has to be already four variants registered", variantsPage.countVariants(), 3);
         // add the second Android variant
         variantsPage.addVariant();
         // register new (second) Android variant
         variantRegistrationPage.registerAndroidVariant(ANDROID_VARIANT_NAME_2, ANDROID_VARIANT_DESC_2, ANDROID_VARIANT_PROJECT_NUMBER,
             ANDROID_VARIANT_GOOGLE_KEY_2);
         // five variants should exist
-        assertTrue(variantsPage.getVariantList().size() == 5);
+        assertEquals(variantsPage.getVariantList().size(), 4);
         Variant variant = variantsPage.findVariantRow(ANDROID_VARIANT_NAME_2);
         assertNotNull(variant);
         assertEquals(ANDROID_VARIANT_NAME_2, variant.getName());
@@ -824,23 +832,24 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         final List<Application> pushAppsList = pushAppsPage.getApplicationList();
         // The variant counter should be updated to 5
         assertFalse(pushAppsList.isEmpty());
-        assertEquals(5, pushAppsList.get(0).getVariantCount());
+        assertEquals(4, pushAppsList.get(0).getVariantCount());
     }
 
     @Test
     @InSequence(25)
+    @Ignore("Simple Push is not available")
     public void testSecondSimplePushVariantRegistration() {
-        assertTrue("There should still exist 1 push app", pushAppsPage.countApplications() == 1);
+        assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         pushAppsPage.getApplicationList().get(0).goToVariants();
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
-        assertTrue("there has to be already five variants registered", variantsPage.countVariants() == 5);
+        assertEquals("there has to be already five variants registered", variantsPage.countVariants(), 5);
         // add the second SimplePush variant
         variantsPage.addVariant();
         // register it
         variantRegistrationPage.registerSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME_2, SIMPLE_PUSH_VARIANT_DESC_2);
 
-        assertTrue(variantsPage.getVariantList().size() == 6);
+        assertEquals(variantsPage.getVariantList().size(), 6);
         Variant variant = variantsPage.findVariantRow(SIMPLE_PUSH_VARIANT_NAME_2);
         assertNotNull(variant);
         assertEquals(SIMPLE_PUSH_VARIANT_NAME_2, variant.getName());
@@ -859,12 +868,19 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @Test
     @InSequence(26)
     public void testVariantRemoval() {
+        navigation.goToApplications();
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         pushAppsPage.getApplicationList().get(0).goToVariants();
 
         Variant variant = variantsPage.findVariantRow(UPDATED_ANDROID_VARIANT_NAME);
         assertNotNull(variant);
 
         variant.remove();
+        modal.confirmName(variant.getName());
         modal.remove();
 
         assertNull(variantsPage.findVariantRow(UPDATED_ANDROID_VARIANT_NAME));

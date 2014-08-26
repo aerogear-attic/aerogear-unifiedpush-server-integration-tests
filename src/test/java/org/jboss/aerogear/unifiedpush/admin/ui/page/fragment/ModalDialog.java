@@ -1,5 +1,6 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
+import org.jboss.arquillian.graphene.angular.findby.FindByNg;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -21,6 +22,9 @@ public class ModalDialog {
     @FindByJQuery(".modal-footer .btn-danger")
     private WebElement removeButton;
 
+    @FindByJQuery("input[ng-model*='confirm']")
+    private WebElement confirmNameInput;
+
     public void setName(String name) {
         nameInput.clear();
         nameInput.sendKeys(name);
@@ -37,6 +41,10 @@ public class ModalDialog {
 
     public String getDescription() {
         return descriptionInput.getAttribute("value");
+    }
+
+    public void confirmName(String name) {
+        confirmNameInput.sendKeys(name);
     }
 
     public void cancel() {
