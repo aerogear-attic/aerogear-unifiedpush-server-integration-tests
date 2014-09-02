@@ -19,13 +19,14 @@ package org.jboss.aerogear.unifiedpush.test.perftest;
 import java.util.logging.Logger;
 
 import org.hamcrest.CoreMatchers;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.perftest.BatchPushApplicationRequest;
 import org.jboss.aerogear.test.api.perftest.BatchPushInstallationRequest;
 import org.jboss.aerogear.test.api.perftest.BatchPushVariantRequest;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.experimental.categories.Category;
+
+import category.Performance;
 
 /**
  * Creates 1 application, for that application there is created 1 variant and for that variant we register 10 000 installations.
@@ -35,7 +36,7 @@ import org.junit.runner.RunWith;
  * @author <a href="mailto:smikloso@redhat.com">Stefan Miklosovic</a>
  *
  */
-@RunWith(ArquillianRules.class)
+@Category(Performance.class)
 public class BatchPushInstallationTest extends AbstractBatchTest {
 
     private static final Logger logger = Logger.getLogger(BatchPushInstallationTest.class.getName());

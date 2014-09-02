@@ -17,12 +17,13 @@
 package org.jboss.aerogear.unifiedpush.test.perftest;
 
 import org.hamcrest.CoreMatchers;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.perftest.BatchPushApplicationRequest;
 import org.jboss.aerogear.test.api.perftest.BatchPushVariantRequest;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.experimental.categories.Category;
+
+import category.Performance;
 
 /**
  * Creation of one Push applications for which we register 10 000 (Android) variants
@@ -30,7 +31,7 @@ import org.junit.runner.RunWith;
  * @author <a href="mailto:smikloso@redhat.com">Stefan Miklosovic</a>
  *
  */
-@RunWith(ArquillianRules.class)
+@Category(Performance.class)
 public class BatchPushVariantTest extends AbstractBatchTest {
 
     @Test

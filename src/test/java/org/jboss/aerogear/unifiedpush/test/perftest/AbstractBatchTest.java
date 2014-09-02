@@ -17,6 +17,7 @@
 package org.jboss.aerogear.unifiedpush.test.perftest;
 
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
+import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
@@ -25,6 +26,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
@@ -35,6 +37,7 @@ import com.jayway.restassured.config.RestAssuredConfig;
  * @author <a href="mailto:smikloso@redhat.com">Stefan Miklosovic</a>
  *
  */
+@RunWith(ArquillianRules.class)
 public abstract class AbstractBatchTest {
 
     @ArquillianRule

@@ -17,11 +17,12 @@
 package org.jboss.aerogear.unifiedpush.test.perftest;
 
 import org.hamcrest.CoreMatchers;
-import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.perftest.BatchPushApplicationRequest;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.experimental.categories.Category;
+
+import category.Performance;
 
 /**
  * Creates and deletes 100 000 applications calling newly added management end point on UPS side.
@@ -29,7 +30,7 @@ import org.junit.runner.RunWith;
  * @author <a href="mailto:smikloso@redhat.com">Stefan Miklosovic</a>
  *
  */
-@RunWith(ArquillianRules.class)
+@Category(Performance.class)
 public class BatchPushApplicationTest extends AbstractBatchTest {
 
     @Test

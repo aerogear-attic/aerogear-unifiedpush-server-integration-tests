@@ -53,8 +53,8 @@
         <code-coverage.active>false</code-coverage.active>
 
         <!-- Surefire Specific configuration -->
-        <!-- Admin UI tests are not executed by default -->
-        <excludedGroups>category.AdminUI</excludedGroups>
+        <!-- Admin UI tests and performance tests are not executed by default -->
+        <excludedGroups>category.AdminUI,category.Performance</excludedGroups>
         <groups />
         <ups.source />
         <ups.remote.url />
