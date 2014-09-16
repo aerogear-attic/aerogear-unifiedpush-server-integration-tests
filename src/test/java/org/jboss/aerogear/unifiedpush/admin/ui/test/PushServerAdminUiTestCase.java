@@ -26,15 +26,15 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.LoginPage;
+import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.ReLoginPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.model.Installation;
 import org.jboss.aerogear.unifiedpush.admin.ui.model.VariantType;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.AndroidVariantEditPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.InstallationDetailsPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.LoginPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.PasswordChangePage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.PushAppEditPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.PushAppsPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.ReLoginPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.SimplePushVariantEditPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.VariantRegistrationPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.VariantsPage;
@@ -109,7 +109,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 //    @Page
 //    private ConfirmationBoxPage confirmationBoxPage;
 
-    @Test(expected = WebDriverException.class)
+    @Test//(expected = WebDriverException.class)
     @InSequence(1)
     public void testUnauthorizedAccess() {
         driver.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
@@ -121,7 +121,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertTrue(loginPage.getHeaderTitle().contains(loginPage.getExpectedTitle()));
     }
 
-    @Test(expected = WebDriverException.class)
+    @Test//(expected = WebDriverException.class)
     @InSequence(2)
     public void login() {
         // initialize page
@@ -129,8 +129,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // perform login
         loginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
         // change password
-        passwordChangePage.changePassword(NEW_ADMIN_PASSWORD);
-        reLoginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
+//        passwordChangePage.changePassword(NEW_ADMIN_PASSWORD);
+//        reLoginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
     }
 
     @Test
@@ -558,6 +558,11 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         }
         navigation.goToApplications();
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // assert header title
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         // application id & master secret should exist

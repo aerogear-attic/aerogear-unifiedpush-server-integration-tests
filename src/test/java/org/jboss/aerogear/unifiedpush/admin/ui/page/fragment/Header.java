@@ -26,4 +26,8 @@ public class Header {
     public void logout() {
         dropdown.click("Log Out");
     }
+
+    public void accountManagement() {
+        dropdown.click("Account Management");
+    }
 }

@@ -1,29 +1,13 @@
-/**
- * JBoss, Home of Professional Open Source
- * Copyright Red Hat, Inc., and individual contributors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.jboss.aerogear.unifiedpush.admin.ui.page;
+package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page;
+
+import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
 
 import static org.jboss.aerogear.unifiedpush.admin.ui.utils.WebElementUtils.clearNfill;
 import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-
 public class LoginPage {
-
     @FindBy(id = "username")
     private WebElement usernameField;
 
@@ -36,16 +20,25 @@ public class LoginPage {
     @FindBy(id = "kc-header")
     private WebElement headerTitle;
 
+    @FindByJQuery(".kc-feedback-text")
+    private WebElement message;
+
     private final static String TITLE = "LOG IN TO UNIFIEDPUSH SERVER";
 
     private final static String PAGE_URL = "#/login";
 
+    public final static String WRONG_PASSWORD_MESSAGE = "Invalid username or password.";
+
     public String getHeaderTitle() {
-        return headerTitle.getText();
+        return headerTitle.getText().trim();
     }
 
     public String getExpectedTitle() {
         return TITLE;
+    }
+
+    public String getMessage() {
+        return message.getText();
     }
 
     public void login(String username, String password) {

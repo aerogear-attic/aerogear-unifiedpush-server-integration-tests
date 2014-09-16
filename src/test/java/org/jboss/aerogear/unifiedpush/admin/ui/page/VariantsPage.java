@@ -52,7 +52,12 @@ public class VariantsPage {
     }
 
     public String getHeaderTitle() {
-        return headerTitle.getText();
+        try {
+            return headerTitle.getText();
+        } catch (Exception e) {
+            System.out.println();
+        }
+        return null;
     }
 
     public String getApplicationId() {
