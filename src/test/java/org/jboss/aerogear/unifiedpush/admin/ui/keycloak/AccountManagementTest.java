@@ -9,17 +9,11 @@ import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment.FlashMessa
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment.Navigation;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Header;
 import org.jboss.aerogear.unifiedpush.admin.ui.test.AbstractPushServerAdminUiTest;
-import org.jboss.aerogear.unifiedpush.test.Deployments;
-import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.page.Page;
 import org.jboss.arquillian.junit.InSequence;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.openqa.selenium.support.FindBy;
-
-import java.net.URL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

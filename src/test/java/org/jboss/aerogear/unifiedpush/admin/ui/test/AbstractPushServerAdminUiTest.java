@@ -16,8 +16,7 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.test;
 
-import java.net.URL;
-
+import category.AdminUI;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
@@ -30,7 +29,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.WebDriver;
 
-import category.AdminUI;
+import java.net.URL;
 
 @RunWith(Arquillian.class)
 @Category(AdminUI.class)

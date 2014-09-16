@@ -16,11 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import java.io.File;
-
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.IOSVariantForm;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.ModalDialog;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+
+import java.io.File;
 
 public class iOSVariantEditPage {
 

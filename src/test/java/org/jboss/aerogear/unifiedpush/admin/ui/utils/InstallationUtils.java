@@ -16,11 +16,10 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.utils;
 
-import org.jboss.aerogear.unifiedpush.admin.ui.model.Installation;
-import org.json.JSONObject;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
+import org.jboss.aerogear.unifiedpush.admin.ui.model.Installation;
+import org.json.JSONObject;
 
 public class InstallationUtils {
 

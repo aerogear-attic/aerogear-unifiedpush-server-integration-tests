@@ -16,12 +16,12 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import java.util.List;
-
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Variant;
 import org.jboss.arquillian.graphene.angular.findby.FindByNg;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
 
 public class VariantsPage {
 

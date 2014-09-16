@@ -16,15 +16,15 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import static org.jboss.arquillian.graphene.Graphene.waitModel;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import org.jboss.aerogear.unifiedpush.admin.ui.model.Installation;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 public class InstallationDetailsPage {
 

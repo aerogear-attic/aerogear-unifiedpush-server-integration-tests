@@ -5,8 +5,6 @@ import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
-import static org.jboss.arquillian.graphene.Graphene.guardAjax;
-
 public class AccountPage {
 
     @FindBy(id = "username")

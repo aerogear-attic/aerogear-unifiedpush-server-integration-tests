@@ -2,7 +2,6 @@ package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment;
 
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
 
 public class Navigation {
 

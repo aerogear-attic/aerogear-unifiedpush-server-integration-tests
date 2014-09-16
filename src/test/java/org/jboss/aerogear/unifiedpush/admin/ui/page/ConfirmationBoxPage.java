@@ -16,11 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import java.util.concurrent.TimeUnit;
-
 import org.jboss.arquillian.graphene.Graphene;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
+
+import java.util.concurrent.TimeUnit;
 
 public class ConfirmationBoxPage {
 

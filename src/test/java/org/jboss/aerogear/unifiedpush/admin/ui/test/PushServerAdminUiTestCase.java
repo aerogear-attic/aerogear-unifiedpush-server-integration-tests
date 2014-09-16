@@ -16,34 +16,13 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.test;
 
-import static org.jboss.aerogear.unifiedpush.admin.ui.utils.StringUtilities.isEmpty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+import category.AdminUI;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.LoginPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.ReLoginPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.model.Installation;
 import org.jboss.aerogear.unifiedpush.admin.ui.model.VariantType;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.AndroidVariantEditPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.InstallationDetailsPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.PasswordChangePage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.PushAppEditPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.PushAppsPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.SimplePushVariantEditPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.VariantRegistrationPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.VariantsPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.iOSVariantEditPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Application;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Header;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.ModalDialog;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Navigation;
-import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Variant;
+import org.jboss.aerogear.unifiedpush.admin.ui.page.*;
+import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.*;
 import org.jboss.aerogear.unifiedpush.admin.ui.utils.InstallationUtils;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.page.Page;
@@ -51,10 +30,13 @@ import org.jboss.arquillian.junit.InSequence;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.support.FindBy;
 
-import category.AdminUI;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.jboss.aerogear.unifiedpush.admin.ui.utils.StringUtilities.isEmpty;
+import static org.junit.Assert.*;
 
 @Category(AdminUI.class)
 public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {

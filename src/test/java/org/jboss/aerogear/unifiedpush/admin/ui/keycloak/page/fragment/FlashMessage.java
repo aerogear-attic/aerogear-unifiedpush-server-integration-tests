@@ -3,8 +3,6 @@ package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment;
 import org.jboss.arquillian.graphene.fragment.Root;
 import org.openqa.selenium.WebElement;
 
-import static org.jboss.arquillian.graphene.Graphene.waitAjax;
-
 public class FlashMessage {
 
     @Root

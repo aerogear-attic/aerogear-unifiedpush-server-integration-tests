@@ -16,12 +16,12 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import static org.jboss.aerogear.unifiedpush.admin.ui.utils.WebElementUtils.clearNfill;
-import static org.jboss.arquillian.graphene.Graphene.waitModel;
-
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+
+import static org.jboss.aerogear.unifiedpush.admin.ui.utils.WebElementUtils.clearNfill;
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 public class PasswordChangePage {
 

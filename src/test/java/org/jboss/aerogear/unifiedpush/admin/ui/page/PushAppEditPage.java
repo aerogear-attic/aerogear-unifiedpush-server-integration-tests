@@ -16,13 +16,13 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import static org.jboss.aerogear.unifiedpush.admin.ui.utils.StringUtilities.isEmpty;
-import static org.jboss.aerogear.unifiedpush.admin.ui.utils.WebElementUtils.clearNfill;
-
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.ModalDialog;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+
+import static org.jboss.aerogear.unifiedpush.admin.ui.utils.StringUtilities.isEmpty;
+import static org.jboss.aerogear.unifiedpush.admin.ui.utils.WebElementUtils.clearNfill;
 
 public class PushAppEditPage {
 

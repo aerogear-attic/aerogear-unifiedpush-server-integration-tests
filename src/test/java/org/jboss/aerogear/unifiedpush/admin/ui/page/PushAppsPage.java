@@ -16,11 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
-import java.util.List;
-
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Application;
 import org.jboss.arquillian.graphene.angular.findby.FindByNg;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
 
 public class PushAppsPage {
 

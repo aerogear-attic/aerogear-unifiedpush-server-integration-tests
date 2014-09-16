@@ -1,9 +1,9 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
-import static org.jboss.arquillian.graphene.Graphene.waitGui;
-
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
+
+import static org.jboss.arquillian.graphene.Graphene.waitGui;
 
 public class Navigation {
 
