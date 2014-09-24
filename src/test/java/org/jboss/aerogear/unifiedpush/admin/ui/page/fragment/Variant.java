@@ -8,6 +8,8 @@ import org.jboss.arquillian.test.api.ArquillianResource;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 
+import static org.jboss.arquillian.graphene.Graphene.waitGui;
+
 public class Variant {
 
     @Root
@@ -61,6 +63,7 @@ public class Variant {
     public void showDetails() {
         if (!details.isDisplayed()) {
             name.click();
+            waitGui().until().element(details).is().visible();
         }
     }
 

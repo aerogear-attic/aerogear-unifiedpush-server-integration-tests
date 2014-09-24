@@ -20,8 +20,11 @@ import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Variant;
 import org.jboss.arquillian.graphene.angular.findby.FindByNg;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
 
 import java.util.List;
+
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 public class VariantsPage {
 
@@ -39,6 +42,9 @@ public class VariantsPage {
 
     @FindByNg(repeat = "variant in application.variants")
     private List<Variant> variantsList;
+
+    @FindBy(tagName = "variant")
+    private WebElement variant;
 
     @FindByJQuery(".breadcrumb a")
     private WebElement backToPushAppsLink;
@@ -85,4 +91,11 @@ public class VariantsPage {
         return null;
     }
 
+    public void waitForPage() {
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

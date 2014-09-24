@@ -47,7 +47,7 @@ public class LoginPage {
         submitButton.click();
     }
 
-    public void waitUntilPageIsLoaded() {
+    public void waitForPage() {
         waitModel().until().element(submitButton).is().visible();
     }
 

@@ -22,6 +22,8 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
+
 public class PushAppsPage {
 
     @FindByNg(action = "open()")
@@ -29,6 +31,9 @@ public class PushAppsPage {
 
     @FindByNg(repeat = "application in applications")
     private List<Application> applicationList;
+
+    @FindByNg(repeat = "application in applications")
+    private WebElement application;
 
     private final static String PAGE_URL = "/ag-push/#/applications";
 
@@ -64,5 +69,13 @@ public class PushAppsPage {
             }
         }
         return null;
+    }
+
+    public void waitForPage() {
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

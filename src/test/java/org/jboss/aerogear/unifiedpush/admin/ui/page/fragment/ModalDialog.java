@@ -1,10 +1,16 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.jboss.arquillian.graphene.fragment.Root;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
+import static org.jboss.arquillian.graphene.Graphene.waitGui;
+
 public class ModalDialog {
+
+    @Root
+    private WebElement dialog;
 
     @FindBy(id = "createAppName")
     private WebElement nameInput;
@@ -48,14 +54,21 @@ public class ModalDialog {
 
     public void cancel() {
         cancelButton.click();
+        waitGui().until().element(dialog).is().not().visible();
     }
 
     public void ok() {
         okButton.click();
+        waitGui().until().element(dialog).is().not().visible();
     }
 
     public void remove() {
         removeButton.click();
+        waitGui().until().element(dialog).is().not().visible();
+    }
+
+    public void waitForDialog() {
+        waitGui().until().element(dialog).is().visible();
     }
 
 }

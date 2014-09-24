@@ -1,6 +1,8 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
+import org.jboss.aerogear.unifiedpush.admin.ui.page.PushAppsPage;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.jboss.arquillian.graphene.page.Page;
 import org.openqa.selenium.WebElement;
 
 import static org.jboss.arquillian.graphene.Graphene.waitGui;
@@ -19,6 +21,9 @@ public class Navigation {
     @FindByJQuery("[ng-show='isViewLoading'] i")
     private WebElement spinner;
 
+    @Page
+    private PushAppsPage applicationsPage;
+
     public void goToDashboard() {
         waitGui().until().element(dashboardLink).is().present();
         dashboardLink.click();
@@ -26,7 +31,13 @@ public class Navigation {
 
     public void goToApplications() {
         waitGui().until().element(dashboardLink).is().present();
-        applicationsLink.click();
+        try {
+            applicationsLink.click();
+        } catch (Exception e) {
+            System.out.println();
+        }
+
+        applicationsPage.waitForPage();
     }
 
     public void goToSendPush() {

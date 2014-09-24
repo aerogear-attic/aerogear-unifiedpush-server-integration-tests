@@ -30,13 +30,18 @@ import org.jboss.arquillian.junit.InSequence;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.events.EventFiringWebDriver;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.jboss.aerogear.unifiedpush.admin.ui.utils.StringUtilities.isEmpty;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.assumeTrue;
 
 @Category(AdminUI.class)
 public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
@@ -100,7 +105,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         initializePageUrl();
         // navigate to push apps page
         navigateToURL(pushAppsPage.getPageURL());
-        assertTrue(loginPage.getHeaderTitle().contains(loginPage.getExpectedTitle()));
+        loginPage.waitForPage();
     }
 
     @Test//(expected = WebDriverException.class)
@@ -123,17 +128,15 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         while (!pushAppsPage.getApplicationList().isEmpty()) {
             Application application = pushAppsPage.getApplicationList().get(0);
             application.remove();
+            modal.waitForDialog();
             modal.confirmName(application.getName());
             modal.remove();
         }
         assertEquals("Initially there are 0 push apps", pushAppsPage.countApplications(), 0);
         // register a new push application
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        pushAppsPage.waitForPage();
         pushAppsPage.pressCreateButton();
+        modal.waitForDialog();
         // register a push application
         pushAppEditPage.registerNewPushApp(PUSH_APP_NAME, PUSH_APP_DESC);
         // navigate to push apps page
@@ -153,12 +156,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // there should exist one push application
         assertEquals("There should exist 1 push app", pushAppsPage.countApplications(), 1);
         pushAppsPage.pressCreateButton();
+        modal.waitForDialog();
         // press cancel
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         pushAppEditPage.cancel();
         // there should exist one push application
         assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
@@ -172,11 +171,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // press the edit link
         pushAppsPage.getApplicationList().get(0).edit();
         // the push app details should be the expected ones
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         assertEquals(PUSH_APP_NAME, pushAppEditPage.getName());
         assertEquals(PUSH_APP_DESC, pushAppEditPage.getDescription());
         // update the push application name
@@ -196,12 +191,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         // press the variants link
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        variantsPage.waitForPage();
         // assert header title
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         // application id & master secret should exist
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
@@ -210,11 +201,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // add a new variant
         variantsPage.addVariant();
         // register new android variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         variantRegistrationPage.registerAndroidVariant(ANDROID_VARIANT_NAME, ANDROID_VARIANT_DESC, ANDROID_VARIANT_PROJECT_NUMBER, ANDROID_VARIANT_GOOGLE_KEY);
         // one variant should exist
         assertEquals(variantsPage.getVariantList().size(), 1);
@@ -227,11 +214,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertEquals(0, variant.getInstallationCount());
         // go to push apps page
         variantsPage.navigateToPushAppsPage();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        pushAppsPage.waitForPage();
         final List<Application> pushAppsList = pushAppsPage.getApplicationList();
         // The variant counter should be updated to 1
         assertFalse(pushAppsList.isEmpty());
@@ -245,21 +228,12 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     public void testAndroidVariantDetailsPage() {
         // press the variants link
         pushAppsPage.getApplicationList().get(0).goToVariants();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        variantsPage.waitForPage();
         Variant variant = variantsPage.findVariantRow(ANDROID_VARIANT_NAME);
         assertNotNull(variant);
         // click on a variant
         variant.showDetails();
         // variant id and secre should exist
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertTrue(!isEmpty(variant.getSecret()) && !isEmpty(variant.getId()));
     }
 
@@ -271,11 +245,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // press the variants edit link
         variantsPage.getVariantList().get(0).edit();
         // the variant details should be the expected ones
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         assertEquals(ANDROID_VARIANT_NAME, androidVariantEditPage.getName());
         assertEquals(ANDROID_VARIANT_DESC, androidVariantEditPage.getDescription());
 //        assertEquals(ANDROID_VARIANT_GOOGLE_KEY, androidVariantEditPage.getGoogleApiKey());
@@ -290,11 +260,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertEquals(VariantType.ANDROID.getTypeName(), variant.getType());
         assertEquals(0, variant.getInstallationCount());
         variant.edit();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         // the variant details should be the expected ones
         assertEquals(UPDATED_ANDROID_VARIANT_NAME, androidVariantEditPage.getName());
         assertEquals(UPDATED_ANDROID_VARIANT_DESC, androidVariantEditPage.getDescription());
@@ -313,23 +279,16 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @Test
     @InSequence(10)
     public void testiOSVariantRegistration() {
+
         // go to push apps page
         variantsPage.navigateToPushAppsPage();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        pushAppsPage.waitForPage();
         // there should exist one push application
         assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         // press the variants link
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        variantsPage.waitForPage();
         // assert header title
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         // application id & master secret should exist
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
@@ -337,6 +296,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertEquals("There should exist one variant", variantsPage.countVariants(), 1);
         // add a new variant
         variantsPage.addVariant();
+        modal.waitForDialog();
         // register ios variant
         variantRegistrationPage.registeriOSVariant(IOS_VARIANT_NAME, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE,
             false);
@@ -346,21 +306,12 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @Test
     @InSequence(11)
     public void testiOSVariantDetailsPage() {
+        variantsPage.waitForPage();
         Variant variant = variantsPage.findVariantRow(IOS_VARIANT_NAME);
         assertNotNull(variant);
         // click on a variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         variant.showDetails();
         // variant id and secret should exist
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertTrue(!isEmpty(variant.getSecret()) && !isEmpty(variant.getId()));
     }
 
@@ -372,11 +323,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // go to ios variant edit page
         variant.edit();
         // edit variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         iOSVariantEditPage.updateVariant(UPDATED_IOS_VARIANT_NAME_PATCH, UPDATED_IOS_VARIANT_DESC, null, null);
         List<Variant> variantList = variantsPage.getVariantList();
         assertEquals(variantList.size(), 2);
@@ -391,12 +338,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertNotNull(variant);
         // go to ios variant edit page
         variant.edit();
+        modal.waitForDialog();
         // edit variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         iOSVariantEditPage
             .updateVariant(UPDATED_IOS_VARIANT_NAME, UPDATED_IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE);
         List<Variant> variantList = variantsPage.getVariantList();
@@ -411,12 +354,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         Variant variant = variantsPage.findVariantRow(UPDATED_IOS_VARIANT_NAME);
         assertNotNull(variant);
         variant.edit();
-        // register a push application
-        try {
-            modal.cancel();
-        } catch (Exception e) {
-            System.out.println();
-        }
+        modal.waitForDialog();
+        modal.cancel();
         // there should exist one variant
         assertEquals("There should still exist 2 variants", variantsPage.countVariants(), 2);
     }
@@ -435,17 +374,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // add a new variant
         variantsPage.addVariant();
         // register ios variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         variantRegistrationPage.registerSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME, SIMPLE_PUSH_VARIANT_DESC);
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertEquals("There should exist three variants", variantsPage.countVariants(), 3);
     }
 
@@ -458,11 +388,6 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // click on a variant
         variant.showDetails();
         // variant id and secret should exist
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertTrue(!isEmpty(variant.getSecret()) && !isEmpty(variant.getId()));
     }
 
@@ -475,11 +400,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // go to simple push variant edit page
         variant.edit();
         // edit variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         simplePushVariantEditPage.updateVariant(UPDATED_SIMPLE_PUSH_VARIANT_NAME, UPDATED_SIMPLE_PUSH_VARIANT_DESC);
         variant = variantsPage.findVariantRow(SIMPLE_PUSH_VARIANT_NAME);
         assertNotNull(variant);
@@ -491,6 +412,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @Test
     @InSequence(18)
     public void testiOSVariantProductionRegistration() {
+
         // assert header title
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         // application id & master secret should exist
@@ -500,51 +422,30 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // add a new variant
         variantsPage.addVariant();
         // register ios variant
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        modal.waitForDialog();
         variantRegistrationPage.registeriOSVariant(IOS_VARIANT_NAME_2, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE,
             true);
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         assertEquals("There should exist four variants", variantsPage.countVariants(), 3);
         Variant variant = variantsPage.findVariantRow(IOS_VARIANT_NAME_2);
         assertNotNull(variant);
         // edit the last iOS variant
         variant.edit();
+        modal.waitForDialog();
         // the variant details should be the expected ones
         assertEquals(IOS_VARIANT_NAME_2, iOSVariantEditPage.getName());
         assertEquals(IOS_VARIANT_DESC, iOSVariantEditPage.getDescription());
 //        assertEquals(true, iOSVariantEditPage.isProd());
         modal.cancel();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         variantsPage.navigateToPushAppsPage();
+        pushAppsPage.waitForPage();
     }
 
     @Test
     @InSequence(19)
     public void registerAndroidInstallations() {
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         navigation.goToApplications();
         pushAppsPage.getApplicationList().get(0).goToVariants();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        variantsPage.waitForPage();
         // assert header title
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         // application id & master secret should exist
@@ -556,11 +457,6 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // click on a variant
         variant.showDetails();
         // variant id and secret should exist
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         final String variantId = variant.getId();
         final String secret = variant.getSecret();
         assertTrue(!isEmpty(variantId) && !isEmpty(secret));
@@ -576,6 +472,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // select the push app
         navigation.goToApplications();
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        variantsPage.waitForPage();
 //        // fins the android variant
 //        variant = variantsPage.findVariantRow(UPDATED_ANDROID_VARIANT_NAME);
 //        assertNotNull(variant);
@@ -629,11 +526,6 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertNotNull(variant);
         // click on a variant
         variant.showDetails();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         // variant id and secret should exist
         final String variantId = variant.getId();
         final String secret = variant.getSecret();
@@ -700,11 +592,6 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertNotNull(variant);
         // click on a variant
         variant.showDetails();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         // variant id and secret should exist
         final String variantId = variant.getId();
         final String secret = variant.getSecret();
@@ -768,6 +655,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertEquals("Initially there is 1 push app", pushAppsPage.countApplications(), 1);
         // register a new push application
         pushAppsPage.pressCreateButton();
+        modal.waitForDialog();
         // register a push application
         pushAppEditPage.registerNewPushApp(SECOND_PUSH_APP_NAME, PUSH_APP_DESC);
 
@@ -781,6 +669,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @InSequence(23)
     public void testPushAppRemoval() {
         pushAppsPage.findApplication(SECOND_PUSH_APP_NAME).remove();
+        modal.waitForDialog();
         modal.confirmName(SECOND_PUSH_APP_NAME);
         modal.remove();
         // the deleted push app should not exist
@@ -792,11 +681,13 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     public void testSecondAndroidVariantRegistration() {
         assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        variantsPage.waitForPage();
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
         assertEquals("there has to be already four variants registered", variantsPage.countVariants(), 3);
         // add the second Android variant
         variantsPage.addVariant();
+        modal.waitForDialog();
         // register new (second) Android variant
         variantRegistrationPage.registerAndroidVariant(ANDROID_VARIANT_NAME_2, ANDROID_VARIANT_DESC_2, ANDROID_VARIANT_PROJECT_NUMBER,
             ANDROID_VARIANT_GOOGLE_KEY_2);
@@ -811,11 +702,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertEquals(0, variant.getInstallationCount());
         // go to push apps page
         variantsPage.navigateToPushAppsPage();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        pushAppsPage.waitForPage();
         final List<Application> pushAppsList = pushAppsPage.getApplicationList();
         // The variant counter should be updated to 5
         assertFalse(pushAppsList.isEmpty());
@@ -828,11 +715,13 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     public void testSecondSimplePushVariantRegistration() {
         assertEquals("There should still exist 1 push app", pushAppsPage.countApplications(), 1);
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        variantsPage.waitForPage();
         assertTrue(variantsPage.getHeaderTitle().contains(UPDATED_PUSH_APP_NAME));
         assertTrue(!isEmpty(variantsPage.getApplicationId()) && !isEmpty(variantsPage.getMasterSecret()));
         assertEquals("there has to be already five variants registered", variantsPage.countVariants(), 5);
         // add the second SimplePush variant
         variantsPage.addVariant();
+        modal.waitForDialog();
         // register it
         variantRegistrationPage.registerSimplePushVariant(SIMPLE_PUSH_VARIANT_NAME_2, SIMPLE_PUSH_VARIANT_DESC_2);
 
@@ -844,11 +733,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 
         variantsPage.navigateToPushAppsPage();
         // The variant counter should be updated to 6
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        pushAppsPage.waitForPage();
         assertEquals(6, pushAppsPage.getApplicationList().get(0).getVariantCount());
     }
 
@@ -856,17 +741,14 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @InSequence(26)
     public void testVariantRemoval() {
         navigation.goToApplications();
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         pushAppsPage.getApplicationList().get(0).goToVariants();
+        variantsPage.waitForPage();
 
         Variant variant = variantsPage.findVariantRow(UPDATED_ANDROID_VARIANT_NAME);
         assertNotNull(variant);
 
         variant.remove();
+        modal.waitForDialog();
         modal.confirmName(variant.getName());
         modal.remove();
 
@@ -877,7 +759,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @InSequence(27)
     public void testLogout() {
         header.logout();
-        assertTrue(loginPage.getHeaderTitle().contains(loginPage.getExpectedTitle()));
+        loginPage.waitForPage();
     }
 
     /* -- Testing data section -- */
