@@ -22,8 +22,6 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
-import static org.jboss.arquillian.graphene.Graphene.waitModel;
-
 public class PushAppsPage {
 
     @FindByNg(action = "open()")

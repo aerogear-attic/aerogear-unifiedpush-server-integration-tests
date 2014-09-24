@@ -19,15 +19,11 @@ package org.jboss.aerogear.unifiedpush.admin.ui.page;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.AndroidVariantForm;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.IOSVariantForm;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.ModalDialog;
-import org.jboss.aerogear.unifiedpush.admin.ui.utils.IOSVariantCreator;
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
-import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.events.EventFiringWebDriver;
 
 import java.io.File;
 

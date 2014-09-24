@@ -24,8 +24,6 @@ import org.openqa.selenium.support.FindBy;
 
 import java.util.List;
 
-import static org.jboss.arquillian.graphene.Graphene.waitModel;
-
 public class VariantsPage {
 
     @FindByNg(action = "addVariant()")
