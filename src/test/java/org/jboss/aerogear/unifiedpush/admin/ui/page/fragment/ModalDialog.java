@@ -30,6 +30,9 @@ public class ModalDialog {
     @FindByJQuery("input[ng-model*='confirm']")
     private WebElement confirmNameInput;
 
+    @FindByJQuery(".modal-backdrop")
+    private WebElement backdrop;
+
     public void setName(String name) {
         nameInput.clear();
         nameInput.sendKeys(name);
@@ -54,17 +57,17 @@ public class ModalDialog {
 
     public void cancel() {
         cancelButton.click();
-        waitGui().until().element(dialog).is().not().visible();
+        waitGui().until().element(backdrop).is().not().present();
     }
 
     public void ok() {
         okButton.click();
-        waitGui().until().element(dialog).is().not().visible();
+        waitGui().until().element(backdrop).is().not().visible();
     }
 
     public void remove() {
         removeButton.click();
-        waitGui().until().element(dialog).is().not().visible();
+        waitGui().until().element(backdrop).is().not().visible();
     }
 
     public void waitForDialog() {
