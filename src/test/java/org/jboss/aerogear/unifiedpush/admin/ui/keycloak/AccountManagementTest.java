@@ -1,5 +1,6 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.keycloak;
 
+import category.AdminUI;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.model.Account;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.AccountPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.LoginPage;
@@ -13,11 +14,13 @@ import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.page.Page;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.openqa.selenium.support.FindBy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+@Category(AdminUI.class)
 public class AccountManagementTest extends AbstractPushServerAdminUiTest {
 
     @FindByJQuery(".alert")
