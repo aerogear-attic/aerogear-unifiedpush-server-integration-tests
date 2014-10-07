@@ -111,8 +111,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         // perform login
         loginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
         // change password
-//        passwordChangePage.changePassword(NEW_ADMIN_PASSWORD);
-//        reLoginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
+        passwordChangePage.changePassword(NEW_ADMIN_PASSWORD);
+        reLoginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
     }
 
     @Test
