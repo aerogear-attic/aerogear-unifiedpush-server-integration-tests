@@ -18,6 +18,7 @@ package org.jboss.aerogear.unifiedpush.test;
 
 import category.ChromePackagedApp;
 import category.SimplePush;
+import category.NotIPv6Ready;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 import com.jayway.restassured.RestAssured;
@@ -197,6 +198,7 @@ public class MessageSendTest {
         return ups.with(ChromePackagedAppVariantWorker.worker(), getPushApplication()).findAll().detachEntity();
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void androidSelectiveSendByAliases() {
         SenderStatistics statistics;
@@ -224,6 +226,7 @@ public class MessageSendTest {
         assertThat(statistics.gcmMessage.getData().get("aerogear"), is("rulez!"));
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void iosSelectiveSendByAliases() {
         SenderStatistics statistics;
@@ -305,6 +308,7 @@ public class MessageSendTest {
         assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendByCommonAlias() {
         String alias = UUID.randomUUID().toString();
@@ -391,6 +395,7 @@ public class MessageSendTest {
         }
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendWithInvalidTokens() {
 
@@ -466,6 +471,7 @@ public class MessageSendTest {
         ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(validIOSInstallation);
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendByCommonCategory() {
         String category = UUID.randomUUID().toString();
@@ -535,6 +541,7 @@ public class MessageSendTest {
         }
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendByVariants() {
         Map<Variant, InstallationWorker> variants = new HashMap<Variant, InstallationWorker>();
@@ -545,6 +552,7 @@ public class MessageSendTest {
         selectiveSendByVariants(variants);
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendEmptyPushApplicationId() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
@@ -557,6 +565,7 @@ public class MessageSendTest {
                 .send();
     }
 
+    @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendWrongPushApplicationId() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
