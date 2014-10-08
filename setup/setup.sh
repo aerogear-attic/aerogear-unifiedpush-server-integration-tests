@@ -161,7 +161,7 @@ function patchContainer() {
 }
 
 cloneRepository
-#getAS7
+getAS7
 getWildFly
 
 JBOSS_HOME=$JBOSS_AS_HOME
