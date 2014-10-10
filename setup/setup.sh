@@ -18,7 +18,7 @@ WILDFLY_DOWNLOAD_URL="http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.
 WILDFLY_ZIP="$BASE_DIR/wildfly-8.1.0.Final.zip"
 WILDFLY_HOME="$BASE_DIR/wildfly-8.1.0.Final"
 AG_UPS_REPO="$BASE_DIR/aerogear-unifiedpush-server"
-AG_PUSH_COMMIT="1.0.0.Final"
+AG_PUSH_COMMIT="54eaeee29ea485c217bacc947d6cbf9b06ece850"
 
 function cloneRepository() {
 
@@ -88,8 +88,8 @@ function getWildFly() {
 #
 # $1 path to JBoss AS7/EAP6
 # $2 is either domain or standalone
-# $2 path to jboss-cli script
-# $3 timeout
+# $3 path to jboss-cli script
+# $4 timeout
 function patchContainer() {
 
     echo "[DEBUG] Starting JBoss container at $1"
