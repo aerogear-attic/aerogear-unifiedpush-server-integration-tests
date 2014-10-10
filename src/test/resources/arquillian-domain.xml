@@ -35,7 +35,8 @@
             <configuration>
                 <property name="jbossHome">${env.JBOSS_HOME:jboss-as-7.1.1.Final}</property>
             <!-- <property name="serverConfig">standalone-full.xml</property> -->
-                <property name="javaVmArguments">-Djboss.bind.address=${jbossBindAddress:127.0.0.1} -Xmx1024m -XX:MaxPermSize=256m</property>
+            <property name="javaVmArguments">-Djboss.bind.address=${jbossBindAddress:127.0.0.1} -Djboss.bind.address.management=${jbossBindAddressManagement:127.0.0.1} -Xmx1024m -XX:MaxPermSize=256m</property>
+            <property name="managementAddress">${jbossBindAddressManagement:127.0.0.1}</property>
             </configuration>
         </container>
     </group>
