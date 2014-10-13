@@ -39,10 +39,10 @@
         <notnoop.version>0.2.3</notnoop.version>
         <gcm-server.version>1.0.2</gcm-server.version>
         <aerogear.unifiedpush-server-rest-api.version>${project.version}</aerogear.unifiedpush-server-rest-api.version>        
-    
+
         <!-- Testing -->
-        <org.jboss.aerogear.bom.version>0.2.5</org.jboss.aerogear.bom.version>
-        
+        <org.jboss.aerogear.bom.version>0.2.7</org.jboss.aerogear.bom.version>
+
         <!-- Code coverage -->
         <org.jacoco.ant.version>0.6.3.201306030806</org.jacoco.ant.version>
         <org.jacoco.agent.version>0.6.3.201306030806</org.jacoco.agent.version>
@@ -66,15 +66,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!--FIXME override selenium version-->
-            <dependency>
-                <groupId>org.jboss.arquillian.selenium</groupId>
-                <artifactId>selenium-bom</artifactId>
-                <version>2.43.1</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        
             <!-- Http Client version has to be aligned across REST Assured, Selenium and Keycloak -->
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
@@ -159,7 +150,7 @@
         </dependency>
 
         <!-- Test stuff -->
-        
+
         <!-- Starting point for integration Graphene test suites. -->
         <dependency>
             <groupId>org.jboss.arquillian.graphene</groupId>
@@ -167,11 +158,9 @@
             <type>pom</type>
         </dependency>
 
-        <!-- FIXME this dependency should be in test BOM -->
         <dependency>
             <groupId>org.jboss.arquillian.extension</groupId>
             <artifactId>arquillian-angularjs-graphene</artifactId>
-            <version>1.2.0.Beta1</version>
             <type>pom</type>
         </dependency>
 
