@@ -21,6 +21,7 @@ import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.internal.ApnsServiceImpl;
+
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
 import org.arquillian.spacelift.process.ProcessInteractionBuilder;
@@ -28,6 +29,8 @@ import org.arquillian.spacelift.process.impl.CommandTool;
 import org.jboss.aerogear.test.api.installation.Tokens;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
+import org.jboss.aerogear.unifiedpush.utils.JavaSenderTestEndpoint;
+import org.jboss.aerogear.unifiedpush.utils.JavaSenderTestRestApplication;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
 import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.Filter;
@@ -63,6 +66,7 @@ public final class Deployments {
 
     public static final String AG_PUSH = "ag_push";
     public static final String AUTH_SERVER = "auth_server";
+    public static final String JAVA_CLIENT = "java_client";
 
     private static final String PROPERTY_UPS_SOURCE = "ups.source";
     private static final String PROPERTY_UPS_VERSION = "ups.version";
@@ -443,6 +447,21 @@ public final class Deployments {
         }
     }
 
+    /**
+     * Returns REST web application that uses Java Client
+     * to test push using the same trust store
+     */
+    public static WebArchive javaSenderTest() {
+        WebArchive war = ShrinkWrap.create(WebArchive.class, "javaSender.war");
+        war.addClass(JavaSenderTestEndpoint.class);
+        war.addClass(JavaSenderTestRestApplication.class);
+        
+        File[] javaSenderJAR = Maven.resolver().resolve("org.jboss.aerogear:unifiedpush-java-client:0.8.0").withTransitivity().asFile();
+        war.addAsLibraries(javaSenderJAR);
+        
+        return war;
+    }
+    
     /**
      * Returns an array of profile names for maven build. This is currently only to pass in code-coverage profile for
      * ups build.
