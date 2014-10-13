@@ -189,6 +189,13 @@ JBOSS_HOME=$JBOSS_AS_HOME
 patchContainer $JBOSS_AS_HOME standalone $SCRIPT_DIR/enable_https.cli 7
 patchContainer $JBOSS_AS_HOME domain $SCRIPT_DIR/enable_https_domain.cli 7
 
+# configure JVM parameters to use our truststore
+sed -i "s@{jboss.server.dir}@$JBOSS_HOME@g" $SCRIPT_DIR/configure_truststore_standalone.cli
+sed -i "s@{jboss.server.dir}@$JBOSS_HOME@g" $SCRIPT_DIR/configure_truststore_domain.cli
+
+patchContainer $JBOSS_HOME standalone $SCRIPT_DIR/configure_truststore_standalone.cli 7
+patchContainer $JBOSS_HOME domain $SCRIPT_DIR/configure_truststore_domain.cli 7
+
 JBOSS_HOME=$WILDFLY_HOME
 patchContainer $WILDFLY_HOME standalone $SCRIPT_DIR/enable_https_wildfly.cli 7
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_sslrealm.cli 7

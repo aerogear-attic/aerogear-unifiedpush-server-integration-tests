@@ -1,0 +1,5 @@
+connect
+batch
+/system-property="javax.net.ssl.trustStore":add(value="{jboss.server.dir}/domain/configuration/aerogear.truststore")
+/system-property="javax.net.ssl.trustStorePassword":add(value=aerogear)
+run-batch
