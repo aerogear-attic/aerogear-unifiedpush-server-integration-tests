@@ -6,6 +6,6 @@ before_install:
     - ./setup/setup.sh
     - export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
 install:
-    - mvn -q install -DskipTests=true -s .settings.xml
+    - mvn -B -q install -DskipTests=true -s .settings.xml
 script:
-    - mvn -q clean test -s .settings.xml
+    - mvn -B -q clean test -s .settings.xml
