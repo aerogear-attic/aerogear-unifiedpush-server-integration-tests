@@ -194,5 +194,5 @@ patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_https_listener.cli 7
 
 # changing ALL the loglevels to warning, so that we get inside travis log size limits 
-find . -type f -regex '.*\.xml' -exec sed -i '' -e 's/<level name=\"INFO\"\/>/<level name=\"WARNING\"\/>/g' {} +
+find . -type f -regex '.*\.xml' -exec sed -i -e 's/<level name=\"INFO\"\/>/<level name=\"WARNING\"\/>/g' {} +
 
