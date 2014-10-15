@@ -22,14 +22,17 @@ Navigate to the project's root folder and execute:
 
 This step does the following:
 
-* Grabs AS 7.1.1 installation from jboss.org site
-* Adds HTTPS connector to server configuration
+* Grabs AS 7.1.1 and WildFly 8.1.0 installations from jboss.org site
+* Adds HTTPS connector to server configuration (both AS and WildFly)
 * Clones repository of aerogear-unifiedpush-server into aerogear-unifiedpush-server directory
 
 Navigate to the project's root folder and setup the `JBOSS_HOME` environment variable:
 
     export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
 
+NOTE: If you wish to run the tests against WildFly, use:
+
+    export JBOSS_HOME=`pwd`/wildfly-8.1.0.Final
 
 The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
@@ -65,7 +68,8 @@ and +-Dups.auth.archive.path=/path/to/auth.war+.
 | JBoss AS7 domain mode | +-Pas711-domain-managed+
 | JBoss EAP6 | +-Peap6-managed+
 | JBoss EAP6 domain mode | +-Peap6-domain-managed+
-| WildFly | (not yet available)
+| WildFly | +-Pwildfly-managed+
+| WildFly domain mode | +-Pwildfly-domain-managed+
 |====
 
  
