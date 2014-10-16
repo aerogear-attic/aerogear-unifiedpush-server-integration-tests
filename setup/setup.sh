@@ -29,7 +29,6 @@ function cloneRepository() {
         rm -rf $AG_UPS_REPO
     fi
 
-    # We are cloning 0.10.2
     if [ ! -d "$AG_UPS_REPO" ]; then
         git clone -q https://github.com/aerogear/aerogear-unifiedpush-server.git $AG_UPS_REPO
         cd $AG_UPS_REPO
