@@ -72,7 +72,9 @@ public final class Deployments {
     private static final String PROPERTY_UPS_ARCHIVE_SERVER_PATH = "ups.server.archive.path";
     private static final String PROPERTY_UPS_ARCHIVE_AUTH_PATH = "ups.auth.archive.path";
     private static final String PROPERTY_UPS_SERVER_TYPE = "ups.server.type";
-    private static final String PROPERTY_UPS_SETTINGS_FILE = "ups.settings";
+    // This value is visible automatically if this is executed via MavenExecutor or if user
+    // is modifying settings.xml for MavenResolver from command line
+    private static final String PROPERTY_UPS_SETTINGS_FILE = "org.apache.maven.user-settings";
 
     private static final String PROPERTY_UPS_DISABLE_REBUILD = "ups.disable.rebuild";
 
