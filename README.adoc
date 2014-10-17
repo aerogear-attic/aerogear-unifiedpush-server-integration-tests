@@ -37,6 +37,14 @@ If you wish to run the tests against WildFly, export this instead and then activ
     export JBOSS_HOME=`pwd`/wildfly-8.1.0.Final
 ====
 
+[NOTE]
+====
+If you want to run Maven tests which are using already built war files from IDE like Eclipse, you have to turn on profile test-archive and you have 
+to turn on container profile (like as711-managed) with properties ups.server.archive.path and ups.auth.archive.path pointing to the built wars.
+
+You can set this in Run - Run configuration - Maven build with "clean test" goals.
+====
+
 The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
     mvn test
