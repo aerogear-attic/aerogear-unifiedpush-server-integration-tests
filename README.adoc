@@ -30,9 +30,12 @@ Navigate to the project's root folder and setup the `JBOSS_HOME` environment var
 
     export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
 
-NOTE: If you wish to run the tests against WildFly, export this instead and then activate WildFly profiles:
-+    
+[NOTE]
+====
+If you wish to run the tests against WildFly, export this instead and then activate WildFly profiles:
+
     export JBOSS_HOME=`pwd`/wildfly-8.1.0.Final
+====
 
 The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
