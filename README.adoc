@@ -30,14 +30,15 @@ Navigate to the project's root folder and setup the `JBOSS_HOME` environment var
 
     export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
 
-NOTE: If you wish to run the tests against WildFly, use:
-
+NOTE: If you wish to run the tests against WildFly, export this instead and then activate WildFly profiles:
++    
     export JBOSS_HOME=`pwd`/wildfly-8.1.0.Final
 
 The integration tests execution is done through Maven. Navigate to the project's root folder and execute:
 
     mvn test
 
+NOTE: This will activate default profiles (JBoss AS7 and local deployment).
 
 === Additional configuration
 
@@ -80,8 +81,10 @@ list of groups that will be executed and +-DexcludedGroups=+ to define comma sep
 
 Exclusion list has the priority in case one test is annotated via multiple categories. Following categories are defined:
 
-* category.AdminUI - disabled by default
+* category.AdminUI - _disabled_ by default
 * category.ChromePackagedApp - enabled by default
+* category.NotIPv6Ready - enabled by default
+* category.Performance - _disabled_ by default
 * category.SimplePush - enabled by default
 * (no category) - default integration test, enabled by default
 
