@@ -21,7 +21,6 @@ import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.internal.ApnsServiceImpl;
-
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
 import org.arquillian.spacelift.process.ProcessInteractionBuilder;
@@ -432,7 +431,7 @@ public final class Deployments {
                 Tasks.prepare(CommandTool.class)
                         .workingDir(getUpsParentDirectory().getAbsolutePath())
                         .programName("mvn")
-                        .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
+                        .parameters("-B", "-q", "clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
                                 getActiveProfilesAsMavenParameter()).splitToParameters(getUpsSettings())
                                 // echo build interactions
                         .interaction(new ProcessInteractionBuilder().outputPrefix("ups-maven-build: ").when(".*")
