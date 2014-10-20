@@ -422,16 +422,24 @@ public final class Deployments {
         return ShrinkWrap.createFromZipFile(WebArchive.class, getUpsArchiveAuth());
     }
 
+    private static boolean isTravis() {
+        return System.getenv("TRAVIS") != null;
+    }
+
     private static void buildLocalServerIfNeeded() {
         if (isUpsBuildNeeded()) {
             LOGGER.log(Level.INFO, "Building UnifiedPush Server from sources at: {0}",
                     getUpsParentDirectory().getAbsolutePath());
 
             try {
+                String mvn_alias = "mvn";
+                if(isTravis()){
+                    mvn_alias = "mvn -B -q";
+                }
                 Tasks.prepare(CommandTool.class)
                         .workingDir(getUpsParentDirectory().getAbsolutePath())
-                        .programName("mvn")
-                        .parameters("-B", "-q", "clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
+                        .programName(mvn_alias)
+                        .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
                                 getActiveProfilesAsMavenParameter()).splitToParameters(getUpsSettings())
                                 // echo build interactions
                         .interaction(new ProcessInteractionBuilder().outputPrefix("ups-maven-build: ").when(".*")
@@ -459,20 +467,20 @@ public final class Deployments {
 
         return activeProfiles.toArray(new String[activeProfiles.size()]);
     }
-    
+
     private static String getUpsSettings() {
         StringBuilder settingsBuilder = new StringBuilder();
-        
+
         String settingsFile = System.getProperty(PROPERTY_UPS_SETTINGS_FILE);
-        
+
         if (settingsFile != null && !settingsFile.isEmpty()) {
             settingsBuilder.append("-s ");
             settingsBuilder.append(settingsFile);
         }
-        
+
         return settingsBuilder.toString();
     }
-    
+
     private static String getActiveProfilesAsMavenParameter() {
         StringBuilder profileBuilder = new StringBuilder("-P");
         int i = 0;
