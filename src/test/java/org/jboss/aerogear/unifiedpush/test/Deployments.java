@@ -21,7 +21,6 @@ import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.internal.ApnsServiceImpl;
-
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
 import org.arquillian.spacelift.process.ProcessInteractionBuilder;
@@ -423,13 +422,30 @@ public final class Deployments {
         return ShrinkWrap.createFromZipFile(WebArchive.class, getUpsArchiveAuth());
     }
 
+    private static boolean isTravis() {
+        return System.getenv("TRAVIS") != null;
+    }
+
     private static void buildLocalServerIfNeeded() {
         if (isUpsBuildNeeded()) {
             LOGGER.log(Level.INFO, "Building UnifiedPush Server from sources at: {0}",
                     getUpsParentDirectory().getAbsolutePath());
 
             try {
-                Tasks.prepare(CommandTool.class)
+                if(isTravis()){
+                    Tasks.prepare(CommandTool.class)
+                        .workingDir(getUpsParentDirectory().getAbsolutePath())
+                        .programName("mvn")
+                        .parameters("-B", "-q", "clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
+                                getActiveProfilesAsMavenParameter()).splitToParameters(getUpsSettings())
+                                // echo build interactions
+                        .interaction(new ProcessInteractionBuilder().outputPrefix("ups-maven-build: ").when(".*")
+                                .printToOut())
+                        .execute()
+                        .await();
+
+                } else {
+                    Tasks.prepare(CommandTool.class)
                         .workingDir(getUpsParentDirectory().getAbsolutePath())
                         .programName("mvn")
                         .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
@@ -439,6 +455,9 @@ public final class Deployments {
                                 .printToOut())
                         .execute()
                         .await();
+
+
+                }
             } catch (ExecutionException e) {
                 LOGGER.log(Level.WARNING, "Could not package UnifiedPush Server WAR. It is possible that you do not " +
                         "have Maven on PATH. Assuming you did compile UnifiedPush yourself and resuming tests.", e);
@@ -460,20 +479,20 @@ public final class Deployments {
 
         return activeProfiles.toArray(new String[activeProfiles.size()]);
     }
-    
+
     private static String getUpsSettings() {
         StringBuilder settingsBuilder = new StringBuilder();
-        
+
         String settingsFile = System.getProperty(PROPERTY_UPS_SETTINGS_FILE);
-        
+
         if (settingsFile != null && !settingsFile.isEmpty()) {
             settingsBuilder.append("-s ");
             settingsBuilder.append(settingsFile);
         }
-        
+
         return settingsBuilder.toString();
     }
-    
+
     private static String getActiveProfilesAsMavenParameter() {
         StringBuilder profileBuilder = new StringBuilder("-P");
         int i = 0;

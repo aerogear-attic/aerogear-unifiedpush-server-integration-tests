@@ -192,3 +192,9 @@ JBOSS_HOME=$WILDFLY_HOME
 patchContainer $WILDFLY_HOME standalone $SCRIPT_DIR/enable_https_wildfly.cli 7
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_sslrealm.cli 7
 patchContainer $WILDFLY_HOME domain $SCRIPT_DIR/enable_https_domain_wildfly_add_https_listener.cli 7
+
+# changing ALL the loglevels to warning, so that we get inside travis log size limits 
+if [ -n $TRAVIS]; then
+    find . -type f -regex '.*\.xml' -exec sed -i -e 's/<level name=\"INFO\"\/>/<level name=\"WARNING\"\/>/g' {} +
+fi
+
