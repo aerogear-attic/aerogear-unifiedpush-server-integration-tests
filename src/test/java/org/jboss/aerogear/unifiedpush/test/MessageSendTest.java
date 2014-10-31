@@ -17,8 +17,8 @@
 package org.jboss.aerogear.unifiedpush.test;
 
 import category.ChromePackagedApp;
-import category.SimplePush;
 import category.NotIPv6Ready;
+import category.SimplePush;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 import com.jayway.restassured.RestAssured;
@@ -46,7 +46,6 @@ import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
-import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 import org.jboss.aerogear.unifiedpush.api.Installation;
@@ -74,9 +73,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.chromePackagedAppTestsEnabled;
@@ -375,13 +374,13 @@ public class MessageSendTest {
                 .awaitGetAndClear(commonAliasInstallations.size(), Duration.FIVE_SECONDS);
 
         for (Installation commonAliasInstallation : commonAliasInstallations) {
-            assertThat(statistics.deviceTokens, contains(commonAliasInstallation.getDeviceToken()));
+            assertThat(statistics.deviceTokens, hasItem(commonAliasInstallation.getDeviceToken()));
         }
 
         assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
         assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
         assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
-        if(chromePackagedAppTestsEnabled()) {
+        if (chromePackagedAppTestsEnabled()) {
             assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
         }
 
@@ -537,7 +536,7 @@ public class MessageSendTest {
 
         ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
         ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
-        if(simplePushTestsEnabled()) {
+        if (simplePushTestsEnabled()) {
             ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
         }
     }
