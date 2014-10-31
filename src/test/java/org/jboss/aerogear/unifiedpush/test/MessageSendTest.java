@@ -76,6 +76,7 @@ import java.util.concurrent.Callable;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.chromePackagedAppTestsEnabled;
@@ -374,7 +375,7 @@ public class MessageSendTest {
                 .awaitGetAndClear(commonAliasInstallations.size(), Duration.FIVE_SECONDS);
 
         for (Installation commonAliasInstallation : commonAliasInstallations) {
-            assertThat(statistics.deviceTokens.contains(commonAliasInstallation.getDeviceToken()), is(true));
+            assertThat(statistics.deviceTokens, contains(commonAliasInstallation.getDeviceToken()));
         }
 
         assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));

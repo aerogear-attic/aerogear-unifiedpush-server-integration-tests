@@ -432,32 +432,20 @@ public final class Deployments {
                     getUpsParentDirectory().getAbsolutePath());
 
             try {
-                if(isTravis()){
-                    Tasks.prepare(CommandTool.class)
+                CommandTool command = Tasks.prepare(CommandTool.class)
                         .workingDir(getUpsParentDirectory().getAbsolutePath())
                         .programName("mvn")
-                        .parameters("-B", "-q", "clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
-                                getActiveProfilesAsMavenParameter()).splitToParameters(getUpsSettings())
-                                // echo build interactions
-                        .interaction(new ProcessInteractionBuilder().outputPrefix("ups-maven-build: ").when(".*")
-                                .printToOut())
-                        .execute()
-                        .await();
+                        .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true")
+                        .parameter(getActiveProfilesAsMavenParameter())
+                        .splitToParameters(getUpsSettings())
+                        .interaction(new ProcessInteractionBuilder()
+                                .outputPrefix("ups-maven-build: ").when(".*").printToOut());
 
-                } else {
-                    Tasks.prepare(CommandTool.class)
-                        .workingDir(getUpsParentDirectory().getAbsolutePath())
-                        .programName("mvn")
-                        .parameters("clean", "package", "-DskipTests", "-Dmaven.javadoc.skip=true",
-                                getActiveProfilesAsMavenParameter()).splitToParameters(getUpsSettings())
-                                // echo build interactions
-                        .interaction(new ProcessInteractionBuilder().outputPrefix("ups-maven-build: ").when(".*")
-                                .printToOut())
-                        .execute()
-                        .await();
-
-
+                if (isTravis()) {
+                    command.parameters("-q", "-B");
                 }
+
+                command.execute().await();
             } catch (ExecutionException e) {
                 LOGGER.log(Level.WARNING, "Could not package UnifiedPush Server WAR. It is possible that you do not " +
                         "have Maven on PATH. Assuming you did compile UnifiedPush yourself and resuming tests.", e);
