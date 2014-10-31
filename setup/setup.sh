@@ -18,7 +18,7 @@ WILDFLY_DOWNLOAD_URL="http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.
 WILDFLY_ZIP="$BASE_DIR/wildfly-8.1.0.Final.zip"
 WILDFLY_HOME="$BASE_DIR/wildfly-8.1.0.Final"
 AG_UPS_REPO="$BASE_DIR/aerogear-unifiedpush-server"
-AG_PUSH_COMMIT="1.0.1"
+AG_PUSH_COMMIT="284a1c82dce986106527b01fe7a95eabc203fb14"
 
 function cloneRepository() {
 
