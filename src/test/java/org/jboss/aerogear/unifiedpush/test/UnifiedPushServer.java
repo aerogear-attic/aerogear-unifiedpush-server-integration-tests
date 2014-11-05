@@ -7,6 +7,7 @@ import org.jboss.aerogear.test.api.SessionRequest;
 import org.jboss.aerogear.test.api.UPSContext;
 import org.jboss.aerogear.test.api.UPSWorker;
 import org.jboss.aerogear.test.api.auth.LoginRequest;
+import org.jboss.aerogear.unifiedpush.utils.TestUtils;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.rules.MethodRule;
@@ -208,6 +209,12 @@ public abstract class UnifiedPushServer implements MethodRule {
                 UriScheme uriScheme = field.getAnnotation(UriScheme.class);
                 if (uriScheme == null) {
                     uriScheme = defaultUriScheme;
+                }
+                if (TestUtils.ignoreHttp() && uriScheme.name() == SchemeName.HTTP) {
+                    continue;
+                }
+                if (TestUtils.ignoreHttps() && uriScheme.name() == SchemeName.HTTPS) {
+                    continue;
                 }
 
                 if (!deploymentURLPairMap.containsKey(uriScheme)) {

@@ -16,29 +16,35 @@
  */
 package org.jboss.aerogear.unifiedpush.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import category.AdminUI;
 import category.ChromePackagedApp;
 import category.SimplePush;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Helper to determine whether a test class or method should be run based on external specification of categories.
- *
+ * <p/>
  * Categories are specified as comma separated list of fully qualified class names via
  * -DexcludedGroups for excluded groups and -Dgroups properties.
- *
+ * <p/>
  * If a category is present in both excludedGroups and groups, it is not executed.
  *
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
- *
  */
 public class TestUtils {
 
+    public static boolean ignoreHttp() {
+        return Boolean.getBoolean("http.ignore");
+    }
+
+    public static boolean ignoreHttps() {
+        return Boolean.getBoolean("https.ignore");
+    }
+
     public static boolean simplePushTestsEnabled() {
         return shouldRun(SimplePush.class);
-
     }
 
     public static boolean chromePackagedAppTestsEnabled() {
@@ -71,6 +77,6 @@ public class TestUtils {
         }
 
         return (includedGroups.isEmpty() || includedGroups.contains(category.getCanonicalName())) &&
-            (excludedGroups.isEmpty() || !excludedGroups.contains(category.getCanonicalName()));
+                (excludedGroups.isEmpty() || !excludedGroups.contains(category.getCanonicalName()));
     }
 }
