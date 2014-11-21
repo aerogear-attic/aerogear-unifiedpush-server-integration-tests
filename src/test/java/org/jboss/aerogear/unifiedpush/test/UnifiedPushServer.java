@@ -51,12 +51,12 @@ public abstract class UnifiedPushServer implements MethodRule {
 
     @OperateOnDeployment(Deployments.AG_PUSH)
     @ArquillianResource
-    @UriScheme(name = SchemeName.HTTPS, port = 8443)
+    @UriScheme(name = SchemeName.HTTPS, port = 443)
     protected URL httpsUrl;
 
     @OperateOnDeployment(Deployments.AUTH_SERVER)
     @ArquillianResource
-    @UriScheme(name = SchemeName.HTTPS, port = 8443)
+    @UriScheme(name = SchemeName.HTTPS, port = 443)
     protected URL authServerHttpsUrl;
 
     protected int currentSession;
