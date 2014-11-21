@@ -16,10 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.DecoderConfig;
-import com.jayway.restassured.config.EncoderConfig;
-import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
@@ -33,6 +29,7 @@ import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.aerogear.unifiedpush.utils.ContentTypes;
+import org.jboss.aerogear.unifiedpush.utils.TestUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -75,18 +72,12 @@ public class iOSVariantTest {
 
     @BeforeClass
     public static void setup() {
-        RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
-
-        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
+        TestUtils.setupRestAssured();
     }
 
     @AfterClass
     public static void cleanup() {
-        RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
+        TestUtils.teardownRestAssured();
     }
 
     @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)

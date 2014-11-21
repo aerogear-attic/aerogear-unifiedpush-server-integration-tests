@@ -15,14 +15,15 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-parent</artifactId>
         <version>0.2.7</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
@@ -38,7 +39,9 @@
         <keycloak.version>1.0-beta-3</keycloak.version>
         <notnoop.version>0.2.3</notnoop.version>
         <gcm-server.version>1.0.2</gcm-server.version>
-        <aerogear.unifiedpush-server-rest-api.version>${project.version}</aerogear.unifiedpush-server-rest-api.version>        
+        <aerogear.unifiedpush-server-rest-api.version>${project.version}</aerogear.unifiedpush-server-rest-api.version>
+        <aerogear.unifiedpush-test-extension.version>${project.version}-SNAPSHOT
+        </aerogear.unifiedpush-test-extension.version>
 
         <!-- Testing -->
         <org.jboss.aerogear.bom.version>0.2.7</org.jboss.aerogear.bom.version>
@@ -55,12 +58,12 @@
         <!-- Surefire Specific configuration -->
         <!-- Admin UI tests and performance tests are not executed by default -->
         <excludedGroups>category.AdminUI,category.Performance</excludedGroups>
-        <groups />
-        <ups.source />
-        <ups.remote.url />
+        <groups/>
+        <ups.source/>
+        <ups.remote.url/>
         <ups.server.type>as7</ups.server.type>
 
-        <reportNameSuffix />
+        <reportNameSuffix/>
         <reportsDirectory>${project.basedir}/target/surefire-reports</reportsDirectory>
     </properties>
 
@@ -88,6 +91,13 @@
                 <version>${jboss-javaee-6.0.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.aerogear.test</groupId>
+                <artifactId>unifiedpush-test-extension</artifactId>
+                <version>${aerogear.unifiedpush-test-extension.version}</version>
+                <type>war</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -239,6 +249,12 @@
             <artifactId>arquillian-spacelift</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+            <artifactId>shrinkwrap-descriptors-impl-jboss</artifactId>
+            <version>2.0.0-alpha-6</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -303,7 +319,7 @@
                 <ups.source>archive</ups.source>
             </properties>
         </profile>
-        
+
         <!-- Test Containers -->
         <profile>
             <id>as711-managed</id>
@@ -457,12 +473,12 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <dependencies>
-                 <dependency>
-                     <groupId>org.jboss.aerogear.test.arquillian</groupId>
-                     <artifactId>arquillian-non-deploying-container</artifactId>
-                     <!--<version>${version.arquillian.non.deploying.container}</version>-->
-                     <scope>test</scope>
-                 </dependency>
+                <dependency>
+                    <groupId>org.jboss.aerogear.test.arquillian</groupId>
+                    <artifactId>arquillian-non-deploying-container</artifactId>
+                    <!--<version>${version.arquillian.non.deploying.container}</version>-->
+                    <scope>test</scope>
+                </dependency>
             </dependencies>
             <build>
                 <plugins>
@@ -555,52 +571,56 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" />
-                                        <taskdef classpathref="maven.runtime.classpath" resource="net/sf/antcontrib/antcontrib.properties" />
-                                        <available file="${jacoco.report.file}" property="exec.file.exists" />
-                                        <echo message="Jacoco.exec should be in: ${jacoco.report.file}" />
-                                        <echo message="Unified Push Server should be in: ${ups.dir}" />
+                                        <taskdef name="jacoco-report" classname="org.jacoco.ant.ReportTask"
+                                                 classpathref="maven.plugin.classpath"/>
+                                        <taskdef classpathref="maven.runtime.classpath"
+                                                 resource="net/sf/antcontrib/antcontrib.properties"/>
+                                        <available file="${jacoco.report.file}" property="exec.file.exists"/>
+                                        <echo message="Jacoco.exec should be in: ${jacoco.report.file}"/>
+                                        <echo message="Unified Push Server should be in: ${ups.dir}"/>
                                         <copy todir="${jacoco.prep.sources}">
-                                            <fileset dir="${ups.dir}" includes="**/src/main/java/**" />
+                                            <fileset dir="${ups.dir}" includes="**/src/main/java/**"/>
                                             <mapper>
-                                                <regexpmapper from="^(?:.*?)/src/main/java/(.*)$$" to="\1" />
+                                                <regexpmapper from="^(?:.*?)/src/main/java/(.*)$$" to="\1"/>
                                             </mapper>
                                         </copy>
                                         <copy todir="${jacoco.prep.classes}">
-                                            <fileset dir="${ups.dir}" includes="**/target/classes/**" />
+                                            <fileset dir="${ups.dir}" includes="**/target/classes/**"/>
                                             <mapper>
-                                                <regexpmapper from="^(?:.*?)/target/classes/(.*)$$" to="\1" />
+                                                <regexpmapper from="^(?:.*?)/target/classes/(.*)$$" to="\1"/>
                                             </mapper>
                                         </copy>
                                         <if>
-                                            <equals arg1="${exec.file.exists}" arg2="true" />
+                                            <equals arg1="${exec.file.exists}" arg2="true"/>
                                             <then>
                                                 <trycatch reference="report_exception">
                                                     <try>
                                                         <jacoco-report>
                                                             <executiondata>
-                                                                <file file="${jacoco.report.file}" />
+                                                                <file file="${jacoco.report.file}"/>
                                                             </executiondata>
-                                                            <structure name="AeroGear Unified Push Server Integration Tests">
+                                                            <structure
+                                                                name="AeroGear Unified Push Server Integration Tests">
                                                                 <classfiles>
-                                                                    <fileset dir="${jacoco.prep.classes}" />
+                                                                    <fileset dir="${jacoco.prep.classes}"/>
                                                                 </classfiles>
                                                                 <sourcefiles encoding="UTF-8">
-                                                                    <fileset dir="${jacoco.prep.sources}" />
+                                                                    <fileset dir="${jacoco.prep.sources}"/>
                                                                 </sourcefiles>
                                                             </structure>
-                                                            <html destdir="${jacoco.report.output}" />
+                                                            <html destdir="${jacoco.report.output}"/>
                                                         </jacoco-report>
                                                     </try>
                                                     <catch>
-                                                        <property name="exception" refid="report_exception" />
-                                                        <property name="message" value="Error while generating jacoco report: ${exception}" />
-                                                        <echo message="${message}" />
+                                                        <property name="exception" refid="report_exception"/>
+                                                        <property name="message"
+                                                                  value="Error while generating jacoco report: ${exception}"/>
+                                                        <echo message="${message}"/>
                                                     </catch>
                                                 </trycatch>
                                             </then>
                                             <else>
-                                                <echo message="${jacoco.report.file} .exec file is missing." />
+                                                <echo message="${jacoco.report.file} .exec file is missing."/>
                                             </else>
                                         </if>
                                     </target>

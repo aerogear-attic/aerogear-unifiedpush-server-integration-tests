@@ -13,3 +13,9 @@ aerogear-unifiedpush-server/
 /test-classes
 jboss-as-7.1.1.Final*
 wildfly-8.1.0.Final*
+.repository
+aerogear-testing-tools
+installations
+.gradle
+spacelift
+settings.xml*

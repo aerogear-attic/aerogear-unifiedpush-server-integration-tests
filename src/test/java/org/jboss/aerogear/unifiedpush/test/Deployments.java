@@ -64,9 +64,11 @@ public final class Deployments {
 
     private static final Logger LOGGER = Logger.getLogger(Deployments.class.getName());
 
+    public static final String DATA_SOURCE = "data_source";
     public static final String AG_PUSH = "ag_push";
     public static final String AUTH_SERVER = "auth_server";
     public static final String JAVA_CLIENT = "java_client";
+    public static final String TEST_EXTENSION = "test_extension";
 
     private static final String PROPERTY_UPS_SOURCE = "ups.source";
     private static final String PROPERTY_UPS_VERSION = "ups.version";
@@ -96,6 +98,20 @@ public final class Deployments {
 
     private Deployments() {
         throw new UnsupportedOperationException("No instantiation.");
+    }
+
+    public static WebArchive testExtension() {
+        File warFile = Maven.resolver()
+                .loadPomFromFile("pom.xml")
+                .resolve("org.jboss.aerogear.test:unifiedpush-test-extension:war:?")
+                .withTransitivity()
+                .asSingleFile();
+
+        // https://issues.jboss.org/browse/WFK2-61
+        return ShrinkWrap
+                .create(ZipImporter.class, "unifiedpush-test-extension.war")
+                .importFrom(warFile)
+                .as(WebArchive.class);
     }
 
     /**

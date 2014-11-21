@@ -34,7 +34,7 @@
         <configuration>
             <property name="baseURI">https://${openshift.app:upsci}-${openshift.namespace:mobileqa}.${openshift.brooker:rhcloud.com}</property>
             <!-- FIXME this mapping should not be there but without it KC yields redirect invalid URI, investigate -->
-            <property name="contextRootRemap">{'ag-push' : '/'}</property>
+            <property name="contextRootRemap">{'ag-push' : '/ag-push', 'auth-server' : '/auth'}</property>
         </configuration>
     </container>
 

@@ -19,6 +19,10 @@ package org.jboss.aerogear.unifiedpush.utils;
 import category.AdminUI;
 import category.ChromePackagedApp;
 import category.SimplePush;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.DecoderConfig;
+import com.jayway.restassured.config.EncoderConfig;
+import com.jayway.restassured.config.RestAssuredConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +57,26 @@ public class TestUtils {
 
     public static boolean adminUiTestsEnabled() {
         return shouldRun(AdminUI.class);
+    }
+
+    public static boolean ignoreCustomKeystore() {
+        return Boolean.getBoolean("keystore.ignore");
+    }
+
+    public static void setupRestAssured() {
+        RestAssured.config = RestAssuredConfig.newConfig()
+                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
+                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
+
+        if(!ignoreCustomKeystore()) {
+            RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
+        }
+    }
+
+    public static void teardownRestAssured() {
+        RestAssured.config = RestAssuredConfig.newConfig()
+                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
+                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
     }
 
     private static boolean shouldRun(Class<?> category) {

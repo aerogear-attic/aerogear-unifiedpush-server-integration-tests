@@ -16,10 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.DecoderConfig;
-import com.jayway.restassured.config.EncoderConfig;
-import com.jayway.restassured.config.RestAssuredConfig;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
@@ -31,7 +27,7 @@ import org.jboss.aerogear.test.api.application.PushApplicationContext;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.CheckingExpectedException;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.TestUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -74,30 +70,31 @@ public class PushApplicationTest {
 
     @BeforeClass
     public static void setup() {
-        RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
-
-        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
+        TestUtils.setupRestAssured();
     }
 
     @AfterClass
     public static void cleanup() {
-        RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
+        TestUtils.teardownRestAssured();
     }
 
-    @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)
+    @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createAuthServerDeployment() {
         return Deployments.authServer();
     }
 
-    @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
+    @Deployment(name = Deployments.AG_PUSH, testable = false, order = 3)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     @Test
