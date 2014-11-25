@@ -23,6 +23,7 @@ import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantContext;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
@@ -57,8 +58,9 @@ public class AndroidVariantTest {
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
+            with(CleanupRequest.request()).cleanApplications();
 
-            PushApplication application = with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+            with(PushApplicationWorker.worker()).generate().persist().detachEntity();
 
             return this;
         }
@@ -91,6 +93,12 @@ public class AndroidVariantTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 3)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     private PushApplication getRegisteredApplication() {

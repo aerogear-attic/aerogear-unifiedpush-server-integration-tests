@@ -24,6 +24,7 @@ import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantContext;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
@@ -61,6 +62,7 @@ public class SimplePushVariantTest {
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
+            with(CleanupRequest.request()).cleanApplications();
 
             PushApplication application = with(PushApplicationWorker.worker()).generate().persist().detachEntity();
 
@@ -100,6 +102,12 @@ public class SimplePushVariantTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     private PushApplication getRegisteredApplication() {
