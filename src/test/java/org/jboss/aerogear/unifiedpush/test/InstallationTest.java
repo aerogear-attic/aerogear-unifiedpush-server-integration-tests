@@ -25,6 +25,7 @@ import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.InstallationContext;
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
@@ -74,6 +75,7 @@ public class InstallationTest {
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
+            with(CleanupRequest.request()).cleanApplications();
 
             PushApplication application = with(PushApplicationWorker.worker())
                     .generate().persist()
@@ -106,6 +108,12 @@ public class InstallationTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     private PushApplication getRegisteredApplication() {

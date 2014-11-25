@@ -23,6 +23,7 @@ import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantContext;
 import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
@@ -56,7 +57,9 @@ public class ChromePackagedAppVariantTest {
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
-            PushApplication application = with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+            with(CleanupRequest.request()).cleanApplications();
+
+            with(PushApplicationWorker.worker()).generate().persist().detachEntity();
 
             return this;
         }
@@ -95,6 +98,12 @@ public class ChromePackagedAppVariantTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     private PushApplication getRegisteredApplication() {

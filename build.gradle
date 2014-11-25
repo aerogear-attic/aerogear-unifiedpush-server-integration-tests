@@ -18,13 +18,13 @@ import java.util.concurrent.TimeUnit
 apply plugin: 'spacelift'
 
 ext {
-    defaultOpenShiftAppName = 'upsIntegrationTests'
+    defaultOpenShiftAppName = 'upsintegrationtests'
     defaultOpenShiftNamespace = 'mobileqa'
     defaultOpenShiftGearSize = 'small'
     defaultOpenShiftUsername = ''
     defaultOpenShiftPassword = ''
-    defaultOpenShiftAppDirectory = 'aerogear-push'
-    defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=aerogear/openshift-origin-cartridge-aerogear-push'
+    defaultOpenShiftAppDirectory = 'unified-push'
+    defaultOpenShiftCartridge = 'https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml'
 
 }
 
@@ -83,10 +83,12 @@ spacelift {
             postActions {
 
                 def repository = File.createTempDir()
+                println "Created temporary directory: $repository."
 
+                println 'Creating OpenShift cartridge.'
                 Tasks.prepare(CreateOpenshiftCartridge)
                         .named(project.openShiftAppName)
-                        .at(project.openShiftGearNamespace)
+                        .at(project.openShiftNamespace)
                         .sized(project.openShiftGearSize)
                         .username(project.openShiftUsername)
                         .password(project.openShiftPassword)
@@ -125,30 +127,59 @@ spacelift {
                             .execute().await()
                 }
 
+                println 'Pushing the unifiedpush-test-extension.war into the repository.'
                 Tasks.chain(repository, GitCommitTool)
                         .message('Add test extension war.')
                         .then(GitPushTool)
                         .execute().await()
 
-                println 'Waiting for unifiedpush-test-extension to be deployed. (max 1 minute)'
-                Awaitility.await().atMost(1, TimeUnit.MINUTES).until(new Callable<Boolean>() {
+                final String baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com/unifiedpush-test-extension"
+
+                println 'Waiting for unifiedpush-test-extension to be deployed. (max 5 minutes)'
+                println "Expected deployment url: $baseUri"
+                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
                     @Override
                     Boolean call() throws Exception {
                         Response response = RestAssured.given()
-                                .baseUri('https://${project.openShiftAppName}-${project.openShiftGearNamespace}.rhcloud.com/unifiedpush-test-extension')
+                                .baseUri(baseUri)
                                 .get('/status')
 
                         return response.statusCode == 200
                     }
                 })
+                println 'The unifiedpush-test-extension.war was successfully deployed.'
 
-                println 'unifiedpush-test-extension successfully deployed.'
-
+                println 'Reconfiguring KeyCloak.'
                 RestAssured.given()
-                        .baseUri("https://${project.openShiftAppName}-${project.openShiftGearNamespace}.rhcloud.com/unifiedpush-test-extension")
+                        .baseUri(baseUri)
                         .get('/keycloak')
                         .then()
+                        .log().all(true)
                         .statusCode(200)
+
+                println 'Restaring the cartridge.'
+                GradleSpacelift.tools('rhc')
+                        .parameters('app', 'restart')
+                        .parameters('-a', project.openShiftAppName)
+                        .parameters('-n', project.openShiftNamespace)
+                        .parameters('-l', project.openShiftUsername)
+                        .parameters('-p', project.openShiftPassword)
+                        .execute().await()
+
+                println 'Waiting for unifiedpush-test-extension to be deployed. (max 5 minutes)'
+                println "Expected deployment url: $baseUri"
+                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
+                    @Override
+                    Boolean call() throws Exception {
+                        Response response = RestAssured.given()
+                                .baseUri(baseUri)
+                                .get('/status')
+
+                        return response.statusCode == 200
+                    }
+                })
+                println 'The unifiedpush-test-extension.war was successfully deployed.'
+
             }
         }
     }
@@ -162,6 +193,7 @@ spacelift {
                         .profile('openshift')
                         .property("http.ignore=true")
                         .property("openshift.app=${project.openShiftAppName}")
+                        .property("keystore.ignore=true")
                         .goals('clean', 'test').execute().await()
             }
         }
@@ -202,30 +234,3 @@ dependencies {
 task wrapper(type: Wrapper) {
     gradleVersion = '2.2'
 }
-
-//task test() {
-//    Tasks.setDefaultExecutionServiceFactory(new DefaultExecutionServiceFactory())
-//
-//    Tasks.prepare(DownloadTool.class)
-//            .from('https://github.com/aerogear/aerogear-testing-tools/archive/master.zip')
-//            .to('target/aerogear-testing-tools.zip')
-//            .then(UnzipTool.class)
-//            .toDir('target/')
-//            .execute().await()
-//
-//
-//}
-//
-//def createOpenshiftCart() {
-//    Tasks.prepare(CreateOpenshiftCartridge)
-//            .named('integrationtests8')
-//            .at('mobileqa')
-//            .sized("small")
-//            .username("mobile-qa-list@redhat.com")
-//            .password("cuqrLYA4dNLpQsDLeJ")
-//            .cartridges("https://cartreflect-claytondev.rhcloud.com/${upsCartVersion}", "mysql-5.5")
-//            .ignoreIfExists()
-//            .execute().await()
-//
-//
-//}

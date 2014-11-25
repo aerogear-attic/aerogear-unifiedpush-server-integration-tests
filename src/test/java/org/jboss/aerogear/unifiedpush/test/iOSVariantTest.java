@@ -22,6 +22,7 @@ import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.api.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantContext;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
@@ -56,6 +57,7 @@ public class iOSVariantTest {
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
+            with(CleanupRequest.request()).cleanApplications();
 
             PushApplication application = with(PushApplicationWorker.worker()).generate().persist().detachEntity();
 
@@ -90,6 +92,12 @@ public class iOSVariantTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     private PushApplication getRegisteredApplication() {

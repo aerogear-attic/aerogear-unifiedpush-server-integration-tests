@@ -3,6 +3,7 @@ package org.jboss.aerogear.unifiedpush.test;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.utils.TestUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -28,6 +29,7 @@ public class UpsWithRuleTest {
 
         @Override
         protected UnifiedPushServer setup() {
+            with(CleanupRequest.request()).cleanApplications();
             // persist new PushApplication
             List<PushApplication> apps = with(PushApplicationWorker.worker())
                     .generate().persist()
@@ -61,6 +63,12 @@ public class UpsWithRuleTest {
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
         return Deployments.unifiedPushServer();
+    }
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
+    @TargetsContainer("main-server-group")
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
 
     @Test

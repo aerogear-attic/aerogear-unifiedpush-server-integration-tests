@@ -16,22 +16,26 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
+
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.notnoop.apns.internal.ApnsServiceImpl;
 
+
 import org.arquillian.spacelift.execution.ExecutionException;
 import org.arquillian.spacelift.execution.Tasks;
 import org.arquillian.spacelift.process.ProcessInteractionBuilder;
 import org.arquillian.spacelift.process.impl.CommandTool;
+
 import org.jboss.aerogear.test.api.installation.Tokens;
 import org.jboss.aerogear.test.api.sender.SenderStatistics;
 import org.jboss.aerogear.unifiedpush.message.sender.GCMForChromePushNotificationSender;
 import org.jboss.aerogear.unifiedpush.utils.JavaSenderTestEndpoint;
 import org.jboss.aerogear.unifiedpush.utils.JavaSenderTestRestApplication;
 import org.jboss.aerogear.unifiedpush.utils.SenderStatisticsEndpoint;
+
 import org.jboss.shrinkwrap.api.ArchivePath;
 import org.jboss.shrinkwrap.api.Filter;
 import org.jboss.shrinkwrap.api.Node;
@@ -42,7 +46,6 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories;
@@ -55,7 +58,6 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -101,17 +103,7 @@ public final class Deployments {
     }
 
     public static WebArchive testExtension() {
-        File warFile = Maven.resolver()
-                .loadPomFromFile("pom.xml")
-                .resolve("org.jboss.aerogear.test:unifiedpush-test-extension:war:?")
-                .withTransitivity()
-                .asSingleFile();
-
-        // https://issues.jboss.org/browse/WFK2-61
-        return ShrinkWrap
-                .create(ZipImporter.class, "unifiedpush-test-extension.war")
-                .importFrom(warFile)
-                .as(WebArchive.class);
+        return ShrinkWrap.create(WebArchive.class, "unifiedpush-test-extension.war");
     }
 
     /**
@@ -120,29 +112,7 @@ public final class Deployments {
      * and defaults to release.
      */
     public static WebArchive unifiedPushServer() {
-        String upsSource = getUpsSource();
-
-        WebArchive war;
-        if (upsSource.equalsIgnoreCase(UPS_SOURCE_REMOTE)) {
-            war = remoteUnifiedPushServer();
-        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_LOCAL)) {
-            war = localUnfiedPushServer();
-        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_ARCHIVE)) {
-            war = archiveUnifiedPushServer();
-        } else {
-            throw new IllegalArgumentException("Unsupported source of Unified Push Server WAR: " + upsSource + "!");
-        }
-
-        // FIXME only >= 0.11.0 will be supported
-        // try to figure out whether UPS was modularized already
-        String upsVersion = System.getProperty(PROPERTY_UPS_VERSION);
-        if (upsVersion != null && upsVersion.length() != 0 && upsVersion.startsWith("0.10")) {
-            replacePersistenceInWarPreModularization(war);
-        } else {
-            replacePersistenceInWar(war);
-        }
-
-        return war;
+        return ShrinkWrap.create(WebArchive.class, "ag-push.war");
     }
 
     /**
@@ -153,49 +123,7 @@ public final class Deployments {
      * @see Deployments#unifiedPushServer()
      */
     public static WebArchive unifiedPushServerWithCustomSenders() {
-        WebArchive war = unifiedPushServer();
-
-        Map<ArchivePath, Node> librariesToRemove = war.getContent(new Filter<ArchivePath>() {
-            @Override
-            public boolean include(ArchivePath path) {
-                return path.get().startsWith("/WEB-INF/lib/gcm-server") && path.get().endsWith(".jar");
-
-            }
-        });
-
-        for (ArchivePath archivePath : librariesToRemove.keySet()) {
-            war.delete(archivePath);
-        }
-
-        war.addClasses(SenderStatisticsEndpoint.class, SenderStatistics.class,
-                GCMForChromePushNotificationSender.class, Tokens.class);
-
-        JavaArchive gcmJar = ShrinkWrap.create(JavaArchive.class, "gcm-server.jar").addClasses(Result.class,
-                Message.class, MulticastResult.class, Message.class, Sender.class);
-        war.addAsLibraries(gcmJar);
-
-        Collection<JavaArchive> apnsLibs = war.getAsType(JavaArchive.class, new Filter<ArchivePath>() {
-            @Override
-            public boolean include(ArchivePath path) {
-                return path.get().startsWith("/WEB-INF/lib/apns") && path.get().endsWith(".jar");
-            }
-        });
-
-        for (JavaArchive apnsLib : apnsLibs) {
-            apnsLib.deleteClass(ApnsServiceImpl.class);
-            apnsLib.addClass(ApnsServiceImpl.class);
-        }
-
-        PomEquippedResolveStage resolver = Maven.resolver().loadPomFromFile("pom.xml");
-
-        // here we resolve mockito and json transitively, other artifact without transitivity
-        File[] libs = resolver.resolve("com.jayway.restassured:rest-assured", "com.jayway.awaitility:awaitility")
-                .withoutTransitivity().asFile();
-        war.addAsLibraries(libs);
-        libs = resolver.resolve("org.mockito:mockito-core", "org.json:json").withTransitivity().asFile();
-        war = war.addAsLibraries(libs);
-
-        return war;
+        return ShrinkWrap.create(WebArchive.class, "ag-push.war");
     }
 
     /**
@@ -295,22 +223,7 @@ public final class Deployments {
     }
 
     public static WebArchive authServer() {
-        String upsSource = getUpsSource();
-        WebArchive war;
-        if (upsSource.equalsIgnoreCase(UPS_SOURCE_REMOTE)) {
-            war = remoteAuthServer();
-        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_LOCAL)) {
-            war = localAuthServer();
-        } else if (upsSource.equalsIgnoreCase(UPS_SOURCE_ARCHIVE)) {
-            war = archiveAuthServer();
-        } else {
-            throw new IllegalArgumentException("Unsupported source of Unified Push Server WAR: " + upsSource + "!");
-        }
-
-        replaceAuthServerPersistence(war);
-        fixAerogearAuthServerConfiguration(war);
-
-        return war;
+        return ShrinkWrap.create(WebArchive.class, "auth-server.war");
     }
 
     private static void replaceAuthServerPersistence(WebArchive war) {
