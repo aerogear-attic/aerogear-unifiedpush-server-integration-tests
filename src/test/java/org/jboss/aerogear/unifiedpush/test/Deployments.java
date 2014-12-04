@@ -86,7 +86,7 @@ public final class Deployments {
     }
 
     public static WebArchive testExtension() {
-        return ShrinkWrap.create(WebArchive.class, "unifiedpush-test-extension.war");
+        return ShrinkWrap.create(WebArchive.class, "unifiedpush-test-extension-server.war");
     }
 
     /**
