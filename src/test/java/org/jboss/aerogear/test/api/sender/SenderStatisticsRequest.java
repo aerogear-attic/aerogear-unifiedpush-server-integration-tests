@@ -45,6 +45,8 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
+
+
         JsonPath jsonPath = response.jsonPath();
 
         SenderStatistics statistics = new SenderStatistics();

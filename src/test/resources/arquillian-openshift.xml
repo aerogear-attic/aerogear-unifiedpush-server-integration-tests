@@ -32,7 +32,7 @@
     <!-- Here, we reference "main-server-group", as this is the default for tests running in domain mode -->
     <container qualifier="main-server-group" default="true">
         <configuration>
-            <property name="baseURI">${openshift.protocol:https}://${openshift.app:upsci}-${openshift.namespace:mobileqa}.${openshift.brooker:rhcloud.com}:${openshift.port:443}</property>
+            <property name="baseURI">${containerUri:http://localhost:8080/}</property>
             <!-- FIXME this mapping should not be there but without it KC yields redirect invalid URI, investigate -->
             <property name="contextRootRemap">{'ag-push' : '/ag-push', 'auth-server' : '/auth'}</property>
         </configuration>
