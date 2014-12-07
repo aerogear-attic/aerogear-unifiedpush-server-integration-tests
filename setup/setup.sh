@@ -22,7 +22,7 @@ AG_PUSH_COMMIT="284a1c82dce986106527b01fe7a95eabc203fb14"
 
 function cloneRepository() {
 
-    echo "[INFO] Cloning Aerogear UPS repository master"
+    echo "[INFO] Cloning Aerogear UPS repository ${AG_PUSH_COMMIT}"
 
     # FIXME this might not be necessary
     if [ -d "$AG_UPS_REPO" ]; then
