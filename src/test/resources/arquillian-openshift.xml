@@ -45,6 +45,10 @@
         <property name="waitGuiInterval">5</property>
     </extension>
 
+    <extension qualifier="reporter">
+        <property name="report">html</property>
+    </extension>
+
     <extension qualifier="webdriver">
         <property name="browser">${browser:firefox}</property>
         <property name="dimensions">1200x900</property>
