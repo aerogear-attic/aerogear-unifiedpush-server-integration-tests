@@ -73,7 +73,7 @@ spacelift {
 
     profiles {
         openshift {
-            enabledInstallations 'aerogearTestingTools', 'unifiedPushServerOpenshift'
+            enabledInstallations 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
             tests 'openshiftIntegrationTests'
         }
         local {
@@ -81,17 +81,33 @@ spacelift {
         }
         eap6(inherits: local) {
             enabledInstallations {
-                ['aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['littleProxy', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
         wildfly8(inherits: local) {
             enabledInstallations {
-                ['aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['littleProxy', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
     }
 
     installations {
+        littleProxy {
+            product 'aerogear'
+            version '1.1.0-beta1-SNAPSHOT'
+            remoteUrl 'https://github.com/adamfisk/LittleProxy/archive/696e3a87a64e9ede019e68312e0c8f9674d1b2a8.zip'
+            home 'littleproxy'
+            fileName 'littleproxy.zip'
+            extractMapper { toDir(home).cutdirs() }
+            postActions {
+                Tasks.prepare(CommandTool)
+                        .workingDir('littleproxy')
+                        .programName('mvn')
+                        .parameters('clean', 'install')
+                        .execute().await()
+            }
+        }
+
         aerogearTestingTools {
             product 'aerogear'
             version '1.0.2'
@@ -248,6 +264,7 @@ spacelift {
             product 'aerogear'
             version '1.0.2'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.2.zip'
+            home 'aerogear-unifiedpush-server'
             fileName 'aerogear-unifiedpush-server.zip'
             extractMapper { toDir(home).cutdirs() }
             forceReinstall true

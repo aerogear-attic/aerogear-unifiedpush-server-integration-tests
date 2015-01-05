@@ -17,3 +17,5 @@ wildfly-8.1.0.Final*
 aerogear-testing-tools
 installations
 .gradle
+settings.xml
+settings.xml.backup1
