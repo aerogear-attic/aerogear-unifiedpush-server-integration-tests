@@ -17,5 +17,8 @@ wildfly-8.1.0.Final*
 aerogear-testing-tools
 installations
 .gradle
+
 spacelift
-settings.xml*
+settings.xml
+settings.xml.backup1
+
