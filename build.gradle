@@ -42,12 +42,15 @@ ext {
 
     defaultProtocols = ['http']
 
-    baseUri = 'http://localhost:8080'
-    textExtensionUri = "$baseUri/unifiedpush-test-extension"
+    defaultUnifiedPushType = 'as7'
+    defaultUnifiedPushServerWar = null
+    defaultUnifiedPushAuthServerWar = null
 
-    unifiedPushBinariesDir = new File('upsBin')
-    unifiedPushType = 'as7'
-    jbossHome = null
+    defaultJbossHome = null
+
+    defaultExternalMavenParameters = ""
+
+    defaultUnifiedPushBinariesDir = new File('upsBin')
 }
 
 spacelift {
@@ -87,6 +90,11 @@ spacelift {
         wildfly8(inherits: local) {
             enabledInstallations {
                 ['littleProxy', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+            }
+        }
+        externalEap6(inherits: local) {
+            enabledInstallations {
+                ['littleProxy', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
     }
@@ -337,6 +345,20 @@ spacelift {
         unifiedPushServer_none {
             product 'aerogear'
             version '1.0.2'
+            postActions {
+                if(project.unifiedPushServerWar != null) {
+                    Files.copy(
+                            new File(project.unifiedPushServerWar),
+                            new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war")
+                    )
+                }
+                if(project.unifiedPushAuthServerWar != null) {
+                    Files.copy(
+                            new File(project.unifiedPushAuthServerWar),
+                            new File(project.unifiedPushBinariesDir, 'auth-server.war')
+                    )
+                }
+            }
         }
 
         deployUnifiedPushToContainer {
@@ -448,10 +470,16 @@ spacelift {
                 def port = protocol == 'https' ? 8443 : 8080
                 def baseUri = "$protocol://localhost:$port"
 
-                Tasks.prepare(MavenExecutor).pom("pom.xml")
+                GradleSpacelift.tools('mvn')
+                    .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
+                    .parameter(project.externalMavenParameters)
+                    .execute().await()
+
+                /*Tasks.prepare(MavenExecutor).pom("pom.xml")
                         .profile('openshift')
                         .property("containerUri=$baseUri")
-                        .goals('clean', 'test').execute().await()
+                        .goals('clean', 'test')
+                        .execute().await()*/
             }
             afterSuite {
                 Tasks.chain(project.jbossManager, JBossStopper).execute().await()
