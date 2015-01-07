@@ -45,8 +45,10 @@ ext {
     defaultUnifiedPushType = 'as7'
     defaultUnifiedPushServerWar = null
     defaultUnifiedPushAuthServerWar = null
+    defaultUnifiedPushServerDatasource = null
 
     defaultJbossHome = null
+    defaultLocalDomain = 'localhost'
 
     defaultExternalMavenParameters = ""
 
@@ -320,6 +322,8 @@ spacelift {
                         .createRemoteRepository('remote_ups', project.unifiedPushMavenRepository, 'default'))
                     .withMavenCentralRepo(false)
 
+                project.unifiedPushBinariesDir.mkdirs()
+
                 Tasks.prepare(DownloadTool.class)
                         .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
                         .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
@@ -346,6 +350,8 @@ spacelift {
             product 'aerogear'
             version '1.0.2'
             postActions {
+                project.unifiedPushBinariesDir.mkdirs()
+
                 if(project.unifiedPushServerWar != null) {
                     Files.copy(
                             new File(project.unifiedPushServerWar),
@@ -356,6 +362,12 @@ spacelift {
                     Files.copy(
                             new File(project.unifiedPushAuthServerWar),
                             new File(project.unifiedPushBinariesDir, 'auth-server.war')
+                    )
+                }
+                if(project.unifiedPushServerDatasource != null) {
+                    Files.copy(
+                            new File(project.unifiedPushServerDatasource),
+                            new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
                     )
                 }
             }
@@ -389,7 +401,10 @@ spacelift {
             }
             beforeSuite {
                 def jbossHome = project.jbossHome
-                final def baseUri = 'http://localhost:8080/unifiedpush-test-extension-server'
+                if(jbossHome instanceof CharSequence) {
+                    jbossHome = new File(jbossHome)
+                }
+                final def baseUri = "http://${project.localDomain}:8080/unifiedpush-test-extension-server"
 
                 // Remove all current deployments
                 File deployments = new File(jbossHome, 'standalone/deployments');
@@ -417,6 +432,7 @@ spacelift {
                         .configuration(
                         new ManagedContainerConfiguration()
                                 .setJbossHome(jbossHome.absolutePath)
+                                .setJavaVmArguments("-DjbossBindAddress=${project.localDomain}")
                                 .setStartupTimeoutInSeconds(600))
                         .execute().await()
 
@@ -449,6 +465,7 @@ spacelift {
                         .configuration(
                         new ManagedContainerConfiguration()
                                 .setJbossHome(jbossHome.absolutePath)
+                                .setJavaVmArguments("-DjbossBindAddress=${project.localDomain}")
                                 .setStartupTimeoutInSeconds(600))
                         .execute().await()
 
@@ -468,11 +485,13 @@ spacelift {
             }
             execute { protocol ->
                 def port = protocol == 'https' ? 8443 : 8080
-                def baseUri = "$protocol://localhost:$port"
+                def baseUri = "$protocol://${project.localDomain}:$port"
+
+                println "Using external maven parameters: ${project.externalMavenParameters}"
 
                 GradleSpacelift.tools('mvn')
                     .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
-                    .parameter(project.externalMavenParameters)
+                    .parameters(new CommandBuilder('unused').splitToParameters(project.externalMavenParameters).build().getParameters())
                     .execute().await()
 
                 /*Tasks.prepare(MavenExecutor).pom("pom.xml")
@@ -500,7 +519,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-4'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-5'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.2'
     }
