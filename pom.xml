@@ -95,7 +95,7 @@
 
             <dependency>
                 <groupId>org.jboss.aerogear.test</groupId>
-                <artifactId>unifiedpush-test-extension</artifactId>
+                <artifactId>unifiedpush-test-extension-server</artifactId>
                 <version>${aerogear.unifiedpush-test-extension.version}</version>
                 <type>war</type>
             </dependency>
@@ -248,6 +248,12 @@
             <groupId>org.arquillian.spacelift</groupId>
             <artifactId>arquillian-spacelift</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.aerogear.test</groupId>
+            <artifactId>unifiedpush-test-extension-client</artifactId>
+            <version>${aerogear.unifiedpush-test-extension.version}</version>
         </dependency>
 
         <dependency>
