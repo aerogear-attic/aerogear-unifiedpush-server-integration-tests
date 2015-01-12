@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit
 apply plugin: 'spacelift'
 
 ext {
+    defaultQuietMaven = false
+
     defaultOpenShiftAppName = 'upsintegrationtests'
     defaultOpenShiftNamespace = 'mobileqa'
     defaultOpenShiftGearSize = 'small'
@@ -65,13 +67,14 @@ spacelift {
             command {
                 def m2 = System.getenv("M2")
                 def m2_home = System.getenv("M2_HOME")
+                def quietParameters = project.quietMaven ? ["-B", "-q"] : []
 
                 if (m2 != null && !m2.isEmpty()) {
-                    return Tasks.prepare(CommandTool).command(new CommandBuilder("${m2}/mvn"))
+                    return Tasks.prepare(CommandTool).command(new CommandBuilder("${m2}/mvn").parameters(quietParameters))
                 } else if (m2_home != null && !m2_home.isEmpty()) {
-                    return Tasks.prepare(CommandTool).command(new CommandBuilder("${m2_home}/bin/mvn"))
+                    return Tasks.prepare(CommandTool).command(new CommandBuilder("${m2_home}/bin/mvn").parameters(quietParameters))
                 } else {
-                    return Tasks.prepare(CommandTool).command(new CommandBuilder("mvn"))
+                    return Tasks.prepare(CommandTool).command(new CommandBuilder("mvn").parameters(quietParameters))
                 }
             }
         }
@@ -111,9 +114,8 @@ spacelift {
             fileName 'littleproxy.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                Tasks.prepare(CommandTool)
-                        .workingDir('littleproxy')
-                        .programName('mvn')
+                GradleSpacelift.tools('mvn')
+                        .workingDir(project.littleProxy.home)
                         .parameters('clean', 'install')
                         .execute().await()
             }
@@ -128,11 +130,9 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             forceReinstall true
             postActions {
-                Tasks.prepare(CommandTool.class)
+                GradleSpacelift.tools('mvn')
                         .workingDir('aerogear-testing-tools/unifiedpush-test-extension')
-                        .programName('mvn')
-                        .parameters('clean', 'package')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
+                        .parameters('clean', 'install')
                         .execute().await()
             }
         }
@@ -280,11 +280,9 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             forceReinstall true
             postActions {
-                Tasks.prepare(CommandTool.class)
+                GradleSpacelift.tools('mvn')
                         .workingDir('aerogear-unifiedpush-server')
-                        .programName('mvn')
                         .parameters('clean', 'package', '-DskipTests', '-Dmaven.javadoc.skip=true')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
                         .execute().await()
 
                 project.unifiedPushBinariesDir.mkdirs()
