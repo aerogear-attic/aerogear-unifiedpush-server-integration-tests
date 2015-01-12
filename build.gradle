@@ -115,7 +115,7 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             postActions {
                 GradleSpacelift.tools('mvn')
-                        .workingDir(littleProxy.home)
+                        .workingDir(littleProxy.home.absolutePath)
                         .parameters('clean', 'install')
                         .execute().await()
             }
