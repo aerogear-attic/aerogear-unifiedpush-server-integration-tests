@@ -2,10 +2,8 @@ language: java
 jdk:
     - oraclejdk7
     #    - openjdk7
-before_install:
-    - ./setup/setup.sh
-    - export JBOSS_HOME=`pwd`/jboss-as-7.1.1.Final
-install:
-    - mvn -B -q install -DskipTests=true -s .settings.xml
+#install:
+#    - mvn -B -q install -DskipTests=true -s .settings.xml
 script:
-    - mvn -B -q clean test -s .settings.xml
+    - ./gradlew -Pwildfly8
+#    - mvn -B -q clean test -s .settings.xml
