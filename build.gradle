@@ -48,7 +48,8 @@ ext {
     defaultUnifiedPushServerDatasource = null
 
     defaultJbossHome = null
-    defaultLocalDomain = 'localhost'
+    defaultJbossBindAddress = '127.0.0.1'
+    defaultLocalDomain = '127.0.0.1'
 
     defaultExternalMavenParameters = ""
 
@@ -432,7 +433,7 @@ spacelift {
                         .configuration(
                         new ManagedContainerConfiguration()
                                 .setJbossHome(jbossHome.absolutePath)
-                                .setJavaVmArguments("-DjbossBindAddress=${project.localDomain}")
+                                .setJavaVmArguments("-Djboss.bind.address=${project.jbossBindAddress}")
                                 .setStartupTimeoutInSeconds(600))
                         .execute().await()
 
@@ -465,7 +466,7 @@ spacelift {
                         .configuration(
                         new ManagedContainerConfiguration()
                                 .setJbossHome(jbossHome.absolutePath)
-                                .setJavaVmArguments("-DjbossBindAddress=${project.localDomain}")
+                                .setJavaVmArguments("-Djboss.bind.address=${project.jbossBindAddress}")
                                 .setStartupTimeoutInSeconds(600))
                         .execute().await()
 
