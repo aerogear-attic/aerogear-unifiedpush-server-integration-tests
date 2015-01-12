@@ -500,6 +500,24 @@
             </build>
         </profile>
 
+        <profile>
+            <id>quickstarts</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <groups>category.Quickstart</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- This profile enrich test execution with code coverage. It must be used together with another non-domain container profile -->
         <profile>
             <id>code-coverage</id>
