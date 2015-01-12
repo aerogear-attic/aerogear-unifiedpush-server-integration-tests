@@ -4,6 +4,8 @@ jdk:
     #    - openjdk7
 #install:
 #    - mvn -B -q install -DskipTests=true -s .settings.xml
+install:
+    - ./gradlew assemble -Pwildfly8
 script:
-    - ./gradlew -Pwildfly8
+    - ./gradlew test -Pwildfly8
 #    - mvn -B -q clean test -s .settings.xml
