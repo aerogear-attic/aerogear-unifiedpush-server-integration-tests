@@ -19,6 +19,8 @@ package org.jboss.aerogear.unifiedpush.test;
 import category.ChromePackagedApp;
 import category.NotIPv6Ready;
 import category.SimplePush;
+import category.GCM;
+import category.APNS;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 import com.notnoop.apns.EnhancedApnsNotification;
@@ -76,7 +78,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
+import static org.jboss.aerogear.unifiedpush.utils.TestUtils.apnsTestsEnabled;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.chromePackagedAppTestsEnabled;
+import static org.jboss.aerogear.unifiedpush.utils.TestUtils.gcmTestsEnabled;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.simplePushTestsEnabled;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -98,24 +102,27 @@ public class MessageSendTest {
                     .generate().persist()
                     .detachEntity();
 
-            AndroidVariant androidVariant = with(AndroidVariantWorker.worker(), application)
-                    .generate().persist()
-                    .detachEntity();
+            if(gcmTestsEnabled()) {
+                AndroidVariant androidVariant = with(AndroidVariantWorker.worker(), application)
+                        .generate().persist()
+                        .detachEntity();
 
-            with(AndroidInstallationWorker.worker(), androidVariant)
-                    .generate(3).persist();
+                with(AndroidInstallationWorker.worker(), androidVariant)
+                        .generate(3).persist();
+            }
 
+            if(apnsTestsEnabled()) {
+                iOSVariant iosVariant = with(
+                        iOSVariantWorker.worker()
+                                .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
+                                .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE), application
+                )
+                        .generate().persist()
+                        .detachEntity();
 
-            iOSVariant iosVariant = with(
-                    iOSVariantWorker.worker()
-                            .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
-                            .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE), application
-            )
-                    .generate().persist()
-                    .detachEntity();
-
-            with(iOSInstallationWorker.worker(), iosVariant)
-                    .generate(3).persist();
+                with(iOSInstallationWorker.worker(), iosVariant)
+                        .generate(3).persist();
+            }
 
             if (simplePushTestsEnabled()) {
                 SimplePushVariant simplePushVariant = with(SimplePushVariantWorker.worker(), application)
@@ -198,7 +205,7 @@ public class MessageSendTest {
         return ups.with(ChromePackagedAppVariantWorker.worker(), getPushApplication()).findAll().detachEntity();
     }
 
-    @Category(NotIPv6Ready.class)
+    @Category({ GCM.class, NotIPv6Ready.class })
     @Test
     public void androidSelectiveSendByAliases() {
         SenderStatistics statistics;
@@ -226,7 +233,7 @@ public class MessageSendTest {
         assertThat(statistics.gcmMessage.getData().get("aerogear"), is("rulez!"));
     }
 
-    @Category(NotIPv6Ready.class)
+    @Category({ APNS.class, NotIPv6Ready.class })
     @Test
     public void iosSelectiveSendByAliases() {
         SenderStatistics statistics;
@@ -314,15 +321,22 @@ public class MessageSendTest {
         String alias = UUID.randomUUID().toString();
 
         List<Installation> commonAliasInstallations = new ArrayList<Installation>();
-        Installation androidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
-                .generate().alias(alias).persist()
-                .detachEntity();
-        commonAliasInstallations.add(androidInstallation);
 
-        Installation iosInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
-                .generate().alias(alias).persist()
-                .detachEntity();
-        commonAliasInstallations.add(iosInstallation);
+        Installation androidInstallation = null;
+        if(gcmTestsEnabled()) {
+            androidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
+                    .generate().alias(alias).persist()
+                    .detachEntity();
+            commonAliasInstallations.add(androidInstallation);
+        }
+
+        Installation iosInstallation = null;
+        if(apnsTestsEnabled()) {
+            iosInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
+                    .generate().alias(alias).persist()
+                    .detachEntity();
+            commonAliasInstallations.add(iosInstallation);
+        }
 
         Installation gcmForChromeInstallation = null;
         if (chromePackagedAppTestsEnabled()) {
@@ -377,15 +391,23 @@ public class MessageSendTest {
             assertThat(statistics.deviceTokens, hasItem(commonAliasInstallation.getDeviceToken()));
         }
 
-        assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
-        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
-        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+        if(gcmTestsEnabled()) {
+            assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
+            assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+        }
+        if(apnsTestsEnabled()) {
+            assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+        }
         if (chromePackagedAppTestsEnabled()) {
             assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
         }
 
-        ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
-        ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
+        if(gcmTestsEnabled()) {
+            ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
+        }
+        if(apnsTestsEnabled()) {
+            ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
+        }
         if (chromePackagedAppTestsEnabled()) {
             ups.with(ChromePackagedAppInstallationWorker.worker(), getChromePackagedAppVariant()).unregister
                     (gcmForChromeInstallation);
@@ -399,39 +421,50 @@ public class MessageSendTest {
     @Test
     public void selectiveSendWithInvalidTokens() {
 
+        List<Variant> variants = new ArrayList<Variant>();
         List<Installation> validInstallations = new ArrayList<Installation>();
         List<Installation> invalidInstallations = new ArrayList<Installation>();
 
-        validInstallations.addAll(
-                ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).findAll().detachEntities());
-        validInstallations.addAll(ups.with(iOSInstallationWorker.worker(), getIOSVariant()).findAll().detachEntities());
+        Installation validAndroidInstallation = null;
+        Installation validIOSInstallation = null;
 
-        Installation validAndroidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
-                .generate().persist()
-                .detachEntity();
-        validInstallations.add(validAndroidInstallation);
+        if(gcmTestsEnabled()) {
+            validInstallations.addAll(
+                    ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).findAll().detachEntities());
 
-        Installation invalidAndroidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
-                .generate().invalidateToken().persist()
-                .detachEntity();
-        invalidInstallations.add(invalidAndroidInstallation);
+            validAndroidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
+                    .generate().persist()
+                    .detachEntity();
+            validInstallations.add(validAndroidInstallation);
 
-        Installation validIOSInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
-                .generate().persist()
-                .detachEntity();
-        validInstallations.add(validIOSInstallation);
+            Installation invalidAndroidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
+                    .generate().invalidateToken().persist()
+                    .detachEntity();
+            invalidInstallations.add(invalidAndroidInstallation);
 
-        Installation invalidIOSInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
-                .generate().invalidateToken().persist()
-                .detachEntity();
-        invalidInstallations.add(invalidIOSInstallation);
+            variants.add(getAndroidVariant());
+        }
+        if(apnsTestsEnabled()) {
+            validInstallations.addAll(ups.with(iOSInstallationWorker.worker(), getIOSVariant()).findAll().detachEntities());
+
+            validIOSInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
+                    .generate().persist()
+                    .detachEntity();
+            validInstallations.add(validIOSInstallation);
+
+            Installation invalidIOSInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
+                    .generate().invalidateToken().persist()
+                    .detachEntity();
+            invalidInstallations.add(invalidIOSInstallation);
+
+            variants.add(getIOSVariant());
+        }
 
         // FIXME how about GCM for chrome and SimplePush? they do not report client invalidity
-
         ups.with(SenderRequest.request())
                 .message()
                 .pushApplication(getPushApplication())
-                .variants(getAndroidVariant(), getIOSVariant())
+                .variants(variants)
                 .alert(ALERT_MESSAGE)
                 .send();
 
@@ -447,10 +480,14 @@ public class MessageSendTest {
         }
 
         List<Installation> afterSendInstallations = new ArrayList<Installation>();
-        afterSendInstallations.addAll(
-                ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).findAll().detachEntities());
-        afterSendInstallations.addAll(
-                ups.with(iOSInstallationWorker.worker(), getIOSVariant()).findAll().detachEntities());
+        if(gcmTestsEnabled()) {
+            afterSendInstallations.addAll(
+                    ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).findAll().detachEntities());
+        }
+        if(apnsTestsEnabled()) {
+            afterSendInstallations.addAll(
+                    ups.with(iOSInstallationWorker.worker(), getIOSVariant()).findAll().detachEntities());
+        }
 
         assertThat(afterSendInstallations.size(), is(validInstallations.size()));
 
@@ -463,12 +500,16 @@ public class MessageSendTest {
             assertThat(afterSendInstallationsTokens.contains(validInstallation.getDeviceToken()), is(true));
         }
 
-        assertThat(statistics.gcmMessage, is(notNullValue()));
-        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
-        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+        if(gcmTestsEnabled()) {
+            assertThat(statistics.gcmMessage, is(notNullValue()));
+            assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+            ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(validAndroidInstallation);
+        }
+        if(apnsTestsEnabled()) {
+            assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+            ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(validIOSInstallation);
+        }
 
-        ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(validAndroidInstallation);
-        ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(validIOSInstallation);
     }
 
     @Category(NotIPv6Ready.class)
@@ -477,15 +518,22 @@ public class MessageSendTest {
         String category = UUID.randomUUID().toString();
 
         List<Installation> commonAliasInstallations = new ArrayList<Installation>();
-        Installation androidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
-                .generate().categories(category).persist()
-                .detachEntity();
-        commonAliasInstallations.add(androidInstallation);
 
-        Installation iosInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
-                .generate().categories(category).persist()
-                .detachEntity();
-        commonAliasInstallations.add(iosInstallation);
+        Installation androidInstallation = null;
+        if(gcmTestsEnabled()) {
+            androidInstallation = ups.with(AndroidInstallationWorker.worker(), getAndroidVariant())
+                    .generate().categories(category).persist()
+                    .detachEntity();
+            commonAliasInstallations.add(androidInstallation);
+        }
+
+        Installation iosInstallation = null;
+        if(apnsTestsEnabled()) {
+            iosInstallation = ups.with(iOSInstallationWorker.worker(), getIOSVariant())
+                    .generate().categories(category).persist()
+                    .detachEntity();
+            commonAliasInstallations.add(iosInstallation);
+        }
 
         List<Installation> simplePushInstallations = new ArrayList<Installation>();
         Installation simplePushInstallation = null;
@@ -530,12 +578,15 @@ public class MessageSendTest {
             assertThat(statistics.deviceTokens.contains(commonAliasInstallation.getDeviceToken()), is(true));
         }
 
-        assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
-        assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
-        assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
-
-        ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
-        ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
+        if(gcmTestsEnabled()) {
+            assertThat(statistics.gcmMessage, is(Matchers.notNullValue()));
+            assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+            ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
+        }
+        if(apnsTestsEnabled()) {
+            assertThat(statistics.apnsAlert, is(ALERT_MESSAGE));
+            ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
+        }
         if (simplePushTestsEnabled()) {
             ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
         }
@@ -546,8 +597,12 @@ public class MessageSendTest {
     public void selectiveSendByVariants() {
         Map<Variant, InstallationWorker> variants = new HashMap<Variant, InstallationWorker>();
 
-        variants.put(getAndroidVariant(), AndroidInstallationWorker.worker());
-        variants.put(getIOSVariant(), iOSInstallationWorker.worker());
+        if(gcmTestsEnabled()) {
+            variants.put(getAndroidVariant(), AndroidInstallationWorker.worker());
+        }
+        if(apnsTestsEnabled()) {
+            variants.put(getIOSVariant(), iOSInstallationWorker.worker());
+        }
 
         selectiveSendByVariants(variants);
     }
@@ -674,9 +729,13 @@ public class MessageSendTest {
             assertThat(senderStatistics.deviceTokens.contains(installation.getDeviceToken()), is(true));
         }
 
-        assertThat(senderStatistics.gcmMessage, is(notNullValue()));
-        assertThat(senderStatistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
-        assertThat(senderStatistics.apnsAlert, is(ALERT_MESSAGE));
+        if(gcmTestsEnabled()) {
+            assertThat(senderStatistics.gcmMessage, is(notNullValue()));
+            assertThat(senderStatistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
+        }
+        if(apnsTestsEnabled()) {
+            assertThat(senderStatistics.apnsAlert, is(ALERT_MESSAGE));
+        }
 
         return senderStatistics;
     }

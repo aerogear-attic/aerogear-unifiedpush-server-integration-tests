@@ -5,7 +5,7 @@ jdk:
 #install:
 #    - mvn -B -q install -DskipTests=true -s .settings.xml
 install:
-    - ./gradlew assemble -Pwildfly8 -PquietMaven=true
+    - ./gradlew assemble -Pwildfly8
 script:
-    - ./gradlew test -Pwildfly8 -PquietMaven=true
+    - ./gradlew test -Pwildfly8
 #    - mvn -B -q clean test -s .settings.xml

@@ -27,12 +27,12 @@ import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.UnexpectedResponseException;
-import org.jboss.aerogear.test.api.AbstractSessionRequest;
+import org.jboss.aerogear.test.api.extension.AbstractTestExtensionRequest;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatisticsRequest> {
+public class SenderStatisticsRequest extends AbstractTestExtensionRequest<SenderStatisticsRequest> {
 
     private SenderStatisticsRequest() {
     }
@@ -41,7 +41,7 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
         Response response = getSession().givenAuthorized()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .get("/rest/senderStats");
+                .get("/senderStats");
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
@@ -93,7 +93,7 @@ public class SenderStatisticsRequest extends AbstractSessionRequest<SenderStatis
         Response response = getSession().givenAuthorized()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .delete("/rest/senderStats");
+                .delete("/senderStats");
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
     }
