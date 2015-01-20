@@ -11,6 +11,7 @@ import org.arquillian.spacelift.gradle.openshift.*
 import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
+import org.arquillian.spacelift.process.ProcessResult
 import org.arquillian.spacelift.process.impl.CommandTool
 import org.arquillian.spacelift.tool.basic.DownloadTool
 import org.arquillian.spacelift.tool.io.WriteToFileTool
@@ -216,6 +217,25 @@ spacelift {
                         .force()
                         .checkout()
                         .repo(repository.absolutePath)
+                        .execute().await()
+
+                ProcessResult ipGetResult = GradleSpacelift.tools('rhc')
+                        .parameters('ssh')
+                        .parameters('--command', 'echo $OPENSHIFT_UNIFIED_PUSH_IP$OPENSHIFT_AEROGEAR_PUSH_IP$OPENSHIFT_JBOSS_UNIFIED_PUSH_IP$MYTESTIP_1')
+                        .parameters('-a', project.openShiftAppName)
+                        .parameters('-n', project.openShiftNamespace)
+                        .parameters('-l', project.openShiftUsername)
+                        .parameters('-p', project.openShiftPassword)
+                        .execute().await()
+
+                String ip = ipGetResult.output().last()
+
+                GradleSpacelift.tools('rhc')
+                        .parameters('set-env', "JAVA_OPTS_EXT=-Dhttp.proxyHost=$ip -Dhttp.proxyPort=16000 -Dhttps.proxyHost=$ip -Dhttps.proxyPort=16000")
+                        .parameters('-a', project.openShiftAppName)
+                        .parameters('-n', project.openShiftNamespace)
+                        .parameters('-l', project.openShiftUsername)
+                        .parameters('-p', project.openShiftPassword)
                         .execute().await()
 
                 def deployFile = "mv ~/app-root/repo/unifiedpush-test-extension-server.war ~/${project.openShiftAppDirectory}/standalone/deployments/unifiedpush-test-extension-server.war"
