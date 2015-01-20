@@ -550,12 +550,16 @@ spacelift {
                 if (project.jbossDomainMode) {
                     def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts()
                     javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
+                    javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
+                    javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
                     jbossManagerConfiguration.domain().setProcessControllerJavaOpts(javaOpts)
                     deploymentGroups = " --all-server-groups"
                     undeploymentGroups = " --all-relevant-server-groups"
                 } else {
                     def javaOpts = jbossManagerConfiguration.getJavaOpts()
                     javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
+                    javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
+                    javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
