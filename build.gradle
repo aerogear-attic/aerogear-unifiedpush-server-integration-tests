@@ -86,11 +86,11 @@ spacelift {
 
                 if (m2 != null && !m2.isEmpty()
                 ) {
-                    return Tasks.prepare(CommandTool).command(new CommandBuilder("${m2}/mvn").parameters(quietParameters))
+                    return new CommandBuilder("${m2}/mvn").parameters(quietParameters)
                 } else if (m2_home != null && !m2_home.isEmpty()) {
-                    return Tasks.prepare(CommandTool).command(new CommandBuilder("${m2_home}/bin/mvn").parameters(quietParameters))
+                    return new CommandBuilder("${m2_home}/bin/mvn").parameters(quietParameters)
                 } else {
-                    return Tasks.prepare(CommandTool).command(new CommandBuilder("mvn").parameters(quietParameters))
+                    return new CommandBuilder("mvn").parameters(quietParameters)
                 }
             }
         }
