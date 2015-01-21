@@ -38,6 +38,7 @@ public class SenderStatisticsRequest extends AbstractTestExtensionRequest<Sender
     }
 
     public SenderStatistics get() {
+
         Response response = getSession().givenAuthorized()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
@@ -45,11 +46,9 @@ public class SenderStatisticsRequest extends AbstractTestExtensionRequest<Sender
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
 
-
-
         JsonPath jsonPath = response.jsonPath();
 
-        SenderStatistics statistics = new SenderStatistics();
+		SenderStatistics statistics = new SenderStatistics();
 
         if (jsonPath.getJsonObject("gcmMessage") != null) {
             Message.Builder builder = new Message.Builder();
