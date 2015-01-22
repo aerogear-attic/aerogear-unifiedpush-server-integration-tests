@@ -563,8 +563,8 @@ spacelift {
                     javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
                     javaOpts += " -Djavax.net.ssl.trustStore=setup/aerogear.truststore"
                     javaOpts += " -Djavax.net.ssl.trustStorePassword=aerogear"
-                    javaOpts += " -DgcmMockCrt=aerogear-testing-tools/unifiedpush-test-extension/sslcert/gcm_mock.crt"
-                    javaOpts += " -DgcmMockKey=aerogear-testing-tools/unifiedpush-test-extension/sslcert/gcm_mock.key" 
+                    javaOpts += " -DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath}"
+                    javaOpts += " -DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath}"
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
