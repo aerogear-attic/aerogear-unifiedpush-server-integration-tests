@@ -62,8 +62,9 @@ ext {
     defaultJbossBindAddress = '127.0.0.1'
     defaultLocalDomain = '127.0.0.1'
 
-    // We need to exclude GCM, APNS and GCMforChrome until it is fixed in proxy.
-    defaultExternalMavenParameters = "-DexcludedGroups=category.AdminUI,category.Performance,category.GCM,category.APNS,category.ChromePackagedApp"
+    // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
+    // If there is problem, you can exclude category.GCM as well
+    defaultExternalMavenParameters = "-DexcludedGroups=category.AdminUI,category.Performance,category.APNS,category.ChromePackagedApp"
 
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
@@ -560,6 +561,10 @@ spacelift {
                     javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
                     javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
                     javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
+                    javaOpts += " -Djavax.net.ssl.trustStore=setup/aerogear.truststore"
+                    javaOpts += " -Djavax.net.ssl.trustStorePassword=aerogear"
+                    javaOpts += " -DgcmMockCrt=aerogear-testing-tools/unifiedpush-test-extension/sslcert/gcm_mock.crt"
+                    javaOpts += " -DgcmMockKey=aerogear-testing-tools/unifiedpush-test-extension/sslcert/gcm_mock.key" 
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
