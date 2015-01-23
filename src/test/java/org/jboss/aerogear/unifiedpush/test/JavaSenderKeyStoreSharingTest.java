@@ -16,11 +16,15 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import java.util.List;
-
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.DecoderConfig;
+import com.jayway.restassured.config.EncoderConfig;
+import com.jayway.restassured.config.RestAssuredConfig;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
+import org.jboss.aerogear.test.api.extension.CleanupRequest;
+import org.jboss.aerogear.test.api.extension.JavaSenderTestRequest;
 import org.jboss.aerogear.test.api.sender.PushMessageInformationRequest;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.PushMessageInformation;
@@ -34,14 +38,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.DecoderConfig;
-import com.jayway.restassured.config.EncoderConfig;
-import com.jayway.restassured.config.RestAssuredConfig;
+import java.util.List;
 
-import static org.junit.Assert.*;
-import static com.jayway.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
 public class JavaSenderKeyStoreSharingTest {
@@ -50,11 +52,13 @@ public class JavaSenderKeyStoreSharingTest {
     public static UnifiedPushServer ups = new UnifiedPushServer() {
         @Override
         protected UnifiedPushServer setup() {
+            with(CleanupRequest.request()).cleanApplications();
+
             ups.with(PushApplicationWorker.worker()).generate().persist();
             return this;
         }
     };
-    
+
     @After
     public void cleanPushApplications() {
         ups.with(PushApplicationWorker.worker()).findAll().removeAll();
@@ -85,33 +89,33 @@ public class JavaSenderKeyStoreSharingTest {
     @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
-        return Deployments.unifiedPushServerWithCustomSenders();
+        return Deployments.unifiedPushServer();
     }
-    
-    @Deployment(name = Deployments.JAVA_CLIENT, testable = false, order = 3)
+
+    @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
     @TargetsContainer("main-server-group")
-    public static WebArchive createJavaClientTestDeployment() {
-       return Deployments.javaSenderTest();
+    public static WebArchive createTestExtensionDeployment() {
+        return Deployments.testExtension();
     }
-    
+
     private PushApplication getPushApp() {
         return ups.with(PushApplicationWorker.worker()).findAll().detachEntity();
     }
-    
+
     @Test
     public void javaSenderSharesKeystoreWithPushApplicationOnSameJvm() throws InterruptedException {
         String appId = getPushApp().getPushApplicationID();
-        String secret = getPushApp().getMasterSecret();
-        
+
         // send message
-        given().formParameters("pushAppId", appId, "secret", secret)
-            .post("http://localhost:8080/javaSender/rest/javaSenderTest")
-            .body().asString().equals("Message sent!");
-        
+        String response = ups.with(JavaSenderTestRequest.request())
+                .sendTestMessage(getPushApp(), ups.unifiedPushUrl, "Hello world!");
+
+        assertThat(response, is("Message sent!"));
+
         // check that the message was sent
         List<PushMessageInformation> pmi = ups.with(PushMessageInformationRequest.request()).get(appId);
-        
+
         assertThat(pmi, is(not(empty())));
     }
-    
+
 }

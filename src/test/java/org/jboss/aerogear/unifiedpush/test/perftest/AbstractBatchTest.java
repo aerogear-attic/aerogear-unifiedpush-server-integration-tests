@@ -58,7 +58,7 @@ public abstract class AbstractBatchTest {
     @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
-        return Deployments.unifiedPushServerWithCustomSenders();
+        return Deployments.unifiedPushServer();
     }
 
     @BeforeClass

@@ -175,7 +175,7 @@ spacelift {
 
                 // There seems to be an error on subsequent runs with the keycloak-default persistence unit
                 // so we reinstall each time.
-                return home.exists()
+                return false
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")

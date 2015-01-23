@@ -176,7 +176,7 @@ public class MessageSendTest {
     @Deployment(name = Deployments.AG_PUSH, testable = false, order = 2)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
-        return Deployments.unifiedPushServerWithCustomSenders();
+        return Deployments.unifiedPushServer();
     }
 
     @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)

@@ -73,7 +73,7 @@ public class ReverseDeploymentOrderTest {
     @Deployment(name = Deployments.AG_PUSH, testable = false, order = 1)
     @TargetsContainer("main-server-group")
     public static WebArchive createDeployment() {
-        return Deployments.unifiedPushServerWithCustomSenders();
+        return Deployments.unifiedPushServer();
     }
 
     @Deployment(name = Deployments.TEST_EXTENSION, testable = false, order = 4)
