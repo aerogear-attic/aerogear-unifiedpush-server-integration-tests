@@ -175,7 +175,7 @@ spacelift {
 
                 // There seems to be an error on subsequent runs with the keycloak-default persistence unit
                 // so we reinstall each time.
-                return false
+                return home.exists()
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
@@ -581,64 +581,33 @@ spacelift {
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
-                // We need the try-catches because there doesn't seem to be a way to ignore the 1 output from jboss-cli
-                try {
-                    println 'Undeploying unifiedpush-h2-ds.xml'
-                    Tasks.prepare(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.absolutePath)
-                            .connect()
-                            .cliCommand("undeploy unifiedpush-h2-ds.xml${undeploymentGroups}")
-                            .execute().await()
+                ['unifiedpush-h2-ds.xml', 'auth-server.war', "${project.unifiedPushType}-ag-push.war",
+                 'unifiedpush-test-extension-server.war'].each {
+                    // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
+                    try {
+                        println "Undeploying ${it}"
+                        Tasks.prepare(JBossCLI)
+                                .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                .connect()
+                                .cliCommand("undeploy ${it}${undeploymentGroups}")
+                                .execute().await()
 
-                    println 'unifiedpush-h2-ds.xml undeployed successfully'
-                } catch (Exception e) {
-                    println 'unifiedpush-h2-ds.xml undeploy failed'
+                        println "${it} undeployed successfully"
+                    } catch (Exception e) {
+                        println "${it} undeploy failed"
+                    }
                 }
 
-                try {
-                    println 'Undeploying auth-server.war'
+                def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
+                if(datasourceXmlFile.exists()) {
                     Tasks.prepare(JBossCLI)
                             .environment("JBOSS_HOME", jbossHome.absolutePath)
                             .connect()
-                            .cliCommand("undeploy auth-server.war${undeploymentGroups}")
+                            .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
                             .execute().await()
-
-                    println 'auth-server.war undeployed successfully'
-                } catch (Exception e) {
-                    println 'auth-server.war undeploy failed'
-                }
-
-                try {
-                    println "Undeploying ${project.unifiedPushType}-ag-push.war"
-                    Tasks.prepare(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.absolutePath)
-                            .connect()
-                            .cliCommand("undeploy ${project.unifiedPushType}-ag-push.war${undeploymentGroups}")
-                            .execute().await()
-
-                    println "${project.unifiedPushType}-ag-push.war undeployed successfully"
-                } catch (Exception e) {
-                    println "${project.unifiedPushType}-ag-push.war undeploy failed"
-                }
-
-                try {
-                    println 'Undeploying unifiedpush-test-extension-server.war'
-                    Tasks.prepare(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.absolutePath)
-                            .connect()
-                            .cliCommand("undeploy unifiedpush-test-extension-server.war${undeploymentGroups}")
-                            .execute().await()
-
-                    println 'unifiedpush-test-extension-server.war undeployed successfully'
-                } catch (Exception e) {
-                    println 'unifiedpush-test-extension-server.war undeploy failed'
                 }
 
                 Tasks.prepare(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml').absolutePath}${deploymentGroups}")
-                        .then(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
                         .connect()
                         .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}${deploymentGroups}")
