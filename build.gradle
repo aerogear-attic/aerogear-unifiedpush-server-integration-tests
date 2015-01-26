@@ -416,6 +416,7 @@ spacelift {
         unifiedPushServer_none {
             product 'aerogear'
             version '1.0.2'
+            isInstalled { false }
             postActions {
                 project.unifiedPushBinariesDir.mkdirs()
 
