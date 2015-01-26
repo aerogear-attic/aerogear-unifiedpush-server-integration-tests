@@ -544,11 +544,11 @@ spacelift {
                 final def jbossManagerConfiguration = new JBossManagerConfiguration()
                         .setContainerType(project.jbossContainer)
                         .setJBossHome(jbossHome.absolutePath)
-                        .setStartupTimeoutInSeconds(600)
+                        .setStartupTimeoutInSeconds(300)
 
                 def deploymentGroups = ""
                 def undeploymentGroups = ""
-                if (project.jbossDomainMode) {
+                if (project.jbossDomainMode == true) {
                     def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts()
                     javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
                     javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
@@ -566,15 +566,6 @@ spacelift {
                     javaOpts += " -DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath}"
                     javaOpts += " -DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath}"
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
-                }
-
-                // Remove all current deployments
-                File deployments = new File(jbossHome, 'standalone/deployments')
-                if (project.jbossDomainMode) {
-                    deployments = new File(jbossHome, 'domain/deployments')
-                }
-                deployments.listFiles().each { file ->
-                    file.delete()
                 }
 
                 project.ext.jbossManager = Tasks.prepare(JBossStarter)
@@ -709,7 +700,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-5'
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
         classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.5.0'
         classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-6'
