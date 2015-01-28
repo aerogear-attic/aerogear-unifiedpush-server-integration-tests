@@ -83,10 +83,12 @@ spacelift {
             command {
                 def m2 = System.getenv("M2")
                 def m2_home = System.getenv("M2_HOME")
+                def maven_path = System.getenv("MAVEN_PATH")
                 def quietParameters = System.getenv("TRAVIS") != null ? ["-B", "-q"] : []
 
-                if (m2 != null && !m2.isEmpty()
-                ) {
+                if(maven_path != null && !maven_path.isEmpty()) {
+                    return new CommandBuilder(maven_path).parameters(quietParameters)
+                } else if (m2 != null && !m2.isEmpty()) {
                     return new CommandBuilder("${m2}/mvn").parameters(quietParameters)
                 } else if (m2_home != null && !m2_home.isEmpty()) {
                     return new CommandBuilder("${m2_home}/bin/mvn").parameters(quietParameters)
