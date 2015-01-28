@@ -663,6 +663,7 @@ spacelift {
                 def baseUri = "$protocol://${project.localDomain}:$port"
 
                 println "Using external maven parameters: ${project.externalMavenParameters}"
+                println "Using base uri: $baseUri"
 
                 GradleSpacelift.tools('mvn')
                         .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
