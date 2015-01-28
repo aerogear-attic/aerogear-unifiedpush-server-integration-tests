@@ -536,7 +536,7 @@ spacelift {
         }
         localIntegrationTests {
             dataProvider {
-                project.protocols
+                project.protocols as ArrayList
             }
             beforeSuite {
                 def jbossHome = project.jbossHome
