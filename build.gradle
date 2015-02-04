@@ -2,8 +2,10 @@ import com.google.common.io.Files
 import com.jayway.awaitility.Awaitility
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.response.Response
-import org.arquillian.spacelift.execution.Tasks
+import org.arquillian.spacelift.Spacelift;
 import org.arquillian.spacelift.gradle.*
+import org.arquillian.spacelift.gradle.android.*
+import org.arquillian.spacelift.gradle.arquillian.*
 import org.arquillian.spacelift.gradle.container.*
 import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.maven.*
@@ -12,9 +14,9 @@ import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
 import org.arquillian.spacelift.process.ProcessResult
-import org.arquillian.spacelift.process.impl.CommandTool
-import org.arquillian.spacelift.tool.basic.DownloadTool
-import org.arquillian.spacelift.tool.io.WriteToFileTool
+import org.arquillian.spacelift.task.os.CommandTool
+import org.arquillian.spacelift.task.net.DownloadTool
+import org.arquillian.spacelift.task.io.WriteToFileTool
 import org.jboss.aerogear.unifiedpush.api.*
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
 import org.jboss.aerogear.test.container.manager.configuration.ContainerType
@@ -44,6 +46,17 @@ ext {
 
     defaultUnifiedPushTestExtensionVersion = '1.0.2-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
+    defaultSelendroidVersion = '0.14.0'
+
+    androidSdkVersion = '23'
+    // use either "Google Inc.:Google APIs (x86 System Image):XYZ" or "android-XYZ" format
+    androidTargets = [
+        [name:'Google Inc.:Google APIs:10', abi:"google_apis/x86"],
+        [name:'Google Inc.:Google APIs:19', abi:"google_apis/x86"],
+        [name:'Google Inc.:Google APIs (x86 System Image):19', abi: "default/x86"],
+        // we are not testing Android 21, but we need it for Android SDK Maven Deployer
+        [name: 'Google Inc.:Google APIs:21', abi:"google_apis/x86"]
+    ]
 
     defaultUnifiedPushSource = 'repository'
     defaultUnifiedPushMavenRepository = 'http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/'
@@ -128,7 +141,7 @@ spacelift {
         }
 
         quickstarts {
-            enabledInstallations 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
+            enabledInstallations 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
             tests 'quickstartIntegrationTests'
         }
     }
@@ -145,7 +158,7 @@ spacelift {
             fileName 'littleproxy.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                Tasks.prepare(MavenExecutor)
+                Spacelift.task(MavenExecutor)
                         .pom("${home.absolutePath}/pom.xml")
                         .goals('clean', 'install')
                         .execute().await()
@@ -163,11 +176,25 @@ spacelift {
             fileName 'aerogear-testing-tools.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                Tasks.prepare(MavenExecutor)
+                Spacelift.task(MavenExecutor)
                     .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
                     .goals('clean', 'install')
                     .execute().await()
             }
+        }
+
+        selendroid {
+            product 'selendroid'
+            version { project.selendroidVersion }
+            remoteUrl { "https://github.com/selendroid/selendroid/releases/download/${version}/selendroid-standalone-${version}-with-dependencies.jar" }
+            fileName { "selendroid-standalone-${version}-with-dependencies.jar" }
+            home { "selendroid-standalone-${version}-with-dependencies.jar" }
+        }
+
+        androidSdk(from:AndroidSdkInstallation) {
+            product 'androidSdk'
+            version { project.androidSdkVersion }
+            androidTargets { project.androidTargets }
         }
 
         wildfly8Container {
@@ -218,7 +245,7 @@ spacelift {
                 println "Created temporary directory: $repository."
 
                 println 'Creating OpenShift cartridge.'
-                Tasks.prepare(CreateOpenshiftCartridge)
+                Spacelift.task(CreateOpenshiftCartridge)
                         .named(project.openShiftAppName)
                         .at(project.openShiftNamespace)
                         .sized(project.openShiftGearSize)
@@ -230,7 +257,7 @@ spacelift {
                         .repo(repository.absolutePath)
                         .execute().await()
 
-                ProcessResult ipGetResult = GradleSpacelift.tools('rhc')
+                ProcessResult ipGetResult = Spacelift.task('rhc')
                         .parameters('ssh')
                         .parameters('--command', 'echo $OPENSHIFT_UNIFIED_PUSH_IP$OPENSHIFT_AEROGEAR_PUSH_IP$OPENSHIFT_JBOSS_UNIFIED_PUSH_IP$MYTESTIP_1')
                         .parameters('-a', project.openShiftAppName)
@@ -241,7 +268,7 @@ spacelift {
 
                 String ip = ipGetResult.output().last()
 
-                GradleSpacelift.tools('rhc')
+                Spacelift.task('rhc')
                         .parameters('set-env', "JAVA_OPTS_EXT=-Dhttp.proxyHost=$ip -Dhttp.proxyPort=16000 -Dhttps.proxyHost=$ip -Dhttps.proxyPort=16000")
                         .parameters('-a', project.openShiftAppName)
                         .parameters('-n', project.openShiftNamespace)
@@ -254,7 +281,7 @@ spacelift {
                 def actionHooksDir = new File(repository, '.openshift/action_hooks/')
                 actionHooksDir.mkdirs()
 
-                List<File> addedFiles = Tasks.prepare(WriteToFileTool)
+                List<File> addedFiles = Spacelift.task(WriteToFileTool)
                         .write(deployFile)
                         .to(new File(actionHooksDir, 'deploy'))
                         .execute().await()
@@ -266,7 +293,7 @@ spacelift {
 
                 Files.copy(warFileSource, warFileTarget)
 
-                Tasks.chain(repository, GitAddTool)
+                Spacelift.task(repository, GitAddTool)
                         .add(addedFiles)
                         .add(warFileTarget)
                         .execute().await()
@@ -274,7 +301,7 @@ spacelift {
                 println 'Added files to OpenShift repository'
 
                 addedFiles.each { addedFile ->
-                    Tasks.prepare(CommandTool)
+                    Spacelift.task(CommandTool)
                             .workingDir(repository.absolutePath)
                             .programName('git')
                             .parameters('update-index', '--chmod=+x', addedFile.absolutePath)
@@ -283,10 +310,12 @@ spacelift {
                 }
 
                 println 'Committing unifiedpush-test-extension-server.war into the OpenShift repository.'
-                Tasks.chain(repository, GitCommitTool).message('Add test extension war.').execute().await()
+                Spacelift.task(repository, GitCommitTool).message('Add test extension war.').execute().await()
+
+                File gitSshFile = Spacelift.task(GitSshFileTask).execute().await()
 
                 println 'Pushing added unifiedpush-test-extension-server.war into the OpenShift repository'
-                Tasks.chain(repository, GitPushTool).execute().await()
+                Spacelift.task(repository, GitPushTool).gitSsh(gitSshFile).execute().await()
 
                 final String baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com/unifiedpush-test-extension-server"
 
@@ -328,7 +357,7 @@ spacelift {
                         .statusCode(200)
 
                 println 'Restaring the cartridge.'
-                GradleSpacelift.tools('rhc')
+                Spacelift.task('rhc')
                         .parameters('app', 'restart')
                         .parameters('-a', project.openShiftAppName)
                         .parameters('-n', project.openShiftNamespace)
@@ -361,7 +390,7 @@ spacelift {
             fileName 'aerogear-unifiedpush-server.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                GradleSpacelift.tools('mvn')
+                Spacelift.task('mvn')
                         .workingDir(home.absolutePath)
                         .parameters('clean', 'package', '-DskipTests', '-Dmaven.javadoc.skip=true')
                         .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
@@ -369,7 +398,7 @@ spacelift {
 
                 project.unifiedPushBinariesDir.mkdirs()
 
-                Tasks.prepare(DownloadTool.class)
+                Spacelift.task(DownloadTool.class)
                         .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
                         .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
                         .execute().await()
@@ -405,7 +434,7 @@ spacelift {
 
                 project.unifiedPushBinariesDir.mkdirs()
 
-                Tasks.prepare(DownloadTool.class)
+                Spacelift.task(DownloadTool.class)
                         .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
                         .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
                         .execute().await()
@@ -508,8 +537,8 @@ spacelift {
                                 pushServerURL: pushUrl,
                                 android:
                                         [
-                                                senderId: project.googleProjectNumber,
-                                                variantId: variant.getVariantID(),
+                                                senderID: project.googleProjectNumber,
+                                                variantID: variant.getVariantID(),
                                                 variantSecret: variant.getSecret()
                                         ]
                         ]
@@ -517,17 +546,17 @@ spacelift {
 
                 pushConfigFile.text = jsonConfig
 
-                Tasks.prepare(CordovaExecutor)
+                Spacelift.task(CordovaExecutor)
                         .setDir(cordovaDir)
                         .setParameters('platform add android')
                         .execute().await()
 
-                Tasks.prepare(CordovaExecutor)
+                Spacelift.task(CordovaExecutor)
                         .setDir(cordovaDir)
                         .setParameters("plugin add org.jboss.aerogear.cordova.push")
                         .execute().await()
 
-                Tasks.prepare(CordovaExecutor)
+                Spacelift.task(CordovaExecutor)
                         .setDir(cordovaDir)
                         .setParameters('build android')
                         .execute().await()
@@ -540,7 +569,7 @@ spacelift {
             execute {
                 def baseUri = "$https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
 
-                Tasks.prepare(MavenExecutor).pom("pom.xml")
+                Spacelift.task(MavenExecutor).pom("pom.xml")
                         .profile('openshift')
                         .property("http.ignore=true")
                         .property("containerUri=$baseUri")
@@ -585,7 +614,7 @@ spacelift {
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
-                project.ext.jbossManager = Tasks.prepare(JBossStarter)
+                project.ext.jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
@@ -594,7 +623,7 @@ spacelift {
                     // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
                     try {
                         println "Undeploying ${it}"
-                        Tasks.prepare(JBossCLI)
+                        Spacelift.task(JBossCLI)
                                 .environment("JBOSS_HOME", jbossHome.absolutePath)
                                 .connect()
                                 .cliCommand("undeploy ${it}${undeploymentGroups}")
@@ -608,14 +637,14 @@ spacelift {
 
                 def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
                 if(datasourceXmlFile.exists()) {
-                    Tasks.prepare(JBossCLI)
+                    Spacelift.task(JBossCLI)
                             .environment("JBOSS_HOME", jbossHome.absolutePath)
                             .connect()
                             .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
                             .execute().await()
                 }
 
-                Tasks.prepare(JBossCLI)
+                Spacelift.task(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
                         .connect()
                         .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}${deploymentGroups}")
@@ -652,9 +681,9 @@ spacelift {
                         .statusCode(200)
 
                 println 'Restarting container.'
-                Tasks.chain(project.jbossManager, JBossStopper).execute().await()
+                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
 
-                project.ext.jbossManager = Tasks.prepare(JBossStarter)
+                project.ext.jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
@@ -679,7 +708,7 @@ spacelift {
                 println "Using external maven parameters: ${project.externalMavenParameters}"
                 println "Using base uri: $baseUri"
 
-                GradleSpacelift.tools('mvn')
+                Spacelift.task('mvn')
                         .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
                         .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
                         .parameters(new CommandBuilder('unused').splitToParameters(project.externalMavenParameters).build().getParameters())
@@ -692,15 +721,39 @@ spacelift {
                         .execute().await()*/
             }
             afterSuite {
-                Tasks.chain(project.jbossManager, JBossStopper).execute().await()
+                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
             }
         }
 
         quickstartIntegrationTests {
+            beforeSuite {
+/*
+                Spacelift.task([
+                    'target' : "Google Inc.:Google APIs (x86 System Image):19",
+                    'abi' : "default/x86",
+                    'emulatorOptions' : "-no-skin -no-audio -no-window -nocache -no-snapshot-save -no-snapstorage"
+                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).container('android').execute().await()
+
+                Spacelift.task([
+                    'androidHome' : "${androidSdk.home}",
+                    'androidSdkHome' : "${project.spacelift.workspace.absolutePath}",
+                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).extension('droidium-platform').execute().await()
+
+                Spacelift.task([
+                    'serverApk' : "${selendroid.home}/prebuild/selendroid-server-${selendroid.version}.apk",
+                    'driverApk' : "${selendroid.home}/prebuild/android-driver-app-${selendroid.version}.apk",
+                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).extension('droidium-native').execute().await()
+*/
+            }
+
             execute {
-                Tasks.prepare(MavenExecutor).pom("pom.xml")
-                        .profile('quickstarts')
-                        .goals('clean', 'test').execute().await()
+/*
+                Spacelift.task(MavenExecutor)
+                    .pom("${project.rootDir.absolutePath}/quickstartTests/aerogear-push-helloworld-cordova/pom.xml")
+                    .property("selendroid.test.app=${helloworldCordovaQuickstart.home}/cordova/platforms/android/ant-build/CordovaApp-debug.apk")
+                    .goal('clean')
+                    .execute().await()
+*/
             }
         }
     }
@@ -719,8 +772,8 @@ buildscript {
     }
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
-        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.5.0'
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-6'
+        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.6.0'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-7'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.2'
         classpath 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
