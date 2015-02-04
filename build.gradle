@@ -42,6 +42,9 @@ ext {
     defaultOpenShiftAppDirectory = 'unified-push'
     defaultOpenShiftCartridge = 'https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml'
 
+    defaultUnifiedPushTestExtensionVersion = '1.0.2-SNAPSHOT'
+    defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
+
     defaultUnifiedPushSource = 'repository'
     defaultUnifiedPushMavenRepository = 'http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/'
 
@@ -133,33 +136,37 @@ spacelift {
     installations {
         littleProxy {
             product 'aerogear'
-            version '1.1.0-beta1-SNAPSHOT'
+            version { project.littleProxyVersion }
             remoteUrl 'https://github.com/adamfisk/LittleProxy/archive/696e3a87a64e9ede019e68312e0c8f9674d1b2a8.zip'
             home 'littleproxy'
+            isInstalled {
+                return new File(project.spacelift.workspace, ".repository/org/littleshoot/littleproxy/${version}").exists()
+            }
             fileName 'littleproxy.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                GradleSpacelift.tools('mvn')
-                        .workingDir(littleProxy.home.absolutePath)
-                        .parameters('clean', 'install')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
+                Tasks.prepare(MavenExecutor)
+                        .pom("${home.absolutePath}/pom.xml")
+                        .goals('clean', 'install')
                         .execute().await()
             }
         }
 
         aerogearTestingTools {
             product 'aerogear'
-            version '1.0.2'
+            version { project.unifiedPushTestExtensionVersion }
             remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/master.zip'
             home 'aerogear-testing-tools'
+            isInstalled {
+                return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()
+            }
             fileName 'aerogear-testing-tools.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                GradleSpacelift.tools('mvn')
-                        .workingDir(new File(home, 'unifiedpush-test-extension').absolutePath)
-                        .parameters('clean', 'install')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
-                        .execute().await()
+                Tasks.prepare(MavenExecutor)
+                    .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
+                    .goals('clean', 'install')
+                    .execute().await()
             }
         }
 
@@ -252,7 +259,9 @@ spacelift {
                         .to(new File(actionHooksDir, 'deploy'))
                         .execute().await()
 
-                def warFileSource = new File('aerogear-testing-tools/unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war')
+                String warFileSourcePath = "${project.spacelift.workspace.absolutePath}/.repository/org/jboss/aerogear/test/unifiedpush-test-extension-server/${project.unifiedPushTestExtensionVersion}/unifiedpush-test-extension-server-${project.unifiedPushTestExtensionVersion}.war"
+
+                def warFileSource = new File(warFileSourcePath)
                 def warFileTarget = new File(repository, 'unifiedpush-test-extension-server.war')
 
                 Files.copy(warFileSource, warFileTarget)
@@ -262,8 +271,10 @@ spacelift {
                         .add(warFileTarget)
                         .execute().await()
 
+                println 'Added files to OpenShift repository'
+
                 addedFiles.each { addedFile ->
-                    Tasks.prepare(CommandTool.class)
+                    Tasks.prepare(CommandTool)
                             .workingDir(repository.absolutePath)
                             .programName('git')
                             .parameters('update-index', '--chmod=+x', addedFile.absolutePath)
@@ -271,11 +282,11 @@ spacelift {
                             .execute().await()
                 }
 
-                println 'Pushing the unifiedpush-test-extension-server.war into the repository.'
-                Tasks.chain(repository, GitCommitTool)
-                        .message('Add test extension war.')
-                        .then(GitPushTool)
-                        .execute().await()
+                println 'Committing unifiedpush-test-extension-server.war into the OpenShift repository.'
+                Tasks.chain(repository, GitCommitTool).message('Add test extension war.').execute().await()
+
+                println 'Pushing added unifiedpush-test-extension-server.war into the OpenShift repository'
+                Tasks.chain(repository, GitPushTool).execute().await()
 
                 final String baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com/unifiedpush-test-extension-server"
 
@@ -458,6 +469,8 @@ spacelift {
 
             home "aerogear-push-helloworld-${version}"
             remoteUrl "https://github.com/aerogear/aerogear-push-helloworld/archive/${version}.zip"
+
+            isInstalled { false }
 
             extractMapper {
                 toDir(home).cutdirs()
