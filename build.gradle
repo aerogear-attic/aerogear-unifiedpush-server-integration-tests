@@ -80,7 +80,7 @@ ext {
 
     // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
     // If there is problem, you can exclude category.GCM as well
-    defaultExternalMavenParameters = "-DexcludedGroups=category.AdminUI,category.Performance,category.APNS,category.ChromePackagedApp"
+    defaultExternalMavenParameters = ["excludedGroups=category.AdminUI,category.Performance,category.APNS,category.ChromePackagedApp"]
 
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
@@ -159,7 +159,7 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             postActions {
                 Spacelift.task(MavenExecutor)
-                        .pom("${home.absolutePath}/pom.xml")
+                        .pom("${littleProxy.home.absolutePath}/pom.xml")
                         .goals('clean', 'install')
                         .execute().await()
             }
@@ -390,10 +390,10 @@ spacelift {
             fileName 'aerogear-unifiedpush-server.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                Spacelift.task('mvn')
+                Spacelift.task(MavenExecutor).pom('pom.xml')
                         .workingDir(home.absolutePath)
-                        .parameters('clean', 'package', '-DskipTests', '-Dmaven.javadoc.skip=true')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
+                        .goals('clean', 'package')
+                        .properties( 'skipTests', 'maven.javadoc.skip=true')
                         .execute().await()
 
                 project.unifiedPushBinariesDir.mkdirs()
@@ -708,17 +708,21 @@ spacelift {
                 println "Using external maven parameters: ${project.externalMavenParameters}"
                 println "Using base uri: $baseUri"
 
-                Spacelift.task('mvn')
+                /*Spacelift.task('mvn')
                         .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
                         .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
                         .parameters(new CommandBuilder('unused').splitToParameters(project.externalMavenParameters).build().getParameters())
                         .execute().await()
-
-                /*Tasks.prepare(MavenExecutor).pom("pom.xml")
+                */
+                def test_task = Spacelift.task(MavenExecutor).pom("pom.xml")
                         .profile('openshift')
                         .property("containerUri=$baseUri")
                         .goals('clean', 'test')
-                        .execute().await()*/
+                for(prop in project.externalMavenParameters){
+                        test_task.property(prop)
+                }
+            
+                test_task.execute().await()
             }
             afterSuite {
                 Spacelift.task(project.jbossManager, JBossStopper).execute().await()
