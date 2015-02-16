@@ -30,6 +30,10 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories
 import groovy.json.JsonOutput
 
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.FileSystems
+import java.util.Collections
+import java.util.EnumSet
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
@@ -95,29 +99,11 @@ spacelift {
         rhc {
             command 'rhc'
         }
-        mvn {
-            command {
-                def m2 = System.getenv("M2")
-                def m2_home = System.getenv("M2_HOME")
-                def maven_path = System.getenv("MAVEN_PATH")
-                def quietParameters = System.getenv("TRAVIS") != null ? ["-B", "-q"] : []
-
-                if(maven_path != null && !maven_path.isEmpty()) {
-                    return new CommandBuilder(maven_path).parameters(quietParameters)
-                } else if (m2 != null && !m2.isEmpty()) {
-                    return new CommandBuilder("${m2}/mvn").parameters(quietParameters)
-                } else if (m2_home != null && !m2_home.isEmpty()) {
-                    return new CommandBuilder("${m2_home}/bin/mvn").parameters(quietParameters)
-                } else {
-                    return new CommandBuilder("mvn").parameters(quietParameters)
-                }
-            }
-        }
     }
 
     profiles {
         openshift {
-            enabledInstallations 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
+            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
             tests 'openshiftIntegrationTests'
         }
         local {
@@ -125,28 +111,51 @@ spacelift {
         }
         eap6(inherits: local) {
             enabledInstallations {
-                ['littleProxy', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
         wildfly8(inherits: local) {
             enabledInstallations {
-                ['littleProxy', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
 
         externalEap6(inherits: local) {
             enabledInstallations {
-                ['littleProxy', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
 
         quickstarts {
-            enabledInstallations 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
+            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
             tests 'quickstartIntegrationTests'
         }
     }
 
     installations {
+        maven {
+            product 'maven'
+            version { '3.2.5' }
+            remoteUrl "http://www.eu.apache.org/dist/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.zip"
+            home 'maven'
+            fileName "maven.zip"
+            extractMapper { toDir(home).cutdirs() }
+            tools {
+                mvn {
+                    command {
+                        def quietParameters = System.getenv("TRAVIS") != null ? ["-B", "-q"] : []
+                        return new CommandBuilder("${maven.home}/bin/mvn").parameters(quietParameters)
+                    }
+                }
+            }
+            postActions {
+                def executable = new File("${maven.home.absolutePath}/bin/mvn").toPath();
+                Set<PosixFilePermission> perms = Collections.synchronizedSet(EnumSet.allOf(PosixFilePermission.class));
+
+                java.nio.file.Files.setPosixFilePermissions(executable, perms)
+            }
+        }
+
         littleProxy {
             product 'aerogear'
             version { project.littleProxyVersion }
