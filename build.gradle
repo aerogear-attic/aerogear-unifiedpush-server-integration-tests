@@ -84,7 +84,7 @@ ext {
 
     // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
     // If there is problem, you can exclude category.GCM as well
-    defaultExternalMavenParameters = ["excludedGroups=category.AdminUI,category.Performance,category.APNS,category.ChromePackagedApp"]
+    defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance,category.APNS,category.ChromePackagedApp"
 
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
@@ -727,7 +727,7 @@ spacelift {
                         .profile('openshift')
                         .property("containerUri=$baseUri")
                         .goals('clean', 'test')
-                for(prop in project.externalMavenParameters){
+                for(prop in project.externalMavenParameters.split()){
                         test_task.property(prop)
                 }
             
