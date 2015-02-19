@@ -18,20 +18,27 @@ package org.jboss.aerogear.unifiedpush.admin.ui.test;
 
 import category.AdminUI;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.LoginPage;
+import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.PasswordChangePage;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.ReLoginPage;
 import org.jboss.aerogear.unifiedpush.admin.ui.model.Installation;
 import org.jboss.aerogear.unifiedpush.admin.ui.model.VariantType;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.*;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.*;
+import org.jboss.aerogear.unifiedpush.admin.ui.utils.IOSVariantCreator;
 import org.jboss.aerogear.unifiedpush.admin.ui.utils.InstallationUtils;
+import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.page.Page;
 import org.jboss.arquillian.junit.InSequence;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.events.EventFiringWebDriver;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +47,9 @@ import static org.junit.Assert.*;
 
 @Category(AdminUI.class)
 public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
+
+    @Drone
+    private WebDriver driver;
 
     @Override
     protected String getPagePath() {
@@ -94,8 +104,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     @Test//(expected = WebDriverException.class)
     @InSequence(1)
     public void testUnauthorizedAccess() {
-        driver.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
-
+        driver.manage().timeouts().setScriptTimeout(15, TimeUnit.SECONDS);
         // initialize page
         initializePageUrl();
         // navigate to push apps page
@@ -110,9 +119,10 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         initializePageUrl();
         // perform login
         loginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
-        // change password
-        passwordChangePage.changePassword(NEW_ADMIN_PASSWORD);
-        reLoginPage.login(ADMIN_USERNAME, NEW_ADMIN_PASSWORD);
+
+        if (passwordChangePage.isPagePresent()) {
+            passwordChangePage.changePassword(NEW_ADMIN_PASSWORD);
+        }
     }
 
     @Test
@@ -246,7 +256,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
 //        assertEquals(ANDROID_VARIANT_GOOGLE_KEY, androidVariantEditPage.getGoogleApiKey());
         // register new android variant
         androidVariantEditPage.updateVariant(UPDATED_ANDROID_VARIANT_NAME, UPDATED_ANDROID_VARIANT_DESC,
-            UPDATED_ANDROID_VARIANT_GOOGLE_KEY);
+                UPDATED_ANDROID_VARIANT_GOOGLE_KEY);
         // one variant should exist
         Variant variant = variantsPage.getVariantList().get(0);
         assertNotNull(variant);
@@ -293,8 +303,8 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         variantsPage.addVariant();
         modal.waitForDialog();
         // register ios variant
-        variantRegistrationPage.registeriOSVariant(IOS_VARIANT_NAME, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE,
-            false);
+        createIOSVariant(IOS_VARIANT_NAME, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE, false);
+
         assertEquals("There should exist two variants", variantsPage.countVariants(), 2);
     }
 
@@ -336,7 +346,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         modal.waitForDialog();
         // edit variant
         iOSVariantEditPage
-            .updateVariant(UPDATED_IOS_VARIANT_NAME, UPDATED_IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE);
+                .updateVariant(UPDATED_IOS_VARIANT_NAME, UPDATED_IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE);
         List<Variant> variantList = variantsPage.getVariantList();
         assertEquals(variantList.size(), 2);
         assertEquals(variantList.get(1).getName(), UPDATED_IOS_VARIANT_NAME);
@@ -418,8 +428,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         variantsPage.addVariant();
         // register ios variant
         modal.waitForDialog();
-        variantRegistrationPage.registeriOSVariant(IOS_VARIANT_NAME_2, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE,
-            true);
+        createIOSVariant(IOS_VARIANT_NAME_2, IOS_VARIANT_DESC, IOS_CERT_PATH, IOS_CERT_PASSPHRASE, true);
         assertEquals("There should exist four variants", variantsPage.countVariants(), 3);
         Variant variant = variantsPage.findVariantRow(IOS_VARIANT_NAME_2);
         assertNotNull(variant);
@@ -457,11 +466,11 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertTrue(!isEmpty(variantId) && !isEmpty(secret));
         // register installation
         Installation androidInstallation = new Installation(ANDROID_INSTALLATION_TOKEN_ID, ANDROID_INSTALLATION_DEVICE_TYPE,
-            ANDROID_INSTALLATION_OS, ANDROID_INSTALLATION_ALIAS, null, null, null, null);
+                ANDROID_INSTALLATION_OS, ANDROID_INSTALLATION_ALIAS, null, null, null, null);
         InstallationUtils.registerInstallation(contextRoot.toExternalForm(), variantId, secret, androidInstallation);
         // register second installation
         Installation secondAndroidInstallation = new Installation(ANDROID_INSTALLATION_TOKEN_ID_2,
-            ANDROID_INSTALLATION_DEVICE_TYPE, ANDROID_INSTALLATION_OS, ANDROID_INSTALLATION_ALIAS, null, null, null, null);
+                ANDROID_INSTALLATION_DEVICE_TYPE, ANDROID_INSTALLATION_OS, ANDROID_INSTALLATION_ALIAS, null, null, null, null);
         InstallationUtils.registerInstallation(contextRoot.toExternalForm(), variantId, secret, secondAndroidInstallation);
 
         // select the push app
@@ -527,11 +536,11 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertTrue(!isEmpty(variantId) && !isEmpty(secret));
         // register installation
         Installation iosInstallation = new Installation(IOS_INSTALLATION_TOKEN_ID, IOS_INSTALLATION_DEVICE_TYPE,
-            IOS_INSTALLATION_OS, IOS_INSTALLATION_ALIAS, null, null, null, null);
+                IOS_INSTALLATION_OS, IOS_INSTALLATION_ALIAS, null, null, null, null);
         InstallationUtils.registerInstallation(contextRoot.toExternalForm(), variantId, secret, iosInstallation);
         // register second installation
         Installation secondiOSInstallation = new Installation(IOS_INSTALLATION_TOKEN_ID_2, IOS_INSTALLATION_DEVICE_TYPE,
-            IOS_INSTALLATION_OS, IOS_INSTALLATION_ALIAS, null, null, null, null);
+                IOS_INSTALLATION_OS, IOS_INSTALLATION_ALIAS, null, null, null, null);
         InstallationUtils.registerInstallation(contextRoot.toExternalForm(), variantId, secret, secondiOSInstallation);
         // go back to push app page
 //        installationsPage.navigateToVariantsPage();
@@ -593,13 +602,13 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         assertTrue(!isEmpty(variantId) && !isEmpty(secret));
         // register installation
         Installation spInstallation = new Installation(SIMPLE_PUSH_INSTALLATION_TOKEN_ID, SIMPLE_PUSH_INSTALLATION_DEVICE_TYPE,
-            SIMPLE_PUSH_INSTALLATION_OS, SIMPLE_PUSH_INSTALLATION_ALIAS, null, null, SIMPLE_PUSH_ENDPOINT_URL_1,
-            SIMPLE_PUSH_CATEGORY);
+                SIMPLE_PUSH_INSTALLATION_OS, SIMPLE_PUSH_INSTALLATION_ALIAS, null, null, SIMPLE_PUSH_ENDPOINT_URL_1,
+                SIMPLE_PUSH_CATEGORY);
         InstallationUtils.registerInstallation(contextRoot.toExternalForm(), variantId, secret, spInstallation);
         // register second installation
         Installation secondSpInstallation = new Installation(SIMPLE_PUSH_INSTALLATION_TOKEN_ID_2,
-            SIMPLE_PUSH_INSTALLATION_DEVICE_TYPE, SIMPLE_PUSH_INSTALLATION_OS, SIMPLE_PUSH_INSTALLATION_ALIAS, null, null,
-            SIMPLE_PUSH_ENDPOINT_URL_2, SIMPLE_PUSH_CATEGORY);
+                SIMPLE_PUSH_INSTALLATION_DEVICE_TYPE, SIMPLE_PUSH_INSTALLATION_OS, SIMPLE_PUSH_INSTALLATION_ALIAS, null, null,
+                SIMPLE_PUSH_ENDPOINT_URL_2, SIMPLE_PUSH_CATEGORY);
         InstallationUtils.registerInstallation(contextRoot.toExternalForm(), variantId, secret, secondSpInstallation);
         // go back to variants page
 //        installationsPage.navigateToVariantsPage();
@@ -685,7 +694,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
         modal.waitForDialog();
         // register new (second) Android variant
         variantRegistrationPage.registerAndroidVariant(ANDROID_VARIANT_NAME_2, ANDROID_VARIANT_DESC_2, ANDROID_VARIANT_PROJECT_NUMBER,
-            ANDROID_VARIANT_GOOGLE_KEY_2);
+                ANDROID_VARIANT_GOOGLE_KEY_2);
         // five variants should exist
         assertEquals(variantsPage.getVariantList().size(), 4);
         Variant variant = variantsPage.findVariantRow(ANDROID_VARIANT_NAME_2);
@@ -755,6 +764,23 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
     public void testLogout() {
         header.logout();
         loginPage.waitForPage();
+    }
+
+    private void createIOSVariant(String name, String desc, String appleCertPath, String passphrase, boolean isProd) {
+        if (((EventFiringWebDriver) driver).getWrappedDriver().toString().contains("safari")) {
+            modal.cancel();
+            URL authURL = null;
+            try {
+                authURL = new URL(authContextRoot.toString().replace("-server", ""));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            new IOSVariantCreator(contextRoot, authURL, driver).create(variantsPage.getHeaderTitle(), name, desc, appleCertPath, passphrase, isProd);
+            driver.navigate().refresh();
+        } else {
+            variantRegistrationPage.registeriOSVariant(name, desc, appleCertPath, passphrase, isProd);
+        }
+        variantsPage.waitForVariant(name);
     }
 
     /* -- Testing data section -- */

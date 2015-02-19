@@ -17,9 +17,6 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.test;
 
 import category.AdminUI;
-
-import org.jboss.aerogear.arquillian.test.smarturl.SchemeName;
-import org.jboss.aerogear.arquillian.test.smarturl.UriScheme;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
@@ -39,12 +36,18 @@ import java.net.URL;
 public abstract class AbstractPushServerAdminUiTest {
 
     /**
-     * The context root.
+     * The ag-push context root.
      */
     @ArquillianResource
     @OperateOnDeployment(Deployments.AG_PUSH)
-    @UriScheme(name = SchemeName.HTTPS, port = 8443)
     protected URL contextRoot;
+
+    /**
+     * The auth server context root.
+     */
+    @ArquillianResource
+    @OperateOnDeployment(Deployments.AUTH_SERVER)
+    protected URL authContextRoot;
 
     /**
      * The browser instance.

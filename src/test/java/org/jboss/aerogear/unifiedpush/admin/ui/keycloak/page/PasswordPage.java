@@ -1,5 +1,6 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page;
 
+import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment.FlashMessage;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -26,6 +27,9 @@ public class PasswordPage {
 
     @FindByJQuery(".alert-success")
     private WebElement success;
+
+    @FindByJQuery(".alert")
+    private FlashMessage flashMessage;
 
     public void setPassword(String oldPassword, String newPassword) {
         passwordInput.clear();
@@ -58,6 +62,5 @@ public class PasswordPage {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        guardAjax(save).click();
     }
 }

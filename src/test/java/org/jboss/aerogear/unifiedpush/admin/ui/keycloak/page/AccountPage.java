@@ -40,11 +40,5 @@ public class AccountPage {
 
     public void save() {
         save.click();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-//        guardAjax(save).click();
     }
 }

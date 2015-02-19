@@ -18,11 +18,14 @@ package org.jboss.aerogear.unifiedpush.admin.ui.page;
 
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Variant;
 import org.jboss.arquillian.graphene.angular.findby.FindByNg;
+import org.jboss.arquillian.graphene.findby.ByJQuery;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
 import java.util.List;
+
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 public class VariantsPage {
 
@@ -56,12 +59,7 @@ public class VariantsPage {
     }
 
     public String getHeaderTitle() {
-        try {
-            return headerTitle.getText();
-        } catch (Exception e) {
-            System.out.println();
-        }
-        return null;
+        return headerTitle.getText();
     }
 
     public String getApplicationId() {
@@ -82,7 +80,7 @@ public class VariantsPage {
 
     public Variant findVariantRow(String name) {
         for (Variant variant : variantsList) {
-            if (variant.getName().equals(name)) {
+            if (variant.getName().trim().equals(name.trim())) {
                 return variant;
             }
         }
@@ -95,5 +93,9 @@ public class VariantsPage {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public void waitForVariant(String variantName) {
+        waitModel().until().element(ByJQuery.selector("variant:contains('" + variantName + "')")).is().present();
     }
 }

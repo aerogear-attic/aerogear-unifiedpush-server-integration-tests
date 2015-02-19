@@ -1,6 +1,8 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page;
 
+import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
@@ -23,6 +25,9 @@ public class LoginPage {
     @FindByJQuery(".kc-feedback-text")
     private WebElement message;
 
+    @Drone
+    private WebDriver driver;
+
     private final static String TITLE = "LOG IN TO UNIFIEDPUSH SERVER";
 
     private final static String PAGE_URL = "#/login";
@@ -42,13 +47,14 @@ public class LoginPage {
     }
 
     public void login(String username, String password) {
+        waitModel().until().element(usernameField).is().present();
         clearNfill(usernameField, username);
         clearNfill(passwordField, password);
         submitButton.click();
     }
 
     public void waitForPage() {
-        waitModel().until().element(submitButton).is().visible();
+        waitModel().until().element(submitButton).is().present();
     }
 
     public String getPageURL() {

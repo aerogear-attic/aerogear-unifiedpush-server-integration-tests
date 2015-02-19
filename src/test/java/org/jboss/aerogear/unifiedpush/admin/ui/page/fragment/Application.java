@@ -13,6 +13,9 @@ public class Application {
     @FindByJQuery("p")
     private WebElement description;
 
+    @FindByJQuery("")
+    private WebElement user;
+
     @FindByJQuery(".lo-app-opts li:eq(0) a span:visible")
     private WebElement variants;
 
@@ -31,7 +34,11 @@ public class Application {
 
     public String getDescription() {
         String desc = description.getText();
-        return desc.substring(1, desc.length() - 1);
+        return desc.isEmpty() ? desc : desc.substring(1, desc.length() - 1);
+    }
+
+    public String getUser() {
+        return user.getText();
     }
 
     public int getVariantCount() {

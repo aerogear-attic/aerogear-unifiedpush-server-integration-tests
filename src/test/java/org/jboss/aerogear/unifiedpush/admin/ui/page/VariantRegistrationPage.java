@@ -19,9 +19,7 @@ package org.jboss.aerogear.unifiedpush.admin.ui.page;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.AndroidVariantForm;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.IOSVariantForm;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.ModalDialog;
-import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
@@ -50,9 +48,6 @@ public class VariantRegistrationPage {
     @FindByJQuery(".modal-dialog")
     private ModalDialog modalDialog;
 
-    @Drone
-    private WebDriver driver;
-
     public void registerAndroidVariant(String name, String desc, String projectNumber, String googleApiKey) {
         fillVariantDetails(name, desc);
         radioButtonAndroid.click();
@@ -62,7 +57,6 @@ public class VariantRegistrationPage {
     }
 
     public void registeriOSVariant(String name, String desc, String appleCertPath, String passphrase, boolean isProd) {
-
         File cert = new File(appleCertPath);
         fillVariantDetails(name, desc);
         radioButtonApple.click();
@@ -73,7 +67,6 @@ public class VariantRegistrationPage {
         } else {
             iOSForm.setDevelopment();
         }
-
         modalDialog.ok();
     }
 

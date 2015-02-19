@@ -23,7 +23,7 @@ public class AbstractVariant {
     private VariantType variantType;
 
     private String name;
-    
+
     private String projectNumber;
 
     private String description;
@@ -58,7 +58,7 @@ public class AbstractVariant {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getProjectNumber() {
         return projectNumber;
     }

@@ -33,7 +33,7 @@ public class InstallationUtils {
             jsonObject.put("operatingSystem", installation.getOperatingSystem());
             jsonObject.put("osVersion", installation.getOsVersion());
             jsonObject.put("alias", installation.getAlias());
-            jsonObject.put("simplePushEndpoint",installation.getSimplePushEndpoint());
+            jsonObject.put("simplePushEndpoint", installation.getSimplePushEndpoint());
 
             response = RestAssured.given().contentType("application/json").auth().basic(variantID, secret)
                     .header("Accept", "application/json").body(jsonObject.toString())

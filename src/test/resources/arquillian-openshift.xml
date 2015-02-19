@@ -35,6 +35,7 @@
             <property name="baseURI">${containerUri:http://localhost:8080/}</property>
             <!-- FIXME this mapping should not be there but without it KC yields redirect invalid URI, investigate -->
             <property name="contextRootRemap">{'ag-push' : '/ag-push', 'auth-server' : '/auth'}</property>
+            <property name="check">org.jboss.aerogear.unifiedpush.admin.ui.utils.UpsOpenshiftStatusCheck</property>
         </configuration>
     </container>
 
@@ -44,6 +45,15 @@
         <property name="waitAjaxInterval">10</property>
         <property name="waitGuiInterval">5</property>
     </extension>
+
+    <extension qualifier="reporter">
+      <property name="report">html</property>
+    </extension>
+
+    <extension qualifier="recorder">
+    <property name="startBeforeClass">true</property>
+    <!-- <property name="takeOnlyOnFail">false</property> -->
+</extension>
 
     <extension qualifier="webdriver">
         <property name="browser">${browser:firefox}</property>

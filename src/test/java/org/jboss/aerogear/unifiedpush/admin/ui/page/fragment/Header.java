@@ -17,17 +17,25 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.openqa.selenium.WebElement;
+
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 public class Header {
+
+    @FindByJQuery(".dropdown")
+    private WebElement dropdownWebElement;
 
     @FindByJQuery(".dropdown")
     private Dropdown dropdown;
 
     public void logout() {
+        waitModel().until().element(dropdownWebElement).is().present();
         dropdown.click("Log Out");
     }
 
     public void accountManagement() {
+        waitModel().until().element(dropdownWebElement).is().visible();
         dropdown.click("Account Management");
     }
 }

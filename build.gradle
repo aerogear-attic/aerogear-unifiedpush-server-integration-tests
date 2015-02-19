@@ -70,6 +70,7 @@ ext {
     defaultEap6RemoteUrl = ''
 
     defaultProtocols = [ 'http' ]
+    defaultBrowser = 'firefox'
 
     defaultUnifiedPushType = 'as7'
     defaultUnifiedPushServerWar = null
@@ -129,6 +130,14 @@ spacelift {
         quickstarts {
             enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
             tests 'quickstartIntegrationTests'
+        }
+
+        adminUIOpenshift(inherits: openshift) {
+            project.ext.openShiftAppName = 'upsci'
+            enabledInstallations {
+                ['maven', 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerOpenshift', 'arquillianDesktopVideoRecorder']
+            }
+            tests 'openshiftAdminUITests'
         }
     }
 
@@ -571,12 +580,30 @@ spacelift {
                         .execute().await()
             }
         }
+
+        arquillianDesktopVideoRecorder {
+            product 'arquillian-desktop-video-recorder'
+            version '1.0.0.Beta1'
+            remoteUrl 'https://github.com/arquillian/arquillian-recorder/archive/1.0.0.Beta1.zip'
+            home 'arquillian-recorder'
+            fileName 'arquillian-recorder.zip'
+            isInstalled {
+                return new File(project.spacelift.workspace, ".repository/org/arquillian/extension/arquillian-desktop-video-recorder/${version}").exists()
+            }
+            extractMapper { toDir(home).cutdirs() }
+            postActions {
+                Spacelift.task(MavenExecutor)
+                        .pom("${arquillianDesktopVideoRecorder.home.absolutePath}/pom.xml")
+                        .goals('clean', 'install')
+                        .execute().await()
+            }
+        }
     }
 
     tests {
         openshiftIntegrationTests {
             execute {
-                def baseUri = "$https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
+                def baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
 
                 Spacelift.task(MavenExecutor).pom("pom.xml")
                         .profile('openshift')
@@ -584,6 +611,25 @@ spacelift {
                         .property("containerUri=$baseUri")
                         .property("keystore.ignore=true")
                         .goals('clean', 'test').execute().await()
+            }
+        }
+        openshiftAdminUITests {
+            execute {
+                def baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
+
+                def mavenTask = Spacelift.task(MavenExecutor).pom("pom.xml")
+                        .profile('openshift')
+                        .property('groups=category.AdminUI')
+                        .property('excludedGroups=')
+                        .property("containerUri=$baseUri")
+                        .property("browser=${project.browser}")
+                        .goals('clean', 'test')
+
+                project.externalMavenParameters.split(" ").each { parameter ->
+                    mavenTask.property(parameter)
+                }
+
+                mavenTask.execute().await()
             }
         }
         localIntegrationTests {

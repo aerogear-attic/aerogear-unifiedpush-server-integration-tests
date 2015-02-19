@@ -25,7 +25,7 @@ public class SimplePushVariantEditPage {
     @FindByJQuery(".modal-dialog")
     private ModalDialog modal;
 
-//    @Override
+    //    @Override
     public void updateVariant(String... input) {
         modal.setName(input[0]);
         modal.setDescription(input[1]);

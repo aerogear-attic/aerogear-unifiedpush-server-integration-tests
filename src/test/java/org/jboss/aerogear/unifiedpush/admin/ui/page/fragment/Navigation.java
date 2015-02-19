@@ -2,12 +2,16 @@ package org.jboss.aerogear.unifiedpush.admin.ui.page.fragment;
 
 import org.jboss.aerogear.unifiedpush.admin.ui.page.PushAppsPage;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.jboss.arquillian.graphene.fragment.Root;
 import org.jboss.arquillian.graphene.page.Page;
 import org.openqa.selenium.WebElement;
 
-import static org.jboss.arquillian.graphene.Graphene.waitGui;
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 public class Navigation {
+
+    @Root
+    private WebElement navigation;
 
     @FindByJQuery("a[href='#/dashboard']")
     private WebElement dashboardLink;
@@ -25,23 +29,19 @@ public class Navigation {
     private PushAppsPage applicationsPage;
 
     public void goToDashboard() {
-        waitGui().until().element(dashboardLink).is().present();
+        waitModel().until().element(navigation).is().present();
         dashboardLink.click();
     }
 
     public void goToApplications() {
-        waitGui().until().element(dashboardLink).is().present();
-        try {
-            applicationsLink.click();
-        } catch (Exception e) {
-            System.out.println();
-        }
+        waitModel().until().element(navigation).is().present();
+        applicationsLink.click();
 
         applicationsPage.waitForPage();
     }
 
     public void goToSendPush() {
-        waitGui().until().element(dashboardLink).is().present();
+        waitModel().until().element(navigation).is().present();
         sendPushLink.click();
     }
 }

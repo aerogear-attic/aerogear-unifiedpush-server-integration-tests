@@ -3,6 +3,8 @@ package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment;
 import org.jboss.arquillian.graphene.fragment.Root;
 import org.openqa.selenium.WebElement;
 
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
+
 public class FlashMessage {
 
     @Root
@@ -27,6 +29,6 @@ public class FlashMessage {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        waitAjax().until().element(root).is().present();
+        waitModel().until().element(root).is().present();
     }
 }

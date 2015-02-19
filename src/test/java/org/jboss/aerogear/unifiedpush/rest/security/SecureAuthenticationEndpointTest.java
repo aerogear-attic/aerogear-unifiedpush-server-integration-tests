@@ -17,8 +17,6 @@
 package org.jboss.aerogear.unifiedpush.rest.security;
 
 import com.jayway.restassured.RestAssured;
-import org.jboss.aerogear.arquillian.test.smarturl.SchemeName;
-import org.jboss.aerogear.arquillian.test.smarturl.UriScheme;
 import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.BeforeClass;
@@ -30,7 +28,6 @@ import java.net.URL;
 public class SecureAuthenticationEndpointTest extends AuthenticationEndpointTest {
 
     @ArquillianResource
-    @UriScheme(name = SchemeName.HTTPS, port = 8443)
     private URL context;
 
     @BeforeClass

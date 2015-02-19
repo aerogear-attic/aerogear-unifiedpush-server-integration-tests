@@ -2,10 +2,7 @@ package org.jboss.aerogear.unifiedpush.admin.ui.keycloak;
 
 import category.AdminUI;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.model.Account;
-import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.AccountPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.LoginPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.PasswordPage;
-import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.ReLoginPage;
+import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.*;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment.FlashMessage;
 import org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page.fragment.Navigation;
 import org.jboss.aerogear.unifiedpush.admin.ui.page.fragment.Header;
@@ -16,6 +13,8 @@ import org.jboss.arquillian.junit.InSequence;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openqa.selenium.support.FindBy;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -39,11 +38,14 @@ public class AccountManagementTest extends AbstractPushServerAdminUiTest {
     private PasswordPage passwordPage;
 
     @Page
+    private PasswordChangePage passwordChangePage;
+
+    @Page
     private LoginPage loginPage;
 
     @Page
     private ReLoginPage reLoginPage;
-    
+
     private static String USERNAME = "admin";
     private static String PASSWORD = "123";
     private static String NEW_PASSWORD = "newpassword";
@@ -53,15 +55,24 @@ public class AccountManagementTest extends AbstractPushServerAdminUiTest {
     @Test
     @InSequence(0)
     public void loginPageTest() {
+        driver.manage().timeouts().setScriptTimeout(10, TimeUnit.SECONDS);
+
         driver.get(contextRoot.toString());
+        loginPage.waitForPage();
 
         loginPage.login("", "");
         assertEquals(loginPage.getMessage(), LoginPage.WRONG_PASSWORD_MESSAGE);
 
         loginPage.login(USERNAME, WRONG_PASSWORD);
         assertEquals(loginPage.getMessage(), LoginPage.WRONG_PASSWORD_MESSAGE);
+        loginPage.waitForPage();
 
         loginPage.login(USERNAME, PASSWORD);
+
+        if (passwordChangePage.isPagePresent()) {
+            passwordChangePage.changePassword(PASSWORD);
+        }
+
         upsAdminUIHeader.accountManagement();
     }
 
@@ -123,7 +134,6 @@ public class AccountManagementTest extends AbstractPushServerAdminUiTest {
         navigation.account();
         assertEquals(adminAccount, accountPage.getAccount());
     }
-
 
 
     @Override

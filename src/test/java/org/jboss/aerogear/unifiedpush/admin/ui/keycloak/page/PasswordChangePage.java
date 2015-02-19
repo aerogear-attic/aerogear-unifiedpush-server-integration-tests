@@ -14,9 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.aerogear.unifiedpush.admin.ui.page;
+package org.jboss.aerogear.unifiedpush.admin.ui.keycloak.page;
 
+import org.jboss.arquillian.drone.api.annotation.Drone;
+import org.jboss.arquillian.graphene.condition.element.WebElementConditionFactory;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
@@ -34,6 +38,9 @@ public class PasswordChangePage {
     @FindByJQuery("[type='submit']")
     private WebElement submitButton;
 
+    @Drone
+    private WebDriver driver;
+
     public void changePassword(String password) {
         clearNfill(passwordField, password);
         clearNfill(confirmPasswordField, password);
@@ -41,6 +48,11 @@ public class PasswordChangePage {
     }
 
     public void waitUntilPageIsLoaded() {
-        waitModel().until().element(submitButton).is().visible();
+        waitModel().until().element(submitButton).is().present();
+    }
+
+    public boolean isPagePresent() {
+        waitModel().until().element(By.tagName("div")).is().present();
+        return new WebElementConditionFactory(confirmPasswordField).isPresent().apply(driver);
     }
 }

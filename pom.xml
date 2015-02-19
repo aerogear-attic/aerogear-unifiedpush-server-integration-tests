@@ -165,8 +165,21 @@
         <dependency>
             <groupId>org.jboss.arquillian.graphene</groupId>
             <artifactId>graphene-webdriver</artifactId>
+            <version>2.1.0.Alpha2</version>
             <type>pom</type>
         </dependency>
+
+         <dependency>
+             <groupId>org.arquillian.extension</groupId>
+             <artifactId>arquillian-recorder-reporter-impl</artifactId>
+             <version>1.0.0.Beta1</version>
+         </dependency>
+
+         <dependency>
+           <groupId>org.arquillian.extension</groupId>
+           <artifactId>arquillian-desktop-video-recorder</artifactId>
+           <version>1.0.0.Beta1</version>
+         </dependency>
 
         <dependency>
             <groupId>org.jboss.arquillian.extension</groupId>
@@ -219,12 +232,6 @@
 
         <dependency>
             <groupId>org.jboss.aerogear.test.arquillian</groupId>
-            <artifactId>arquillian-smart-url</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.aerogear.test.arquillian</groupId>
             <artifactId>arquillian-rule</artifactId>
             <scope>test</scope>
         </dependency>
@@ -261,6 +268,13 @@
             <artifactId>shrinkwrap-descriptors-impl-jboss</artifactId>
             <version>2.0.0-alpha-6</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.jboss.aerogear.test.arquillian</groupId>
+            <artifactId>arquillian-non-deploying-container-checks-api</artifactId>
+            <version>0.3.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -296,6 +310,7 @@
                 <dependency>
                     <groupId>org.jboss.aerogear.test.arquillian</groupId>
                     <artifactId>arquillian-non-deploying-container</artifactId>
+                    <version>0.3.0</version>
                     <!--<version>${version.arquillian.non.deploying.container}</version>-->
                     <scope>test</scope>
                 </dependency>
