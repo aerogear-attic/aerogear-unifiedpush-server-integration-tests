@@ -619,14 +619,15 @@ spacelift {
 
                 def mavenTask = Spacelift.task(MavenExecutor).pom("pom.xml")
                         .profile('openshift')
+                        .profile('recorder')
                         .property('groups=category.AdminUI')
                         .property('excludedGroups=')
                         .property("containerUri=$baseUri")
                         .property("browser=${project.browser}")
                         .goals('clean', 'test')
 
-                project.externalMavenParameters.split(" ").each { parameter ->
-                    mavenTask.property(parameter)
+                project.externalMavenParameters.split().each {
+                    mavenTask.property(it)
                 }
 
                 mavenTask.execute().await()

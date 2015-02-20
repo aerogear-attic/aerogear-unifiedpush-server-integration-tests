@@ -169,18 +169,6 @@
             <type>pom</type>
         </dependency>
 
-         <dependency>
-             <groupId>org.arquillian.extension</groupId>
-             <artifactId>arquillian-recorder-reporter-impl</artifactId>
-             <version>1.0.0.Beta1</version>
-         </dependency>
-
-         <dependency>
-           <groupId>org.arquillian.extension</groupId>
-           <artifactId>arquillian-desktop-video-recorder</artifactId>
-           <version>1.0.0.Beta1</version>
-         </dependency>
-
         <dependency>
             <groupId>org.jboss.arquillian.extension</groupId>
             <artifactId>arquillian-angularjs-graphene</artifactId>
@@ -327,6 +315,26 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>recorder</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.arquillian.extension</groupId>
+                    <artifactId>arquillian-recorder-reporter-impl</artifactId>
+                    <version>1.0.0.Beta1</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.arquillian.extension</groupId>
+                    <artifactId>arquillian-desktop-video-recorder</artifactId>
+                    <version>1.0.0.Beta1</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
