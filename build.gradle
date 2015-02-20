@@ -128,7 +128,7 @@ spacelift {
         }
 
         quickstarts {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
+            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshiftWithoutProxy', 'helloworldCordovaQuickstart'
             tests 'quickstartIntegrationTests'
         }
 
@@ -254,150 +254,15 @@ spacelift {
             }
         }
 
-        unifiedPushServerOpenshift {
-            product 'aerogear'
-            version '1.0.2'
-            isInstalled { false }
-            postActions {
-                def repository = File.createTempDir()
-                println "Created temporary directory: $repository."
+        unifiedPushServerOpenshiftWithoutProxy(from:UPSOpenShiftInstallation) {
+            openShiftUsername { project.openShiftUsername }
+            openShiftPassword { project.openShiftPassword }
+            openShiftRepository { File.createTempDir() }
+            unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
+        }
 
-                println 'Creating OpenShift cartridge.'
-                Spacelift.task(CreateOpenshiftCartridge)
-                        .named(project.openShiftAppName)
-                        .at(project.openShiftNamespace)
-                        .sized(project.openShiftGearSize)
-                        .username(project.openShiftUsername)
-                        .password(project.openShiftPassword)
-                        .cartridges(project.openShiftCartridge)
-                        .force()
-                        .checkout()
-                        .repo(repository.absolutePath)
-                        .execute().await()
-
-                ProcessResult ipGetResult = Spacelift.task('rhc')
-                        .parameters('ssh')
-                        .parameters('--command', 'echo $OPENSHIFT_UNIFIED_PUSH_IP$OPENSHIFT_AEROGEAR_PUSH_IP$OPENSHIFT_JBOSS_UNIFIED_PUSH_IP$MYTESTIP_1')
-                        .parameters('-a', project.openShiftAppName)
-                        .parameters('-n', project.openShiftNamespace)
-                        .parameters('-l', project.openShiftUsername)
-                        .parameters('-p', project.openShiftPassword)
-                        .execute().await()
-
-                String ip = ipGetResult.output().last()
-
-                Spacelift.task('rhc')
-                        .parameters('set-env', "JAVA_OPTS_EXT=-Dhttp.proxyHost=$ip -Dhttp.proxyPort=16000 -Dhttps.proxyHost=$ip -Dhttps.proxyPort=16000")
-                        .parameters('-a', project.openShiftAppName)
-                        .parameters('-n', project.openShiftNamespace)
-                        .parameters('-l', project.openShiftUsername)
-                        .parameters('-p', project.openShiftPassword)
-                        .execute().await()
-
-                def deployFile = "mv ~/app-root/repo/unifiedpush-test-extension-server.war ~/${project.openShiftAppDirectory}/standalone/deployments/unifiedpush-test-extension-server.war"
-
-                def actionHooksDir = new File(repository, '.openshift/action_hooks/')
-                actionHooksDir.mkdirs()
-
-                List<File> addedFiles = Spacelift.task(WriteToFileTool)
-                        .write(deployFile)
-                        .to(new File(actionHooksDir, 'deploy'))
-                        .execute().await()
-
-                String warFileSourcePath = "${project.spacelift.workspace.absolutePath}/.repository/org/jboss/aerogear/test/unifiedpush-test-extension-server/${project.unifiedPushTestExtensionVersion}/unifiedpush-test-extension-server-${project.unifiedPushTestExtensionVersion}.war"
-
-                def warFileSource = new File(warFileSourcePath)
-                def warFileTarget = new File(repository, 'unifiedpush-test-extension-server.war')
-
-                Files.copy(warFileSource, warFileTarget)
-
-                Spacelift.task(repository, GitAddTool)
-                        .add(addedFiles)
-                        .add(warFileTarget)
-                        .execute().await()
-
-                println 'Added files to OpenShift repository'
-
-                addedFiles.each { addedFile ->
-                    Spacelift.task(CommandTool)
-                            .workingDir(repository.absolutePath)
-                            .programName('git')
-                            .parameters('update-index', '--chmod=+x', addedFile.absolutePath)
-                            .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
-                            .execute().await()
-                }
-
-                println 'Committing unifiedpush-test-extension-server.war into the OpenShift repository.'
-                Spacelift.task(repository, GitCommitTool).message('Add test extension war.').execute().await()
-
-                File gitSshFile = Spacelift.task(GitSshFileTask).execute().await()
-
-                println 'Pushing added unifiedpush-test-extension-server.war into the OpenShift repository'
-                Spacelift.task(repository, GitPushTool).gitSsh(gitSshFile).execute().await()
-
-                final String baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com/unifiedpush-test-extension-server"
-
-                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-                println "Expected deployment url: $baseUri"
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/status')
-
-                        return response.statusCode == 200
-                    }
-                })
-                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
-
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(10, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/keycloak/realms')
-
-                        response.then().log().all(true)
-
-                        List<String> result = response.as(List.class)
-
-                        return result.contains("aerogear")
-                    }
-                })
-
-                println 'Reconfiguring KeyCloak.'
-                RestAssured.given()
-                        .baseUri(baseUri)
-                        .get('/keycloak')
-                        .then()
-                        .log().all(true)
-                        .statusCode(200)
-
-                println 'Restaring the cartridge.'
-                Spacelift.task('rhc')
-                        .parameters('app', 'restart')
-                        .parameters('-a', project.openShiftAppName)
-                        .parameters('-n', project.openShiftNamespace)
-                        .parameters('-l', project.openShiftUsername)
-                        .parameters('-p', project.openShiftPassword)
-                        .execute().await()
-
-                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-                println "Expected deployment url: $baseUri"
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/status')
-
-                        return response.statusCode == 200
-                    }
-                })
-                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
-
-            }
+        unifiedPushServerOpenshift(inherits:unifiedPushServerOpenshiftWithoutProxy) {
+            turnProxyOn { true }
         }
 
         unifiedPushServer_repository {
@@ -833,9 +698,9 @@ buildscript {
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
         classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.6.0'
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-7'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-8-SNAPSHOT'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
-        classpath 'com.jayway.awaitility:awaitility-groovy:1.6.2'
+        classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'
         classpath 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
     }
 }
@@ -855,5 +720,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2'
+    gradleVersion = '2.3'
 }
