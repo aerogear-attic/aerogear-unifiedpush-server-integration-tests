@@ -51,6 +51,7 @@ ext {
     defaultUnifiedPushTestExtensionVersion = '1.0.2-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultSelendroidVersion = '0.14.0'
+    defaultIpVersion = 'IPv4'
 
     androidSdkVersion = '23'
     // use either "Google Inc.:Google APIs (x86 System Image):XYZ" or "android-XYZ" format
@@ -655,6 +656,10 @@ spacelift {
                     javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
                     javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
                     javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
+                    if(project.ipVersion=="IPv6"){
+                        javaOpts += " -Djava.net.preferIPv4Stack=false "
+                        javaOpts += " -Djava.net.preferIPv6Addresses=true "
+                    }
                     jbossManagerConfiguration.domain().setProcessControllerJavaOpts(javaOpts)
                     deploymentGroups = " --all-server-groups"
                     undeploymentGroups = " --all-relevant-server-groups"
@@ -667,6 +672,10 @@ spacelift {
                     javaOpts += " -Djavax.net.ssl.trustStorePassword=aerogear"
                     javaOpts += " -DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath}"
                     javaOpts += " -DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath}"
+                    if(project.ipVersion=="IPv6"){
+                        javaOpts += " -Djava.net.preferIPv4Stack=false "
+                        javaOpts += " -Djava.net.preferIPv6Addresses=true "
+                    }
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
