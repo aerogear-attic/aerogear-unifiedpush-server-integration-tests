@@ -192,23 +192,23 @@ public class iOSVariantTest {
         iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication())
                 .generate().persist().detachEntity();
 
-        ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
+        ups.with(defaultWorker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
 
-        iOSVariant changedVariant = ups.with(iOSVariantWorker.worker(), getRegisteredApplication())
+        iOSVariant changedVariant = ups.with(defaultWorker(), getRegisteredApplication())
                 .find(variant.getVariantID()).detachEntity();
 
         assertThat(changedVariant.getVariantID(), is(variant.getVariantID()));
         assertThat(changedVariant.getSecret(), is(not(variant.getSecret())));
 
-        ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).remove(changedVariant);
+        ups.with(defaultWorker(), getRegisteredApplication()).remove(changedVariant);
     }
 
     @Test
     public void resetSecretWithInvalidID() {
-        iOSVariant variant = ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).generate();
+        iOSVariant variant = ups.with(defaultWorker(), getRegisteredApplication()).generate();
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_NOT_FOUND);
-        ups.with(iOSVariantWorker.worker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
+        ups.with(defaultWorker(), getRegisteredApplication()).resetSecret(variant.getVariantID());
     }
 
     @Test

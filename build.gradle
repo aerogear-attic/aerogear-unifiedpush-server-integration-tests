@@ -48,7 +48,7 @@ ext {
     defaultOpenShiftAppDirectory = 'unified-push'
     defaultOpenShiftCartridge = 'https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml'
 
-    defaultUnifiedPushTestExtensionVersion = '1.0.2-SNAPSHOT'
+    defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultSelendroidVersion = '0.14.0'
     defaultIpVersion = 'IPv4'
@@ -86,7 +86,7 @@ ext {
 
     // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
     // If there is problem, you can exclude category.GCM as well
-    defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance,category.APNS,category.ChromePackagedApp"
+    defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp"
 
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
@@ -105,7 +105,7 @@ spacelift {
 
     profiles {
         openshift {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
             tests 'openshiftIntegrationTests'
         }
         local {
@@ -113,23 +113,23 @@ spacelift {
         }
         eap6(inherits: local) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
         wildfly8(inherits: local) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
 
         externalEap6(inherits: local) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
 
         quickstarts {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServerOpenshift', 'helloworldCordovaQuickstart'
             tests 'quickstartIntegrationTests'
         }
 
@@ -188,10 +188,26 @@ spacelift {
             }
         }
 
+        unifiedPushServer_preReleaseMaven {
+            product 'aerogear'
+            version '1.0.3'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
+            home 'aerogear-unifiedpush-server-pre-release'
+            fileName 'aerogear-unifiedpush-server-pre-release.zip'
+            extractMapper { toDir(home).cutdirs() }
+            postActions {
+                Spacelift.task(MavenExecutor).pom('pom.xml')
+                        .workingDir(home.absolutePath)
+                        .goals('clean', 'install')
+                        .properties( 'skipTests', 'maven.javadoc.skip=true')
+                        .execute().await()
+            }
+        }
+
         aerogearTestingTools {
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/3ef47f6fd050240ba2bf141a75f6ec931614f865.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/49168ca981fb425e922a839bc460d822e40bc483.zip'
             home 'aerogear-testing-tools'
             isInstalled {
                 return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()
@@ -201,6 +217,12 @@ spacelift {
             postActions {
                 Spacelift.task(MavenExecutor)
                     .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
+                    .goals('clean', 'install')
+                    .execute().await()
+
+                /// We need to install it before it is released
+                Spacelift.task(MavenExecutor)
+                    .pom("${home.absolutePath}/aerogear-ups-rest-api/pom.xml")
                     .goals('clean', 'install')
                     .execute().await()
             }
@@ -402,13 +424,19 @@ spacelift {
                 })
                 println 'The unifiedpush-test-extension-server.war was successfully deployed.'
 
+                println 'Activating GCM and APNS proxy'
+                RestAssured.given()
+                    .baseUri(baseUri)
+                    .get('/proxy/activate')
+                    .then().statusCode(200)
+                println 'Proxy activated'
             }
         }
 
         unifiedPushServer_repository {
             product 'aerogear'
-            version '1.0.2'
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.2.zip'
+            version '1.0.3'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
             home 'aerogear-unifiedpush-server'
             fileName 'aerogear-unifiedpush-server.zip'
             extractMapper { toDir(home).cutdirs() }
@@ -623,8 +651,7 @@ spacelift {
                 def baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
 
                 def mavenTask = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .profile('openshift')
-                        .profile('recorder')
+                        .profiles('openshift', 'recorder')
                         .property('groups=category.AdminUI')
                         .property('excludedGroups=')
                         .property("containerUri=$baseUri")
@@ -653,33 +680,33 @@ spacelift {
                         .setJBossHome(jbossHome.absolutePath)
                         .setStartupTimeoutInSeconds(300)
 
+                def commonJavaOpts = "-Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
+                commonJavaOpts += "-Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000 "
+                commonJavaOpts += "-Djboss.bind.address=${project.jbossBindAddress} "
+                commonJavaOpts += "-Djavax.net.ssl.trustStore=setup/aerogear.truststore "
+                commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=aerogear "
+                commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.jbossBindAddress} "
+                commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
+                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.jbossBindAddress} "
+                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.port=16003 "
+                commonJavaOpts += "-DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
+                commonJavaOpts += "-DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
+                if(project.ipVersion == "IPv6"){
+                    commonJavaOpts += "-Djava.net.preferIPv4Stack=false "
+                    commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
+                }
+
                 def deploymentGroups = ""
                 def undeploymentGroups = ""
                 if (project.jbossDomainMode == true) {
-                    def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts()
-                    javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
-                    javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
-                    javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
-                    if(project.ipVersion=="IPv6"){
-                        javaOpts += " -Djava.net.preferIPv4Stack=false "
-                        javaOpts += " -Djava.net.preferIPv6Addresses=true "
-                    }
+                    def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts() + " "
+                    javaOpts += commonJavaOpts
                     jbossManagerConfiguration.domain().setProcessControllerJavaOpts(javaOpts)
                     deploymentGroups = " --all-server-groups"
                     undeploymentGroups = " --all-relevant-server-groups"
                 } else {
                     def javaOpts = jbossManagerConfiguration.getJavaOpts()
-                    javaOpts += " -Djboss.bind.address=${project.jbossBindAddress}"
-                    javaOpts += " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000"
-                    javaOpts += " -Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000"
-                    javaOpts += " -Djavax.net.ssl.trustStore=setup/aerogear.truststore"
-                    javaOpts += " -Djavax.net.ssl.trustStorePassword=aerogear"
-                    javaOpts += " -DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath}"
-                    javaOpts += " -DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath}"
-                    if(project.ipVersion=="IPv6"){
-                        javaOpts += " -Djava.net.preferIPv4Stack=false "
-                        javaOpts += " -Djava.net.preferIPv6Addresses=true "
-                    }
+                    javaOpts += commonJavaOpts
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
@@ -769,6 +796,14 @@ spacelift {
                     }
                 })
                 println 'The unifiedpush-test-extension-server.war was successfully deployed.'
+
+                println 'Activating GCM and APNS proxy'
+
+                RestAssured.given()
+                        .baseUri(baseUri)
+                        .get('/proxy/activate')
+                        .then().statusCode(200)
+                println 'Proxy activated'
             }
             execute { protocol ->
                 def port = protocol == 'https' ? 8443 : 8080
@@ -790,7 +825,7 @@ spacelift {
                 for(prop in project.externalMavenParameters.split()){
                         test_task.property(prop)
                 }
-            
+
                 test_task.execute().await()
             }
             afterSuite {
