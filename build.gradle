@@ -159,6 +159,10 @@ spacelift {
                 }
             }
             postActions {
+                if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+                    return
+                }
+
                 def executable = new File("${maven.home.absolutePath}/bin/mvn").toPath();
                 Set<PosixFilePermission> perms = Collections.synchronizedSet(EnumSet.allOf(PosixFilePermission.class));
 
