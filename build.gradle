@@ -154,7 +154,8 @@ spacelift {
                 mvn {
                     command {
                         def quietParameters = System.getenv("TRAVIS") != null ? ["-B", "-q"] : []
-                        return new CommandBuilder("${maven.home}/bin/mvn").parameters(quietParameters)
+                        def mavenPath = "${maven.home}/bin/mvn" + (EnvironmentUtils.runsOnWindows() ? ".bat" : "")
+                        return new CommandBuilder(mavenPath).parameters(quietParameters)
                     }
                 }
             }
