@@ -314,7 +314,7 @@ spacelift {
                 String ip = ipGetResult.output().last()
 
                 Spacelift.task('rhc')
-                        .parameters('set-env', "JAVA_OPTS_EXT=-Dhttp.proxyHost=$ip -Dhttp.proxyPort=16000 -Dhttps.proxyHost=$ip -Dhttps.proxyPort=16000")
+                        .parameters('set-env', "JAVA_OPTS_EXT= -Dhttp.proxyHost=$ip -Dhttp.proxyPort=16000 -Dhttps.proxyHost=$ip -Dhttps.proxyPort=16000")
                         .parameters('-a', project.openShiftAppName)
                         .parameters('-n', project.openShiftNamespace)
                         .parameters('-l', project.openShiftUsername)
@@ -680,7 +680,7 @@ spacelift {
                         .setJBossHome(jbossHome.absolutePath)
                         .setStartupTimeoutInSeconds(300)
 
-                def commonJavaOpts = "-Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
+                def commonJavaOpts = " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
                 commonJavaOpts += "-Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000 "
                 commonJavaOpts += "-Djboss.bind.address=${project.jbossBindAddress} "
                 commonJavaOpts += "-Djavax.net.ssl.trustStore=setup/aerogear.truststore "
