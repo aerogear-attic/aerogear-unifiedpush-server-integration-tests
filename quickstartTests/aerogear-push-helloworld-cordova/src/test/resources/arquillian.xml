@@ -3,7 +3,6 @@
         <container qualifier="android" default="true">
             <configuration>
                 <property name="emulatorBootupTimeoutInSeconds">600</property>
-                <property name="emulatorOptions"></property>
                 <property name="target"></property>
                 <property name="abi"></property>
             </configuration>
@@ -12,6 +11,9 @@
     <extension qualifier="droidium-platform">
         <property name="androidHome"></property>
         <property name="androidSdkHome"></property>
+        <property name="androidSdkRoot"></property>
+        <property name="androidTools"></property>
+        <property name="androidPlatformTools"></property>
     </extension>
     <extension qualifier="droidium-native">
         <property name="serverApk"></property>

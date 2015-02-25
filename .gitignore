@@ -18,10 +18,11 @@ aerogear-testing-tools
 installations
 .gradle
 
-spacelift
+/spacelift
 settings.xml
 settings.xml.backup1
 
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 /build
+/buildSrc/build

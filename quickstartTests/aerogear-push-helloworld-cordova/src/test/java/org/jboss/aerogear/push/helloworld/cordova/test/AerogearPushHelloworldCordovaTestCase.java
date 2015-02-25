@@ -51,7 +51,8 @@ public class AerogearPushHelloworldCordovaTestCase {
 
     @Test
     @InSequence(1)
-    public void test() {
+    public void test() throws InterruptedException {
+        Thread.sleep(20000);
     }
 
 }
