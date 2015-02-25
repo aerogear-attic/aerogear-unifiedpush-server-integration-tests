@@ -207,7 +207,7 @@ spacelift {
         aerogearTestingTools {
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/49168ca981fb425e922a839bc460d822e40bc483.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/6f762e4a42e3f95cd450e3477d89b1e598d7b97f.zip'
             home 'aerogear-testing-tools'
             isInstalled {
                 return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()

@@ -32,6 +32,7 @@ import org.jboss.aerogear.test.api.installation.InstallationEditor;
 import org.jboss.aerogear.test.api.installation.InstallationWorker;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
+import org.jboss.aerogear.test.api.installation.ios.iOSInstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
@@ -162,6 +163,22 @@ public class InstallationTest {
                 .detachEntity();
 
         performInstallationCRUD(iOSInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
+    }
+
+    @Test
+    public void testiOSInstallationWithInvalidToken_uppercase() {
+        iOSVariant variant = ups.with(
+                iOSVariantWorker.worker()
+                        .defaultCertificate(Constants.IOS_CERTIFICATE_PATH)
+                        .defaultPassphrase(Constants.IOS_CERTIFICATE_PASSPHRASE)
+                        .contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
+                .generate().persist()
+                .detachEntity();
+        
+        iOSInstallationBlueprint blueprint = ups.with(iOSInstallationWorker.worker(), variant).generate();
+
+        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
+        blueprint.deviceToken(blueprint.getDeviceToken().toUpperCase()).persist();
     }
 
     @Category(SimplePush.class)
