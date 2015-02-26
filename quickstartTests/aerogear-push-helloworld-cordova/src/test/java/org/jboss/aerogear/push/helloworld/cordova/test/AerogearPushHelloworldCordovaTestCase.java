@@ -52,6 +52,14 @@ public class AerogearPushHelloworldCordovaTestCase {
     @Test
     @InSequence(1)
     public void test() throws InterruptedException {
+
+        System.out.println(System.getProperty("quickstartVariantId"));
+        System.out.println(System.getProperty("quickstartSecret"));
+        System.out.println(System.getProperty("quickstartGoogleProjectNumber"));
+        System.out.println(System.getProperty("quickstartGoogleKey"));
+        System.out.println(System.getProperty("authUrl"));
+        System.out.println(System.getProperty("pushUrl"));
+
         Thread.sleep(20000);
     }
 

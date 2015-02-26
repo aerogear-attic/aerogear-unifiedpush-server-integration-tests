@@ -10,6 +10,7 @@ import org.arquillian.spacelift.gradle.container.*
 import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.maven.*
 import org.arquillian.spacelift.gradle.openshift.*
+import org.arquillian.spacelift.gradle.utils.*
 import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
@@ -86,8 +87,13 @@ ext {
     // If there is problem, you can exclude category.GCM as well
     defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp"
 
+    // quickstart related
+
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
+    defaultQuickstartVariantId = ''
+    defaultQuickstartSecret = ''
+
     defaultUnifiedPushBinariesDir = new File(project.rootDir, 'spacelift/upsBin')
 }
 
@@ -459,14 +465,17 @@ spacelift {
                         .persist()
                         .detachEntity()
 
+                project.quickstartVariantId = variant.getVariantID()
+                project.quickstartSecret = variant.getSecret()
+
                 def jsonConfig = JsonOutput.toJson(
                         [
                                 pushServerURL: pushUrl,
                                 android:
                                         [
                                                 senderID: project.googleProjectNumber,
-                                                variantID: variant.getVariantID(),
-                                                variantSecret: variant.getSecret()
+                                                variantID: project.quickstartVariantId,
+                                                variantSecret: project.quickstartSecret
                                         ]
                         ]
                 )
@@ -740,6 +749,12 @@ spacelift {
                     .pom("${project.rootDir.absolutePath}/quickstartTests/aerogear-push-helloworld-cordova/pom.xml")
                     .property("selendroid.test.app=${helloworldCordovaQuickstart.home}/cordova/platforms/android/ant-build/CordovaApp-debug.apk")
                     .property("arquillian.debug=true")
+                    .property("quickstartVariantId=${project.quickstartVariantId}")
+                    .property("quickstartSecret=${project.quickstartSecret}")
+                    .property("quickstartGoogleProjectNumber=${project.googleProjectNumber}")
+                    .property("quickstartGoogleKey=${project.googleKey}")
+                    .property("authUrl=https://${project.openShiftAppNameQuickstarts}-${project.openShiftNamespace}.rhcloud.com/auth")
+                    .property("pushUrl=https://${project.openShiftAppNameQuickstarts}-${project.openShiftNamespace}.rhcloud.com/ag-push")
                     .goal('clean')
                     .goal('test')
                     .execute().await()
