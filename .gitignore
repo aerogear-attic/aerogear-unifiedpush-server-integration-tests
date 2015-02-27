@@ -26,3 +26,5 @@ settings.xml.backup1
 !gradle/wrapper/gradle-wrapper.properties
 /build
 /buildSrc/build
+
+*.backup*

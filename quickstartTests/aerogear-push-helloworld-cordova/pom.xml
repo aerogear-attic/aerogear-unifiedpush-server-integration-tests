@@ -28,6 +28,7 @@
         <version.droidium>1.0.0.Beta1-SNAPSHOT</version.droidium>
         <version.arquillian.drone>2.0.0.Alpha3</version.arquillian.drone>
         <version.org.jboss.arquillian.graphene>2.1.0.Alpha2</version.org.jboss.arquillian.graphene>
+        <version.unifiedpush.java.client>1.0.0</version.unifiedpush.java.client>
 
         <version.junit>4.11</version.junit>
         <version.selenium>2.43.1</version.selenium>
@@ -82,6 +83,17 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.arquillian.extension</groupId>
+                <artifactId>arquillian-droidium-screenshooter</artifactId>
+                <version>${version.droidium}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.aerogear</groupId>
+                <artifactId>unifiedpush-java-client</artifactId>
+                <version>${version.unifiedpush.java.client}</version>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <scope>test</scope>
@@ -113,6 +125,15 @@
             <groupId>org.arquillian.extension</groupId>
             <artifactId>arquillian-droidium-native</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.arquillian.extension</groupId>
+            <artifactId>arquillian-droidium-screenshooter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.aerogear</groupId>
+            <artifactId>unifiedpush-java-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>

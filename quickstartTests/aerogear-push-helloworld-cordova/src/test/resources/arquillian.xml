@@ -19,6 +19,12 @@
         <property name="serverApk"></property>
         <property name="driverApk"></property>
     </extension>
+    <extension qualifier="reporter">
+        <property name="report">html</property>
+    </extension>
+    <extension qualifier="screenshooter">
+        <property name="takeWhenTestFailed">true</property>
+    </extension>
     <extension qualifier="webdriver">
         <property name="browser">android</property>
         <property name="remoteAddress">http://localhost:8080/wd/hub</property>
