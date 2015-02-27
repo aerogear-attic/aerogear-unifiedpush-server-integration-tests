@@ -138,7 +138,7 @@ spacelift {
         }
 
         adminUIOpenshift  {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
             tests 'openshiftAdminUITests'
         }
     }
