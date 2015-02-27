@@ -138,7 +138,7 @@ spacelift {
         }
 
         adminUIOpenshift  {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'unifiedPushServerAdminUI'
             tests 'openshiftAdminUITests'
         }
     }
@@ -197,6 +197,9 @@ spacelift {
             home 'aerogear-unifiedpush-server-pre-release'
             fileName 'aerogear-unifiedpush-server-pre-release.zip'
             extractMapper { toDir(home).cutdirs() }
+            isInstalled {
+                return false
+            }
             postActions {
                 Spacelift.task(MavenExecutor).pom('pom.xml')
                         .workingDir(home.absolutePath)
@@ -501,7 +504,7 @@ spacelift {
 
         arquillianDesktopVideoRecorder {
             product 'arquillian-desktop-video-recorder'
-            version '1.0.0.Beta1'
+            version '1.0.0.Final'
             remoteUrl 'https://github.com/arquillian/arquillian-recorder/archive/1.0.0.Beta1.zip'
             home 'arquillian-recorder'
             fileName 'arquillian-recorder.zip'
@@ -541,7 +544,7 @@ spacelift {
                         .property('excludedGroups=')
                         .property("containerUri=$baseUri")
                         .property("browser=${project.browser}")
-                        .goals('clean', 'test')
+                        .goals('clean', 'test', '-e')
 
                 project.externalMavenParameters.split().each {
                     mavenTask.property(it)
@@ -777,7 +780,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
-        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.6.0'
+        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.7.0'
         classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-8'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'

@@ -5,13 +5,15 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.Select;
 
+import static org.jboss.arquillian.graphene.Graphene.waitModel;
+
 public class RoleMappingsPage {
 
     @FindBy(id = "available")
-    private Select available;
+    private WebElement available;
 
     @FindBy(id = "assigned")
-    private Select assigned;
+    private WebElement assigned;
 
     @FindByNg(action = "addRealmRole()")
     private WebElement add;
@@ -20,12 +22,14 @@ public class RoleMappingsPage {
     private WebElement remove;
 
     public void assignRole(String role) {
-        available.selectByVisibleText(role);
+        waitModel().until().element(available).text().contains(role);
+        new Select(available).selectByVisibleText(role);
         add.click();
     }
 
     public void removeRole(String role) {
-        assigned.selectByVisibleText(role);
+        waitModel().until().element(assigned).text().contains(role);
+        new Select(assigned).selectByVisibleText(role);
         remove.click();
     }
 }

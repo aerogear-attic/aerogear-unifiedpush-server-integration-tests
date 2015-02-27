@@ -252,7 +252,7 @@
         <dependency>
             <groupId>org.jboss.aerogear.test.arquillian</groupId>
             <artifactId>arquillian-non-deploying-container-checks-api</artifactId>
-            <version>0.3.0</version>
+            <version>0.4.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -299,7 +299,7 @@
                 <dependency>
                     <groupId>org.jboss.aerogear.test.arquillian</groupId>
                     <artifactId>arquillian-non-deploying-container</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                     <!--<version>${version.arquillian.non.deploying.container}</version>-->
                     <scope>test</scope>
                 </dependency>
@@ -327,13 +327,13 @@
                 <dependency>
                     <groupId>org.arquillian.extension</groupId>
                     <artifactId>arquillian-recorder-reporter-impl</artifactId>
-                    <version>1.0.0.Beta1</version>
+                    <version>1.0.0.Final</version>
                 </dependency>
 
                 <dependency>
                     <groupId>org.arquillian.extension</groupId>
                     <artifactId>arquillian-desktop-video-recorder</artifactId>
-                    <version>1.0.0.Beta1</version>
+                    <version>1.0.0.Final</version>
                 </dependency>
             </dependencies>
         </profile>
