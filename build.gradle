@@ -2,14 +2,17 @@ import com.google.common.io.Files
 import com.jayway.awaitility.Awaitility
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.response.Response
+
 import org.arquillian.spacelift.Spacelift;
 import org.arquillian.spacelift.gradle.*
 import org.arquillian.spacelift.gradle.android.*
 import org.arquillian.spacelift.gradle.arquillian.*
 import org.arquillian.spacelift.gradle.container.*
 import org.arquillian.spacelift.gradle.git.*
+import org.arquillian.spacelift.gradle.gradle.*
 import org.arquillian.spacelift.gradle.maven.*
 import org.arquillian.spacelift.gradle.openshift.*
+import org.arquillian.spacelift.gradle.quickstart.*
 import org.arquillian.spacelift.gradle.utils.*
 import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
@@ -29,6 +32,8 @@ import org.jboss.aerogear.test.api.variant.android.*
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem
 import org.jboss.shrinkwrap.resolver.api.maven.Maven
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories
+import org.junit.After;
+
 import groovy.json.JsonOutput
 
 import java.nio.file.attribute.PosixFilePermission
@@ -53,7 +58,7 @@ ext {
 
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
-    defaultSelendroidVersion = '0.14.0'
+    defaultSelendroidVersion = '0.15.0'
     defaultIpVersion = 'IPv4'
 
     androidSdkVersion = '23'
@@ -87,12 +92,18 @@ ext {
     // If there is problem, you can exclude category.GCM as well
     defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp"
 
-    // quickstart related
-
+    // Hello World quickstart related
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
     defaultQuickstartPushApplicationId = ''
     defaultQuickstartPushApplicationMasterSecret = ''
+
+    // Shoot&Share quickstart related
+    defaultShootAndShareGoogleClientId = ''
+    defaultShootAndShareFacebookClientId = ''
+    defaultShootAndShareFacebookClientSecret = ''
+    defaultFacebookEmail = ''
+    defaultFacebookPassword = ''
 
     defaultUnifiedPushBinariesDir = new File(project.rootDir, 'spacelift/upsBin')
 }
@@ -132,9 +143,14 @@ spacelift {
             }
         }
 
-        quickstarts {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServer_preReleaseMaven', 'unifiedPushServerQuickstarts', 'helloworldCordovaQuickstart'
-            tests 'quickstartIntegrationTests'
+        helloWorldCordovaqQuickstart {
+            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServer_preReleaseMaven', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
+            tests 'helloWorldCordovaQuickstart'
+        }
+
+        shootAndShareCordovaQuickstart {
+            enabledInstallations 'maven', 'shootAndShareAndroidSdk', 'selendroid', 'gradle112', 'shootAndShareCordovaQuickstart'
+            tests 'shootAndShareCordovaQuickstart'
         }
 
         adminUIOpenshift  {
@@ -169,6 +185,17 @@ spacelift {
                 Set<PosixFilePermission> perms = Collections.synchronizedSet(EnumSet.allOf(PosixFilePermission.class));
 
                 java.nio.file.Files.setPosixFilePermissions(executable, perms)
+            }
+        }
+        
+        gradle112(from:GradleInstallation) {
+            version { "1.12" }
+            alias { "gradle112" }
+            environment {
+                [
+                    "ANDROID_HOME" : androidSdk.home.canonicalPath,
+                    "ANDROID_SDK_HOME" : androidSdk.home.parentFile.canonicalPath
+                ]
             }
         }
 
@@ -251,6 +278,10 @@ spacelift {
             updateImages { false }
             createAvds { false } 
             androidTargets { project.androidTargets }
+        }
+
+        shootAndShareAndroidSdk(inherits:androidSdk) {
+            buildTools { [ "19.0.0" ] } // this version is specifically needed when building Shoot&Share quickstart
         }
 
         wildfly8Container {
@@ -422,7 +453,7 @@ spacelift {
             }
         }
 
-        helloworldCordovaQuickstart {
+        helloWorldCordovaquickstart {
             product 'aerogear'
             version '1.0.1'
 
@@ -489,20 +520,57 @@ spacelift {
 
                 pushConfigFile.text = jsonConfig
 
-                Spacelift.task(CordovaExecutor)
-                        .setDir(cordovaDir)
-                        .setParameters('platform add android')
-                        .execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('platform add android').execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters("plugin add org.jboss.aerogear.cordova.push").execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('build android').execute().await()
+            }
+        }
 
-                Spacelift.task(CordovaExecutor)
-                        .setDir(cordovaDir)
-                        .setParameters("plugin add org.jboss.aerogear.cordova.push")
-                        .execute().await()
+        shootAndShareCordovaQuickstart {
+            product 'aerogear'
+            version '1.0.0'
+            home "aerogear-shootandshare-${version}"
+            remoteUrl "https://github.com/aerogear/aerogear-cordova-cookbook/archive/master.zip"
+            isInstalled { false }
+            extractMapper { toDir(home).cutdirs() }
+            postActions {                
+                // I almost always forget these ...
+                if (!project.shootAndShareGoogleClientId || project.shootAndShareGoogleClientId.length() == 0) {
+                    throw new IllegalStateException("Be sure you have specified shootAndShareGoogleClientId!")
+                }
 
-                Spacelift.task(CordovaExecutor)
-                        .setDir(cordovaDir)
-                        .setParameters('build android')
-                        .execute().await()
+                if (!project.shootAndShareFacebookClientId || project.shootAndShareFacebookClientId.length() == 0) {
+                    throw new IllegalStateException("Be sure you have specified shootAndShareFacebookClientId!")
+                }
+
+                if (!project.shootAndShareFacebookClientSecret || project.shootAndShareFacebookClientSecret.length() == 0) {
+                    throw new IllegalStateException("Be sure you have specified shootAndShareFacebookClientSecret!")
+                }
+
+                def cordovaDir = "${home}/Shoot"
+
+                new ShootAndShareQuickstartHelper().patchAppJs("${cordovaDir}/www/js/app.js",
+                    project.shootAndShareGoogleClientId,
+                    project.shootAndShareFacebookClientId,
+                    project.shootAndShareFacebookClientSecret,
+                    "http://localhost:8080/auth")
+
+                // mock camera
+                Files.copy(
+                    new File("${project.rootDir.absolutePath}/quickstartTests/aerogear-shootandshare-cordova/patches/controllers.js"),
+                    new File(cordovaDir, "www/js/controllers.js"))
+
+                new ShootAndShareQuickstartHelper().patchControllerJs("${cordovaDir}/www/js/controllers.js", "http://localhost:8080/shoot/rest/photos")
+
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('platform add android@3.6.4').execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.camera').execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.file').execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.file-transfer').execute().await()
+                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.jboss.aerogear.cordova.oauth2').execute().await()
+
+                new ShootAndShareQuickstartHelper().patchBuildGradle("${cordovaDir}/platforms/android/build.gradle")
+
+                Spacelift.task('gradle112').workingDirectory("${cordovaDir}/platforms/android").parameter("clean").parameter("build").execute().await()
             }
         }
 
@@ -725,7 +793,7 @@ spacelift {
             }
         }
 
-        quickstartIntegrationTests {
+        helloWorldCordovaQuickstart {
 
             beforeSuite {
 
@@ -765,6 +833,45 @@ spacelift {
 
             }
         }
+
+        shootAndShareCordovaQuickstart {
+            beforeSuite {
+
+                Spacelift.task([
+                    'target' : "Google Inc.:Google APIs (x86 System Image):19",
+                    'abi' : "default/x86",
+                    'emulatorOptions' : "-no-skin -no-audio -no-window -nocache -no-snapshot-save -no-snapstorage"
+                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).container('android').execute().await()
+
+                Spacelift.task([
+                    'androidHome' : "${androidSdk.home}",
+                    'androidSdkHome' : "${project.spacelift.workspace.absolutePath}",
+                    'androidSdkRoot' : "${androidSdk.home}",
+                    'androidTools' : "${androidSdk.home}/tools",
+                    'androidPlatformTools' : "${androidSdk.home}/platform-tools"
+                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).extension('droidium-platform').execute().await()
+
+                Spacelift.task([
+                    'serverApk' : "${selendroid.home}/prebuild/selendroid-server-${selendroid.version}.apk",
+                    'driverApk' : "${selendroid.home}/prebuild/android-driver-app-${selendroid.version}.apk",
+                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).extension('droidium-native').execute().await()
+
+            }
+
+            execute {
+
+                Spacelift.task(MavenExecutor)
+                    .pom("${project.rootDir.absolutePath}/quickstartTests/aerogear-shootandshare-cordova/pom.xml")
+                    .property("selendroid.test.app=${shootAndShareCordovaQuickstart.home}/Shoot/platforms/android/build/apk/android-debug-unaligned.apk")
+                    .property("arquillian.debug=true")
+                    .property("facebookEmail=${project.facebookEmail}")
+                    .property("facebookPassword=${project.facebookPassword}")
+                    .goal('clean')
+                    .goal('test')
+                    .execute().await()
+
+            }
+        }
     }
 }
 
@@ -782,7 +889,7 @@ buildscript {
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
         classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.6.0'
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-8'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-9-SNAPSHOT'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'
         classpath 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
