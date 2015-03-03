@@ -200,6 +200,13 @@ spacelift {
             postActions {
                 Spacelift.task(MavenExecutor).pom('pom.xml')
                         .workingDir(home.absolutePath)
+                        .withoutSubprojects()
+                        .goals('clean', 'install')
+                        .properties( 'skipTests', 'maven.javadoc.skip=true')
+                        .execute().await()
+
+                Spacelift.task(MavenExecutor).pom('model/pom.xml')
+                        .workingDir(home.absolutePath)
                         .goals('clean', 'install')
                         .properties( 'skipTests', 'maven.javadoc.skip=true')
                         .execute().await()
@@ -541,7 +548,7 @@ spacelift {
                         .property('excludedGroups=')
                         .property("containerUri=$baseUri")
                         .property("browser=${project.browser}")
-                        .goals('clean', 'test')
+                        .goals('clean', 'dependency:tree', 'test')
 
                 project.externalMavenParameters.split().each {
                     mavenTask.property(it)
