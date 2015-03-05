@@ -49,7 +49,7 @@ ext {
     defaultOpenShiftUsername = ''
     defaultOpenShiftPassword = ''
     defaultOpenShiftAppDirectory = 'unified-push'
-    defaultOpenShiftCartridge = 'https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml'
+    defaultOpenShiftCartridges = ['https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml']
 
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
@@ -296,6 +296,7 @@ spacelift {
             openShiftUsername { project.openShiftUsername }
             openShiftPassword { project.openShiftPassword }
             openShiftRepository { File.createTempDir() }
+            openShiftCartridges { project.openShiftCartridges }
             unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
             isInstalled { false }
         }
