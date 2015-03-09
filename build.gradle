@@ -45,11 +45,11 @@ ext {
     defaultOpenShiftAppNameAdminUI = 'upsadminui'
     defaultOpenShiftAppNameQuickstarts = 'quickstarts'
     defaultOpenShiftNamespace = 'mobileqa'
-    defaultOpenShiftGearSize = 'small'
+    defaultOpenShiftGearSize = 'medium'
     defaultOpenShiftUsername = ''
     defaultOpenShiftPassword = ''
-    defaultOpenShiftAppDirectory = 'unified-push'
-    defaultOpenShiftCartridges = ['https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml']
+    defaultOpenShiftAppDirectory = 'aerogear-push'
+    defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=AdamSaleh/openshift-origin-cartridge-aerogear-push-wildfly'
 
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
@@ -104,6 +104,9 @@ spacelift {
     tools {
         rhc {
             command 'rhc'
+        }
+        keytool {
+            command 'keytool'
         }
     }
 
@@ -296,7 +299,8 @@ spacelift {
             openShiftUsername { project.openShiftUsername }
             openShiftPassword { project.openShiftPassword }
             openShiftRepository { File.createTempDir() }
-            openShiftCartridges { project.openShiftCartridges }
+            openShiftCartridges { [ project.openShiftCartridge ] }
+            openShiftAppDirectory { project.openShiftAppDirectory }
             unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
             isInstalled { false }
         }
