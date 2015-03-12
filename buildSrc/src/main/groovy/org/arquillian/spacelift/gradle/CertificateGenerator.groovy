@@ -95,12 +95,14 @@ class CertificateGenerator extends Task<Object, Void> {
         keytool.parameters('-genkey', '-noprompt')
                 .parameters('-alias', alias)
                 .parameters('-dname', "CN=$commonName, OU=UnifiedPush, O=AeroGear, C=US")
+                .parameters('-ext', "san=ip:$commonName")
                 .parameters('-keystore', apnsCertificate.absolutePath)
                 .parameters('-storepass', password)
+                .parameters('-keypass', password)
                 .parameters('-validity', '365')
                 .parameters('-keyalg', 'RSA')
                 .parameters('-keysize', '2048')
-                .parameters('-storetype', 'pkcs12')
+//                .parameters('-storetype', 'pkcs12')
 
         keytool.execute().await()
     }
@@ -108,7 +110,25 @@ class CertificateGenerator extends Task<Object, Void> {
     private void importCertificatesIntoTrustStore() {
         CommandTool keytool = Spacelift.task('keytool') as CommandTool
 
-        keytool.parameters('-importkeystore')
+        keytool.parameters('-export', '-noprompt')
+                .parameters('-alias', alias)
+                .parameters('-keystore', apnsCertificate.absolutePath)
+                .parameters('-storepass', password)
+                .parameters('-rfc', '-file', "${apnsCertificate.absolutePath}.cer")
+
+        keytool.execute().await()
+
+        keytool = Spacelift.task('keytool') as CommandTool
+
+        keytool.parameters('-import', '-noprompt')
+                .parameters('-alias', alias)
+                .parameters('-file', "${apnsCertificate.absolutePath}.cer")
+                .parameters('-storepass', password)
+                .parameters('-keystore', trustStore.absolutePath)
+
+        keytool.execute().await()
+
+        /*keytool.parameters('-importkeystore')
 //                .parameters('-v', '-trustcacerts')
                 .parameters('-alias', alias)
                 .parameters('-srckeystore', apnsCertificate.absolutePath)
@@ -119,7 +139,7 @@ class CertificateGenerator extends Task<Object, Void> {
                 .parameters('-storepass', password)
                 .parameters('-keypass', password)
 
-        keytool.execute().await()
+        keytool.execute().await()*/
 
 //        keytool -importkeystore -destkeystore mykeystore.jks -srckeystore keystore.p12 -srcstoretype pkcs12 -alias myservercert
 

@@ -50,11 +50,13 @@ ext {
     defaultOpenShiftPassword = ''
     defaultOpenShiftAppDirectory = 'aerogear-push'
     defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=AdamSaleh/openshift-origin-cartridge-aerogear-push-wildfly'
+    defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultSelendroidVersion = '0.14.0'
     defaultIpVersion = 'IPv4'
+
 
     androidSdkVersion = '23'
 
@@ -219,7 +221,7 @@ spacelift {
         aerogearTestingTools {
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/6f762e4a42e3f95cd450e3477d89b1e598d7b97f.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/6014aef511f25fd943d5864f50041743e3dab8f3.zip'
             home 'aerogear-testing-tools'
             isInstalled {
                 return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()
@@ -302,7 +304,9 @@ spacelift {
             openShiftCartridges { [ project.openShiftCartridge ] }
             openShiftAppDirectory { project.openShiftAppDirectory }
             unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
-            isInstalled { false }
+            isInstalled {
+                project.openShiftRecreate == 'false'
+            }
         }
 
         unifiedPushServerOpenshift(inherits:unifiedPushServerOpenshiftWithoutProxy) {
@@ -540,6 +544,8 @@ spacelift {
                         .property("http.ignore=true")
                         .property("containerUri=$baseUri")
                         .property("keystore.ignore=true")
+                        .property('excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp,category.SimplePush,category.GCM')
+                        //.property('javax.net.debug=all')
                         .goals('clean', 'test').execute().await()
             }
         }

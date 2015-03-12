@@ -25,6 +25,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
+import org.jboss.aerogear.test.api.sender.SenderRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +88,16 @@ public class TestUtils {
         RestAssured.config = RestAssuredConfig.newConfig()
                 .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
+    }
+
+    public static SenderRequest prepareSenderRequest() {
+        SenderRequest request = SenderRequest.request();
+
+        if(!ignoreCustomKeystore()) {
+            request.customTrustStore("setup/aerogear.keystore", "jks", "aerogear");
+        }
+
+        return request;
     }
 
     private static boolean shouldRun(Class<?> category) {

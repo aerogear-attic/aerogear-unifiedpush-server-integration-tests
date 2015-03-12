@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.DecoderConfig;
-import com.jayway.restassured.config.EncoderConfig;
-import com.jayway.restassured.config.RestAssuredConfig;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
@@ -28,7 +24,7 @@ import org.jboss.aerogear.test.api.extension.JavaSenderTestRequest;
 import org.jboss.aerogear.test.api.sender.PushMessageInformationRequest;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.PushMessageInformation;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
+import org.jboss.aerogear.unifiedpush.utils.TestUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -66,18 +62,12 @@ public class JavaSenderKeyStoreSharingTest {
 
     @BeforeClass
     public static void setup() {
-        RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
-
-        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
+        TestUtils.setupRestAssured();
     }
 
     @AfterClass
     public static void cleanup() {
-        RestAssured.config = RestAssuredConfig.newConfig()
-                .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("ISO-8859-1"))
-                .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("ISO-8859-1"));
+        TestUtils.teardownRestAssured();
     }
 
     @Deployment(name = Deployments.AUTH_SERVER, testable = false, order = 1)

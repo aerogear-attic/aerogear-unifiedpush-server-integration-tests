@@ -220,41 +220,27 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
 
         String ip = ipGetResult.output().last()
 
-        def apnsCertificateTarget = new File(repository, "apns_server.p12")
+        ProcessResult homeDirGetResult = Spacelift.task(CommandTool).programName('rhc')
+                .parameters('ssh')
+                .parameters('--command', 'echo $HOME')
+                .parameters('-a', openShiftAppName.resolve())
+                .parameters('-n', openShiftNamespace.resolve())
+                .parameters('-l', openShiftUsername.resolve())
+                .parameters('-p', openShiftPassword.resolve())
+                .execute().await()
+
+        String openshiftHomeDir = homeDirGetResult.output().last()
+
+        def apnsCertificateTarget = new File(repository, "apns_server.jks")
         def trustStoreTarget = new File(repository, "truststore.jks")
 
-        Spacelift.task(CertificateGenerator)
+        CertificateGenerator certificateGenerator = Spacelift.task(CertificateGenerator)
             .apnsCertificate(apnsCertificateTarget)
             .gcmCertificate(aerogearGcmMockCertificate.resolve())
             .trustStore(trustStoreTarget)
-            .execute().await()
+            .commonName(ip)
 
-        if (turnProxyOn) {
-            String[] JAVA_OPTS_EXT_PARAMETERS = [
-                    "-Dhttp.proxyHost=$ip",
-                    "-Dhttp.proxyPort=${openShiftHttpProxyPort.resolve()}",
-                    "-Dhttps.proyHost=$ip",
-                    "-Dhttps.proxyPort=${openShiftHttpsProxyPort.resolve()}",
-                    "-Dgcm.mock.server.port=${gcmMockServerPort.resolve()}",
-                    "-Dcustom.aerogear.apns.push.host=$ip",
-                    "-Dcustom.aerogear.apns.push.port=${aerogearApnsPushPort.resolve()}",
-                    "-Dcustom.aerogear.apns.feedback.host=$ip",
-                    "-Dcustom.aerogear.apns.feedback.port=${aerogearApnsFeedbackPort.resolve()}",
-                    "-Djavax.net.ssl.trustStore=~/app-root/repo/aerogear.truststore",
-                    "-Djavax.net.ssl.trustStorePassword=aerogear" ]
-
-            String JAVA_OPTS_EXT = "JAVA_OPTS_EXT=${JAVA_OPTS_EXT_PARAMETERS.join(" ")}"
-
-            println JAVA_OPTS_EXT
-
-            Spacelift.task(CommandTool).programName("rhc")
-                    .parameters('set-env', JAVA_OPTS_EXT)
-                    .parameters('-a', openShiftAppName.resolve())
-                    .parameters('-n', openShiftNamespace.resolve())
-                    .parameters('-l', openShiftUsername.resolve())
-                    .parameters('-p', openShiftPassword.resolve())
-                    .execute().await()
-        }
+        certificateGenerator.execute().await()
 
         def deployFile = "mv ~/app-root/repo/unifiedpush-test-extension-server.war ~/" + openShiftAppDirectory.resolve() + "/standalone/deployments/unifiedpush-test-extension-server.war"
         def actionHooksDir = new File(repository.canonicalPath, '.openshift/action_hooks/')
@@ -264,6 +250,39 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                 .write(deployFile)
                 .to(new File(actionHooksDir, 'deploy'))
                 .execute().await()
+
+
+        if (turnProxyOn) {
+            String[] JAVA_OPTS_EXT_PARAMETERS = [
+                    "-Dhttp.proxyHost=$ip",
+                    "-Dhttp.proxyPort=${openShiftHttpProxyPort.resolve()}",
+                    "-Dhttps.proyHost=$ip",
+                    "-Dhttps.proxyPort=${openShiftHttpsProxyPort.resolve()}",
+                    "-Dgcm.mock.server.port=${gcmMockServerPort.resolve()}",
+                    "-Dcustom.aerogear.apns.keystore.path=${openshiftHomeDir}app-root/repo/apns_server.jks",
+                    "-Dcustom.aerogear.apns.keystore.password=${certificateGenerator.password()}",
+                    '-Dcustom.aerogear.apns.keystore.type=JKS',
+                    "-Dcustom.aerogear.apns.push.host=$ip",
+                    "-Dcustom.aerogear.apns.push.port=${aerogearApnsPushPort.resolve()}",
+                    "-Dcustom.aerogear.apns.feedback.host=$ip",
+                    "-Dcustom.aerogear.apns.feedback.port=${aerogearApnsFeedbackPort.resolve()}",
+                    "-Djavax.net.ssl.trustStore=${openshiftHomeDir}app-root/repo/truststore.jks",
+                    "-Djavax.net.ssl.trustStorePassword=${certificateGenerator.password()}",
+                    '-Djavax.net.debug=all']
+
+            String JAVA_OPTS_EXT = "export JAVA_OPTS_EXT=\"${JAVA_OPTS_EXT_PARAMETERS.join(" ")}\""
+
+            println JAVA_OPTS_EXT
+
+            addedFiles.addAll(
+                    Spacelift.task(WriteToFileTool)
+                        .write(JAVA_OPTS_EXT)
+                        .to(new File(actionHooksDir, "pre_start_${openShiftAppDirectory.resolve()}"))
+                        .write(JAVA_OPTS_EXT)
+                        .to(new File(actionHooksDir, "pre_restart_${openShiftAppDirectory.resolve()}"))
+                        .execute().await())
+
+        }
 
         String testExtensionWarPath = "${(parent['workspace'] as File).canonicalPath}" +
                 "/.repository/org/jboss/aerogear/test/unifiedpush-test-extension-server/${unifiedPushTestExtensionVersion.resolve()}" +

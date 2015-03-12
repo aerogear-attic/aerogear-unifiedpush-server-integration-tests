@@ -81,6 +81,7 @@ import static org.hamcrest.Matchers.not;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.apnsTestsEnabled;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.chromePackagedAppTestsEnabled;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.gcmTestsEnabled;
+import static org.jboss.aerogear.unifiedpush.utils.TestUtils.prepareSenderRequest;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.simplePushTestsEnabled;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -277,7 +278,7 @@ public class MessageSendTest {
         installations = installations.subList(0, installations.size() - 1);
         SimplePushServerSimulator simulator = SimplePushServerSimulator.create().start();
 
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .aliasesOf(installations)
@@ -354,7 +355,7 @@ public class MessageSendTest {
 
         SimplePushServerSimulator simulator = SimplePushServerSimulator.create().start();
 
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .aliases(alias)
@@ -457,7 +458,7 @@ public class MessageSendTest {
         }
 
         // FIXME how about GCM for chrome and SimplePush? they do not report client invalidity
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .variants(variants)
@@ -541,7 +542,7 @@ public class MessageSendTest {
 
         SimplePushServerSimulator simulator = SimplePushServerSimulator.create().start();
 
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .categories(category)
@@ -607,7 +608,7 @@ public class MessageSendTest {
     public void selectiveSendEmptyPushApplicationId() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
 
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .pushApplicationId("")
@@ -619,7 +620,7 @@ public class MessageSendTest {
     @Test
     public void selectiveSendWrongPushApplicationId() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .pushApplicationId(UUID.randomUUID().toString())
@@ -631,7 +632,7 @@ public class MessageSendTest {
     @Test
     public void selectiveSendWrongMasterSecret() {
         exception.expectUnexpectedResponseException(HttpStatus.SC_UNAUTHORIZED);
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())
                 .masterSecret(UUID.randomUUID().toString())
@@ -640,7 +641,7 @@ public class MessageSendTest {
     }
 
     private SenderStatistics selectiveSendByAliases(List<Installation> installations) {
-        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(prepareSenderRequest())
                 .message()
                 .alert(ALERT_MESSAGE);
 
@@ -648,7 +649,7 @@ public class MessageSendTest {
     }
 
     private SenderStatistics selectiveSendByAliasesWithTtl(List<Installation> installations, int timeToLive) {
-        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(prepareSenderRequest())
                 .message()
                 .alert(ALERT_MESSAGE)
                 .timeToLive(timeToLive);
@@ -657,7 +658,7 @@ public class MessageSendTest {
     }
 
     private SenderStatistics selectiveSendByAliasesWithContentAvailable(List<Installation> installations) {
-        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(prepareSenderRequest())
                 .message()
                 .alert(ALERT_MESSAGE)
                 .contentAvailable();
@@ -667,7 +668,7 @@ public class MessageSendTest {
 
     private SenderStatistics selectiveSendByAliasesWithAttributes(List<Installation> installations,
                                                                   Map<String, String> attributes) {
-        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(SenderRequest.request())
+        SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(prepareSenderRequest())
                 .message()
                 .alert(ALERT_MESSAGE);
         for (String key : attributes.keySet()) {
@@ -693,7 +694,7 @@ public class MessageSendTest {
     }
 
     private SenderStatistics selectiveSendByVariants(Map<Variant, InstallationWorker> variants) {
-        ups.with(SenderRequest.request())
+        ups.with(prepareSenderRequest())
                 .message()
                 .alert(ALERT_MESSAGE)
                 .pushApplication(getPushApplication())
