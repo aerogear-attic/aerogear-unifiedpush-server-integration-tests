@@ -32,11 +32,12 @@ import com.jayway.restassured.response.Response;
 public class PushMessageInformationRequest extends AbstractSessionRequest<PushMessageInformationRequest> {
 
     public List<PushMessageInformation> get(String applicationId) {
-        
+
+
         Response response = getSession().givenAuthorized()
                 .contentType(ContentTypes.json())
                 .header(Headers.acceptJson())
-                .get("http://localhost:8080/ag-push/rest/metrics/messages/application/" + applicationId);
+                .get("/rest/metrics/messages/application/{applicationID}", applicationId);
         
         String json = response.asString();
         return JsonPath.from(json).get("");

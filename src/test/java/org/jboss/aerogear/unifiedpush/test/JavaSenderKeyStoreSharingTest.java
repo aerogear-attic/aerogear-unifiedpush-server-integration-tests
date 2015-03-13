@@ -21,7 +21,10 @@ import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.extension.JavaSenderTestRequest;
+import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.sender.PushMessageInformationRequest;
+import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.PushMessageInformation;
 import org.jboss.aerogear.unifiedpush.utils.TestUtils;
@@ -50,7 +53,13 @@ public class JavaSenderKeyStoreSharingTest {
         protected UnifiedPushServer setup() {
             with(CleanupRequest.request()).cleanApplications();
 
-            ups.with(PushApplicationWorker.worker()).generate().persist();
+            PushApplication application = ups.with(PushApplicationWorker.worker()).generate().persist().detachEntity();
+
+            AndroidVariant variant = ups.with(AndroidVariantWorker.worker(), application).generate().persist()
+                    .detachEntity();
+
+            ups.with(AndroidInstallationWorker.worker(), variant).generate().persist();
+
             return this;
         }
     };
@@ -95,7 +104,6 @@ public class JavaSenderKeyStoreSharingTest {
     @Test
     public void javaSenderSharesKeystoreWithPushApplicationOnSameJvm() throws InterruptedException {
         String appId = getPushApp().getPushApplicationID();
-
         // send message
         String response = ups.with(JavaSenderTestRequest.request())
                 .sendTestMessage(getPushApp(), ups.unifiedPushUrl, "Hello world!");

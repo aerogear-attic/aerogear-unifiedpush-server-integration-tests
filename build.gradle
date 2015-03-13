@@ -244,7 +244,7 @@ spacelift {
         aerogearTestingTools {
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/6014aef511f25fd943d5864f50041743e3dab8f3.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/987077e3c65231c6adccddae0b2111489aad3890.zip'
             home 'aerogear-testing-tools'
             isInstalled {
                 return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()
@@ -323,6 +323,8 @@ spacelift {
             openShiftCartridges { [ project.openShiftCartridge ] }
             openShiftAppDirectory { project.openShiftAppDirectory }
             unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
+            aerogearGcmMockCertificate { new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt') }
+            aerogearGcmMockKey { new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key') }
             isInstalled {
                 project.openShiftRecreate == 'false'
             }
@@ -600,8 +602,7 @@ spacelift {
                         .property("http.ignore=true")
                         .property("containerUri=$baseUri")
                         .property("keystore.ignore=true")
-                        .property('excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp,category.SimplePush,category.GCM')
-                        //.property('javax.net.debug=all')
+                        .property('excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp,category.SimplePush')
                         .goals('clean', 'test').execute().await()
             }
         }

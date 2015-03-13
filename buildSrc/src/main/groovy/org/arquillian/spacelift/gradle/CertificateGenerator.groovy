@@ -115,18 +115,25 @@ class CertificateGenerator extends Task<Object, Void> {
                 .parameters('-keystore', apnsCertificate.absolutePath)
                 .parameters('-storepass', password)
                 .parameters('-rfc', '-file', "${apnsCertificate.absolutePath}.cer")
-
-        keytool.execute().await()
+                .execute().await()
 
         keytool = Spacelift.task('keytool') as CommandTool
 
         keytool.parameters('-import', '-noprompt')
-                .parameters('-alias', alias)
+                .parameters('-alias', 'apns')
                 .parameters('-file', "${apnsCertificate.absolutePath}.cer")
                 .parameters('-storepass', password)
                 .parameters('-keystore', trustStore.absolutePath)
+                .execute().await()
 
-        keytool.execute().await()
+        keytool = Spacelift.task('keytool') as CommandTool
+
+        keytool.parameters('-import', '-noprompt')
+                .parameters('-alias', 'gcm')
+                .parameters('-file', gcmCertificate.absolutePath)
+                .parameters('-storepass', password)
+                .parameters('-keystore', trustStore.absolutePath)
+                .execute().await()
 
         /*keytool.parameters('-importkeystore')
 //                .parameters('-v', '-trustcacerts')

@@ -81,15 +81,15 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
 
     DeferredValue<Integer> openShiftHttpsProxyPort = DeferredValue.of(Integer.class).from(16000)
 
-    DeferredValue<Integer> gcmMockServerPort = DeferredValue.of(Integer.class).from(16001)
+    DeferredValue<Integer> gcmMockServerPort = DeferredValue.of(Integer.class).from(16010)
 
     DeferredValue<File> aerogearGcmMockCertificate = DeferredValue.of(File.class)
 
     DeferredValue<File> aerogearGcmMockKey = DeferredValue.of(File.class)
 
-    DeferredValue<Integer> aerogearApnsPushPort = DeferredValue.of(Integer.class).from(16002)
+    DeferredValue<Integer> aerogearApnsPushPort = DeferredValue.of(Integer.class).from(16020)
 
-    DeferredValue<Integer> aerogearApnsFeedbackPort = DeferredValue.of(Integer.class).from(16003)
+    DeferredValue<Integer> aerogearApnsFeedbackPort = DeferredValue.of(Integer.class).from(16030)
 
     DeferredValue<String> openShiftAppDirectory = DeferredValue.of(String.class).from("unified-push")
 
@@ -233,6 +233,11 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
 
         def apnsCertificateTarget = new File(repository, "apns_server.jks")
         def trustStoreTarget = new File(repository, "truststore.jks")
+        def gcmCertificateTarget = new File(repository, "gcm_mock.crt")
+        def gcmKeyTarget = new File(repository, "gcm_mock.key")
+
+        Files.copy(aerogearGcmMockCertificate.resolve(), gcmCertificateTarget)
+        Files.copy(aerogearGcmMockKey.resolve(), gcmKeyTarget)
 
         CertificateGenerator certificateGenerator = Spacelift.task(CertificateGenerator)
             .apnsCertificate(apnsCertificateTarget)
@@ -256,9 +261,11 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
             String[] JAVA_OPTS_EXT_PARAMETERS = [
                     "-Dhttp.proxyHost=$ip",
                     "-Dhttp.proxyPort=${openShiftHttpProxyPort.resolve()}",
-                    "-Dhttps.proyHost=$ip",
+                    "-Dhttps.proxyHost=$ip",
                     "-Dhttps.proxyPort=${openShiftHttpsProxyPort.resolve()}",
                     "-Dgcm.mock.server.port=${gcmMockServerPort.resolve()}",
+                    "-Dgcm.mock.certificate.path=${openshiftHomeDir}app-root/repo/gcm_mock.crt",
+                    "-Dgcm.mock.certificate.password=${openshiftHomeDir}app-root/repo/gcm_mock.key",
                     "-Dcustom.aerogear.apns.keystore.path=${openshiftHomeDir}app-root/repo/apns_server.jks",
                     "-Dcustom.aerogear.apns.keystore.password=${certificateGenerator.password()}",
                     '-Dcustom.aerogear.apns.keystore.type=JKS',
@@ -267,8 +274,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                     "-Dcustom.aerogear.apns.feedback.host=$ip",
                     "-Dcustom.aerogear.apns.feedback.port=${aerogearApnsFeedbackPort.resolve()}",
                     "-Djavax.net.ssl.trustStore=${openshiftHomeDir}app-root/repo/truststore.jks",
-                    "-Djavax.net.ssl.trustStorePassword=${certificateGenerator.password()}",
-                    '-Djavax.net.debug=all']
+                    "-Djavax.net.ssl.trustStorePassword=${certificateGenerator.password()}"]
 
             String JAVA_OPTS_EXT = "export JAVA_OPTS_EXT=\"${JAVA_OPTS_EXT_PARAMETERS.join(" ")}\""
 
@@ -298,6 +304,8 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                 .add(warFileTarget)
                 .add(apnsCertificateTarget)
                 .add(trustStoreTarget)
+                .add(gcmCertificateTarget)
+                .add(gcmKeyTarget)
                 .execute().await()
 
         addedFiles.each { addedFile ->
