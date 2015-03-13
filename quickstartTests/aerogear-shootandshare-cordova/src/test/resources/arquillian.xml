@@ -16,10 +16,6 @@
         <property name="androidTools"></property>
         <property name="androidPlatformTools"></property>
     </extension>
-    <extension qualifier="droidium-native">
-        <property name="serverApk"></property>
-        <property name="driverApk"></property>
-    </extension>
     <extension qualifier="reporter">
         <property name="report">html</property>
     </extension>

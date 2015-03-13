@@ -24,9 +24,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.arquillian.core>1.1.6.Final</version.arquillian.core>
-        <version.droidium>1.0.0.Beta1-SNAPSHOT</version.droidium>
-        <version.arquillian.drone>2.0.0.Alpha3</version.arquillian.drone>
+        <version.arquillian.core>1.1.7.Final</version.arquillian.core>
+        <version.droidium>1.0.0.Final</version.droidium>
+        <version.arquillian.drone>2.0.0.Alpha4</version.arquillian.drone>
         <version.org.jboss.arquillian.graphene>2.1.0.Alpha2</version.org.jboss.arquillian.graphene>
         <version.unifiedpush.java.client>1.0.0</version.unifiedpush.java.client>
 

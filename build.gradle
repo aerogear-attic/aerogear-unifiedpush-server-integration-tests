@@ -56,7 +56,6 @@ ext {
 
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
-    defaultSelendroidVersion = '0.15.0'
     defaultIpVersion = 'IPv4'
 
 
@@ -145,13 +144,13 @@ spacelift {
             }
         }
 
-        helloWorldCordovaqQuickstart {
-            enabledInstallations 'maven', 'littleProxy', 'aerogearTestingTools', 'androidSdk', 'selendroid', 'unifiedPushServer_preReleaseMaven', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
+        helloWorldCordovaQuickstart {
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'androidSdk', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
             tests 'helloWorldCordovaQuickstart'
         }
 
         shootAndShareCordovaQuickstart {
-            enabledInstallations 'maven', 'shootAndShareAndroidSdk', 'selendroid', 'gradle112', 'shootAndShareCordovaQuickstart'
+            enabledInstallations 'maven', 'shootAndShareAndroidSdk', 'gradle112', 'shootAndShareCordovaQuickstart'
             tests 'shootAndShareCordovaQuickstart'
         }
 
@@ -264,14 +263,6 @@ spacelift {
                     .goals('clean', 'install')
                     .execute().await()
             }
-        }
-
-        selendroid {
-            product 'selendroid'
-            version { project.selendroidVersion }
-            remoteUrl { "https://github.com/selendroid/selendroid/releases/download/${version}/selendroid-standalone-${version}-with-dependencies.jar" }
-            fileName { "selendroid-standalone-${version}-with-dependencies.jar" }
-            home { "selendroid-standalone-${version}-with-dependencies.jar" }
         }
 
         androidSdk(from:AndroidSdkInstallation) {
@@ -459,7 +450,7 @@ spacelift {
             }
         }
 
-        helloWorldCordovaquickstart {
+        helloWorldCordovaQuickstart {
             product 'aerogear'
             version '1.0.1'
 
@@ -819,11 +810,6 @@ spacelift {
                     'androidPlatformTools' : "${androidSdk.home}/platform-tools"
                 ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).extension('droidium-platform').execute().await()
 
-                Spacelift.task([
-                    'serverApk' : "${selendroid.home}/prebuild/selendroid-server-${selendroid.version}.apk",
-                    'driverApk' : "${selendroid.home}/prebuild/android-driver-app-${selendroid.version}.apk",
-                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).extension('droidium-native').execute().await()
-
             }
 
             execute {
@@ -858,12 +844,6 @@ spacelift {
                     'androidTools' : "${androidSdk.home}/tools",
                     'androidPlatformTools' : "${androidSdk.home}/platform-tools"
                 ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).extension('droidium-platform').execute().await()
-
-                Spacelift.task([
-                    'serverApk' : "${selendroid.home}/prebuild/selendroid-server-${selendroid.version}.apk",
-                    'driverApk' : "${selendroid.home}/prebuild/android-driver-app-${selendroid.version}.apk",
-                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).extension('droidium-native').execute().await()
-
             }
 
             execute {
