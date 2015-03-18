@@ -7,6 +7,8 @@ import org.arquillian.spacelift.gradle.*
 import org.arquillian.spacelift.gradle.android.*
 import org.arquillian.spacelift.gradle.arquillian.*
 import org.arquillian.spacelift.gradle.container.*
+import org.arquillian.spacelift.gradle.container.db.*
+import org.arquillian.spacelift.gradle.container.db.module.*
 import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.gradle.*
 import org.arquillian.spacelift.gradle.maven.*
@@ -17,9 +19,11 @@ import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
 import org.arquillian.spacelift.process.ProcessResult
+import org.arquillian.spacelift.task.archive.*
 import org.arquillian.spacelift.task.os.CommandTool
 import org.arquillian.spacelift.task.net.DownloadTool
 import org.arquillian.spacelift.task.io.WriteToFileTool
+import org.arquillian.spacelift.task.text.*
 import org.jboss.aerogear.unifiedpush.api.*
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
 import org.jboss.aerogear.test.container.manager.configuration.ContainerType
@@ -137,6 +141,15 @@ spacelift {
                 ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
+
+        wildfly8mysql(inherits: local) {
+            enabledInstallations {
+                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+            }
+
+            tests 'localMysqlIntegrationTests'
+        }
+
 
         externalEap6(inherits: local) {
             enabledInstallations {
@@ -295,6 +308,26 @@ spacelift {
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
+                def resolvedVersion = "5.1.33"
+                def destination = home.absolutePath
+               // databases setup
+ Spacelift.task(MavenExecutor)
+.goal("dependency:copy")
+.property("artifact=mysql:mysql-connector-java:${resolvedVersion}")
+.property("outputDirectory=${destination}")
+.execute()
+.await()
+                def jbossManager = Spacelift.task(JBossStarter).configuration(new JBossManagerConfiguration().setJBossHome(home.absolutePath).setStartupTimeoutInSeconds(600)).execute().await()
+                /*install database plugin*/
+
+
+ Spacelift.task(JBossCLI)
+.environment("JBOSS_HOME", home.absolutePath)
+.connect()
+.cliCommand("module add --name=com.mysql.jdbc --resources=${destination}/mysql-connector-java-${resolvedVersion}.jar --dependencies=javax.api,javax.transaction.api")
+.execute()
+.await()
+               Spacelift.task(jbossManager, JBossStopper).execute().await()
             }
         }
 
@@ -625,6 +658,190 @@ spacelift {
                 mavenTask.execute().await()
             }
         }
+
+        localMysqlIntegrationTests {
+            dataProvider {
+                project.protocols as ArrayList
+            }
+            beforeSuite {
+                def jbossHome = project.jbossHome
+                if (jbossHome instanceof CharSequence) {
+                    jbossHome = new File(jbossHome)
+                }
+                final def baseUri = "http://${project.localDomain}:8080/unifiedpush-test-extension-server"
+                final def jbossManagerConfiguration = new JBossManagerConfiguration()
+                        .setContainerType(project.jbossContainer)
+                        .setJBossHome(jbossHome.absolutePath)
+                        .setStartupTimeoutInSeconds(300)
+
+                def commonJavaOpts = " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
+                commonJavaOpts += "-Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000 "
+                commonJavaOpts += "-Djboss.bind.address=${project.jbossBindAddress} "
+                commonJavaOpts += "-Djavax.net.ssl.trustStore=setup/aerogear.truststore "
+                commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=aerogear "
+                commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.jbossBindAddress} "
+                commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
+                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.jbossBindAddress} "
+                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.port=16003 "
+                commonJavaOpts += "-DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
+                commonJavaOpts += "-DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
+                if(project.ipVersion == "IPv6"){
+                    commonJavaOpts += "-Djava.net.preferIPv4Stack=false "
+                    commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
+                }
+
+                def deploymentGroups = ""
+                def undeploymentGroups = ""
+                if (project.jbossDomainMode == true) {
+                    def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts() + " "
+                    javaOpts += commonJavaOpts
+                    jbossManagerConfiguration.domain().setProcessControllerJavaOpts(javaOpts)
+                    deploymentGroups = " --all-server-groups"
+                    undeploymentGroups = " --all-relevant-server-groups"
+                } else {
+                    def javaOpts = jbossManagerConfiguration.getJavaOpts()
+                    javaOpts += commonJavaOpts
+                    jbossManagerConfiguration.setJavaOpts(javaOpts)
+                }
+
+                project.ext.jbossManager = Spacelift.task(JBossStarter)
+                        .configuration(jbossManagerConfiguration)
+                        .execute().await()
+
+                             /*load mysql*/
+                Spacelift.task(JBossCLI)
+                                .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                .file(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly.cli"))
+                                .execute().await()
+                         
+                                /*unzip migrator*/                
+                    def trgt = new File("${project.spacelift.workspace}/");
+
+                    Spacelift.task(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/target/unifiedpush-migrator-1.0.3-SNAPSHOT-dist.zip"),UnzipTool).toDir(trgt).execute().await()
+                        
+                /*chmod*/
+                    project.ant.chmod(dir: "${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/", perm: "a+x", includes: "*")
+
+                /*copy template*/
+                project.ant.copy(tofile:"${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/liquibase.properties") {
+                    fileset(file:"${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/liquibase-mysql-example.properties")
+                }
+
+                /*run migrator*/
+                    Spacelift.task(CommandTool)
+                        .programName("${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/ups-migrator")
+                        .parameter("--logLevel=DEBUG")
+                        .parameter("--url=jdbc:mysql://localhost:3306/unifiedpush")
+                        .parameter("--username=unifiedpush")
+                        .parameter("--password=unifiedpush")
+                        .parameter("--changeLogFile=${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/src/main/resources/liquibase/master.xml")
+                        .parameter("update").execute().await()
+
+                ['auth-server.war', "${project.unifiedPushType}-ag-push.war",
+                 'unifiedpush-test-extension-server.war'].each {
+                    // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
+                    try {
+                        println "Undeploying ${it}"
+                        Spacelift.task(JBossCLI)
+                                .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                .connect()
+                                .cliCommand("undeploy ${it}${undeploymentGroups}")
+                                .execute().await()
+
+                        println "${it} undeployed successfully"
+                    } catch (Exception e) {
+                        println "${it} undeploy failed"
+                    }
+                }
+
+                Spacelift.task(JBossCLI)
+                        .environment("JBOSS_HOME", jbossHome.absolutePath)
+                        .connect()
+                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}${deploymentGroups}")
+                        .then(JBossCLI)
+                        .environment("JBOSS_HOME", jbossHome.absolutePath)
+                        .connect()
+                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war").absolutePath}${deploymentGroups}")
+                        .then(JBossCLI)
+                        .environment("JBOSS_HOME", jbossHome.absolutePath)
+                        .connect()
+                        .cliCommand("deploy ${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war').absolutePath}${deploymentGroups}")
+                        .execute().await()
+
+                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
+                println "Expected deployment url: $baseUri"
+                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
+                    @Override
+                    Boolean call() throws Exception {
+                        Response response = RestAssured.given()
+                                .baseUri(baseUri)
+                                .get('/status')
+
+                        return response.statusCode == 200
+                    }
+                })
+                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
+
+                println 'Reconfiguring KeyCloak.'
+                RestAssured.given()
+                        .baseUri(baseUri)
+                        .get('/keycloak')
+                        .then()
+                        .log().all(true)
+                        .statusCode(200)
+
+                println 'Restarting container.'
+                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
+
+                project.ext.jbossManager = Spacelift.task(JBossStarter)
+                        .configuration(jbossManagerConfiguration)
+                        .execute().await()
+
+                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
+                println "Expected deployment url: $baseUri"
+                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
+                    @Override
+                    Boolean call() throws Exception {
+                        Response response = RestAssured.given()
+                                .baseUri(baseUri)
+                                .get('/status')
+
+                        return response.statusCode == 200
+                    }
+                })
+                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
+
+                println 'Activating GCM and APNS proxy'
+
+                RestAssured.given()
+                        .baseUri(baseUri)
+                        .get('/proxy/activate')
+                        .then().statusCode(200)
+                println 'Proxy activated'
+            }
+            execute { protocol ->
+                def port = protocol == 'https' ? 8443 : 8080
+                def baseUri = "$protocol://${project.localDomain}:$port"
+
+                println "Using external maven parameters: ${project.externalMavenParameters}"
+                println "Using base uri: $baseUri"
+
+                def test_task = Spacelift.task(MavenExecutor).pom("pom.xml")
+                        .profile('openshift')
+                        .property("containerUri=$baseUri")
+                        .goals('clean', 'test')
+                for(prop in project.externalMavenParameters.split()){
+                        test_task.property(prop)
+                }
+
+                test_task.execute().await()
+            }
+            afterSuite {
+                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
+            }
+        }
+
+
         localIntegrationTests {
             dataProvider {
                 project.protocols as ArrayList
