@@ -420,6 +420,13 @@ spacelift {
                         new File(home, 'servers/ups-wildfly/target/ag-push.war'),
                         new File(project.unifiedPushBinariesDir, 'wildfly-ag-push.war'))
 
+                Files.copy(
+                        new File(home, 'databases/mysql-database-config-wildfly.cli'),
+                        new File(project.unifiedPushBinariesDir, 'mysql-database-config-cli.xml'))
+
+                Files.copy(
+                        new File(home, 'migrator/target/unifiedpush-migrator-1.0.3-SNAPSHOT-dist.zip'),
+                        new File(project.unifiedPushBinariesDir, 'unifiedpush-migrator.zip'))
 
             }
         }
@@ -486,6 +493,19 @@ spacelift {
                             new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
                     )
                 }
+                if (project.unifiedPushServerMysqlDatasource != null) {
+                    Files.copy(
+                            new File(project.unifiedPushMysqlDatasource),
+                            new File(project.unifiedPushBinariesDir, 'mysql-database-config-cli.xml')
+                    )
+                }
+                if (project.unifiedPushServerMigratorZip != null) {
+                    Files.copy(
+                            new File(project.unifiedPushServerMigratorZip),
+                            new File(project.unifiedPushBinariesDir, 'unifiedpush-migrator.zip')
+                    )
+                }
+
             }
         }
 
@@ -711,12 +731,16 @@ spacelift {
                     }
                 } else if(project.upsDatasource=="mysql") {
                    /*load mysql*/
-                    project.ant.copy(tofile: "${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly-changed.cli") {
-                        fileset(file:"${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly.cli")
+
+                        new File(project.unifiedPushBinariesDir, 'unifiedpush-migrator.zip')
+                        new File("${project.unifiedPushBinariesDir}/mysql-database-config-cli.xml")
+
+                    project.ant.copy(tofile: "${project.unifiedPushBinariesDir}/mysql-database-changed.cli") {
+                        fileset(file:"${project.unifiedPushBinariesDir}/mysql-database-config-cli.xml")
                     }
 
                     Spacelift.task(StringReplacementTool)
-                        .in("${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly-changed.cli")
+                        .in("${project.unifiedPushBinariesDir}/mysql-database-changed.cli")
                         .replace("--connection-url=\".*\"")
                         .with("--connection-url=\"${project.mysqlUrl}?useUnicode=true&amp;characterEncoding=UTF-8\"")
                         .replace("--user-name=unifiedpush ")
@@ -727,26 +751,26 @@ spacelift {
 
                     Spacelift.task(JBossCLI)
                                     .environment("JBOSS_HOME", jbossHome.absolutePath)
-                                    .file(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly-changed.cli"))
+                                    .file(new File("${project.unifiedPushBinariesDir}/mysql-database-changed.cli"))
                                     .execute().await()
                            
                                     /*unzip migrator*/                
-                        def trgt = new File("${project.spacelift.workspace}/");
+                        def trgt = new File("${project.spacelift.workspace}/migrator");
 
-                        Spacelift.task(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/target/unifiedpush-migrator-1.0.3-SNAPSHOT-dist.zip"),UnzipTool).toDir(trgt).execute().await()
+                        def migrator_dir = Spacelift.task(new File("${project.unifiedPushBinariesDir}/unifiedpush-migrator.zip"),UnzipTool).cutdirs().toDir(trgt).execute().await()
                             
                     /*chmod*/
-                        project.ant.chmod(dir: "${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/", perm: "a+x", includes: "*")
+                        project.ant.chmod(dir: "${migrator_dir}/bin/", perm: "a+x", includes: "*")
 
                     /*copy template*/
                     /*run migrator*/
                         Spacelift.task(CommandTool)
-                            .programName("${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/ups-migrator")
+                            .programName("${migrator_dir}/bin/ups-migrator")
                             .parameter("--logLevel=DEBUG")
                             .parameter("--url=${project.mysqlUrl}")
                             .parameter("--username=${project.mysqlUsername}")
                             .parameter("--password=${project.mysqlPassword}")
-                            .parameter("--changeLogFile=${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/src/main/resources/liquibase/master.xml")
+                            .parameter("--changeLogFile=liquibase/master.xml")
                             .parameter("update").execute().await()
 
 
