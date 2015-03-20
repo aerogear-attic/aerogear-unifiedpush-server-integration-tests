@@ -62,6 +62,10 @@ ext {
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
+    defaultUpsDatasource = "h2"
+    defaultMysqlUrl = "jdbc:mysql://localhost:3306/unifiedpush"
+    defaultMysqlUsername = "unifiedpush"
+    defaultMysqlPassword = "unifiedpush"
 
     androidSdkVersion = '23'
 
@@ -147,7 +151,7 @@ spacelift {
                 ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8ContainerMysql', "unifiedPushServer_${project.unifiedPushSource}"]
             }
 
-            tests 'localMysqlIntegrationTests'
+            tests 'localIntegrationTests'
         }
 
 
@@ -366,8 +370,6 @@ spacelift {
             openShiftCartridges { [ project.openShiftCartridge ] }
             openShiftAppDirectory { project.openShiftAppDirectory }
             unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
-            aerogearGcmMockCertificate { new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt') }
-            aerogearGcmMockKey { new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key') }
             isInstalled {
                 project.openShiftRecreate == 'false'
             }
@@ -495,7 +497,7 @@ spacelift {
             }
         }
 
-        helloWorldCordovaQuickstart {
+        helloworldCordovaQuickstart {
             product 'aerogear'
             version '1.0.1'
 
@@ -562,57 +564,20 @@ spacelift {
 
                 pushConfigFile.text = jsonConfig
 
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('platform add android').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters("plugin add org.jboss.aerogear.cordova.push").execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('build android').execute().await()
-            }
-        }
+                Spacelift.task(CordovaExecutor)
+                        .setDir(cordovaDir)
+                        .setParameters('platform add android')
+                        .execute().await()
 
-        shootAndShareCordovaQuickstart {
-            product 'aerogear'
-            version '1.0.0'
-            home "aerogear-shootandshare-${version}"
-            remoteUrl "https://github.com/aerogear/aerogear-cordova-cookbook/archive/master.zip"
-            isInstalled { false }
-            extractMapper { toDir(home).cutdirs() }
-            postActions {                
-                // I almost always forget these ...
-                if (!project.shootAndShareGoogleClientId || project.shootAndShareGoogleClientId.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified shootAndShareGoogleClientId!")
-                }
+                Spacelift.task(CordovaExecutor)
+                        .setDir(cordovaDir)
+                        .setParameters("plugin add org.jboss.aerogear.cordova.push")
+                        .execute().await()
 
-                if (!project.shootAndShareFacebookClientId || project.shootAndShareFacebookClientId.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified shootAndShareFacebookClientId!")
-                }
-
-                if (!project.shootAndShareFacebookClientSecret || project.shootAndShareFacebookClientSecret.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified shootAndShareFacebookClientSecret!")
-                }
-
-                def cordovaDir = "${home}/Shoot"
-
-                new ShootAndShareQuickstartHelper().patchAppJs("${cordovaDir}/www/js/app.js",
-                    project.shootAndShareGoogleClientId,
-                    project.shootAndShareFacebookClientId,
-                    project.shootAndShareFacebookClientSecret,
-                    "http://localhost:8080/auth")
-
-                // mock camera
-                Files.copy(
-                    new File("${project.rootDir.absolutePath}/quickstartTests/aerogear-shootandshare-cordova/patches/controllers.js"),
-                    new File(cordovaDir, "www/js/controllers.js"))
-
-                new ShootAndShareQuickstartHelper().patchControllerJs("${cordovaDir}/www/js/controllers.js", "http://localhost:8080/shoot/rest/photos")
-
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('platform add android@3.6.4').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.camera').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.file').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.file-transfer').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.jboss.aerogear.cordova.oauth2').execute().await()
-
-                new ShootAndShareQuickstartHelper().patchBuildGradle("${cordovaDir}/platforms/android/build.gradle")
-
-                Spacelift.task('gradle112').workingDirectory("${cordovaDir}/platforms/android").parameter("clean").parameter("build").execute().await()
+                Spacelift.task(CordovaExecutor)
+                        .setDir(cordovaDir)
+                        .setParameters('build android')
+                        .execute().await()
             }
         }
 
@@ -645,7 +610,8 @@ spacelift {
                         .property("http.ignore=true")
                         .property("containerUri=$baseUri")
                         .property("keystore.ignore=true")
-                        .property('excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp,category.SimplePush')
+                        .property('excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp,category.SimplePush,category.GCM')
+                        //.property('javax.net.debug=all')
                         .goals('clean', 'test').execute().await()
             }
         }
@@ -668,189 +634,6 @@ spacelift {
                 mavenTask.execute().await()
             }
         }
-
-        localMysqlIntegrationTests {
-            dataProvider {
-                project.protocols as ArrayList
-            }
-            beforeSuite {
-                def jbossHome = project.jbossHome
-                if (jbossHome instanceof CharSequence) {
-                    jbossHome = new File(jbossHome)
-                }
-                final def baseUri = "http://${project.localDomain}:8080/unifiedpush-test-extension-server"
-                final def jbossManagerConfiguration = new JBossManagerConfiguration()
-                        .setContainerType(project.jbossContainer)
-                        .setJBossHome(jbossHome.absolutePath)
-                        .setStartupTimeoutInSeconds(300)
-
-                def commonJavaOpts = " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
-                commonJavaOpts += "-Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000 "
-                commonJavaOpts += "-Djboss.bind.address=${project.jbossBindAddress} "
-                commonJavaOpts += "-Djavax.net.ssl.trustStore=setup/aerogear.truststore "
-                commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=aerogear "
-                commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.jbossBindAddress} "
-                commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
-                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.jbossBindAddress} "
-                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.port=16003 "
-                commonJavaOpts += "-DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
-                commonJavaOpts += "-DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
-                if(project.ipVersion == "IPv6"){
-                    commonJavaOpts += "-Djava.net.preferIPv4Stack=false "
-                    commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
-                }
-
-                def deploymentGroups = ""
-                def undeploymentGroups = ""
-                if (project.jbossDomainMode == true) {
-                    def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts() + " "
-                    javaOpts += commonJavaOpts
-                    jbossManagerConfiguration.domain().setProcessControllerJavaOpts(javaOpts)
-                    deploymentGroups = " --all-server-groups"
-                    undeploymentGroups = " --all-relevant-server-groups"
-                } else {
-                    def javaOpts = jbossManagerConfiguration.getJavaOpts()
-                    javaOpts += commonJavaOpts
-                    jbossManagerConfiguration.setJavaOpts(javaOpts)
-                }
-
-                project.ext.jbossManager = Spacelift.task(JBossStarter)
-                        .configuration(jbossManagerConfiguration)
-                        .execute().await()
-
-                             /*load mysql*/
-                Spacelift.task(JBossCLI)
-                                .environment("JBOSS_HOME", jbossHome.absolutePath)
-                                .file(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly.cli"))
-                                .execute().await()
-                         
-                                /*unzip migrator*/                
-                    def trgt = new File("${project.spacelift.workspace}/");
-
-                    Spacelift.task(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/target/unifiedpush-migrator-1.0.3-SNAPSHOT-dist.zip"),UnzipTool).toDir(trgt).execute().await()
-                        
-                /*chmod*/
-                    project.ant.chmod(dir: "${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/", perm: "a+x", includes: "*")
-
-                /*copy template*/
-                project.ant.copy(tofile:"${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/liquibase.properties") {
-                    fileset(file:"${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/liquibase-mysql-example.properties")
-                }
-
-                /*run migrator*/
-                    Spacelift.task(CommandTool)
-                        .programName("${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/ups-migrator")
-                        .parameter("--logLevel=DEBUG")
-                        .parameter("--url=jdbc:mysql://localhost:3306/unifiedpush")
-                        .parameter("--username=unifiedpush")
-                        .parameter("--password=unifiedpush")
-                        .parameter("--changeLogFile=${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/src/main/resources/liquibase/master.xml")
-                        .parameter("update").execute().await()
-
-                ['auth-server.war', "${project.unifiedPushType}-ag-push.war",
-                 'unifiedpush-test-extension-server.war'].each {
-                    // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
-                    try {
-                        println "Undeploying ${it}"
-                        Spacelift.task(JBossCLI)
-                                .environment("JBOSS_HOME", jbossHome.absolutePath)
-                                .connect()
-                                .cliCommand("undeploy ${it}${undeploymentGroups}")
-                                .execute().await()
-
-                        println "${it} undeployed successfully"
-                    } catch (Exception e) {
-                        println "${it} undeploy failed"
-                    }
-                }
-
-                Spacelift.task(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}${deploymentGroups}")
-                        .then(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war").absolutePath}${deploymentGroups}")
-                        .then(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        .cliCommand("deploy ${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war').absolutePath}${deploymentGroups}")
-                        .execute().await()
-
-                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-                println "Expected deployment url: $baseUri"
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/status')
-
-                        return response.statusCode == 200
-                    }
-                })
-                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
-
-                println 'Reconfiguring KeyCloak.'
-                RestAssured.given()
-                        .baseUri(baseUri)
-                        .get('/keycloak')
-                        .then()
-                        .log().all(true)
-                        .statusCode(200)
-
-                println 'Restarting container.'
-                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
-
-                project.ext.jbossManager = Spacelift.task(JBossStarter)
-                        .configuration(jbossManagerConfiguration)
-                        .execute().await()
-
-                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-                println "Expected deployment url: $baseUri"
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/status')
-
-                        return response.statusCode == 200
-                    }
-                })
-                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
-
-                println 'Activating GCM and APNS proxy'
-
-                RestAssured.given()
-                        .baseUri(baseUri)
-                        .get('/proxy/activate')
-                        .then().statusCode(200)
-                println 'Proxy activated'
-            }
-            execute { protocol ->
-                def port = protocol == 'https' ? 8443 : 8080
-                def baseUri = "$protocol://${project.localDomain}:$port"
-
-                println "Using external maven parameters: ${project.externalMavenParameters}"
-                println "Using base uri: $baseUri"
-
-                def test_task = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .profile('openshift')
-                        .property("containerUri=$baseUri")
-                        .goals('clean', 'test')
-                for(prop in project.externalMavenParameters.split()){
-                        test_task.property(prop)
-                }
-
-                test_task.execute().await()
-            }
-            afterSuite {
-                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
-            }
-        }
-
 
         localIntegrationTests {
             dataProvider {
@@ -901,7 +684,75 @@ spacelift {
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
-                ['unifiedpush-h2-ds.xml', 'auth-server.war', "${project.unifiedPushType}-ag-push.war",
+                if(project.upsDatasource=="h2"){
+                    ['unifiedpush-h2-ds.xml'].each {
+                        // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
+                        try {
+                            println "Undeploying ${it}"
+                            Spacelift.task(JBossCLI)
+                                    .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                    .connect()
+                                    .cliCommand("undeploy ${it}${undeploymentGroups}")
+                                    .execute().await()
+
+                            println "${it} undeployed successfully"
+                        } catch (Exception e) {
+                            println "${it} undeploy failed"
+                        }
+                    }
+
+                    def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
+                    if(datasourceXmlFile.exists()) {
+                        Spacelift.task(JBossCLI)
+                                .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                .connect()
+                                .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
+                                .execute().await()
+                    }
+                } else if(project.upsDatasource=="mysql") {
+                   /*load mysql*/
+                    project.ant.copy(tofile: "${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly-changed.cli") {
+                        fileset(file:"${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly.cli")
+                    }
+
+                    Spacelift.task(StringReplacementTool)
+                        .in("${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly-changed.cli")
+                        .replace("--connection-url=\".*\"")
+                        .with("--connection-url=\"${project.mysqlUrl}?useUnicode=true&amp;characterEncoding=UTF-8\"")
+                        .replace("--user-name=unifiedpush ")
+                        .with("--user-name=${project.mysqlUsername } ")
+                        .replace("--password=unifiedpush ")
+                        .with("--password=${project.mysqlPassword} ")
+                        .execute().await()
+
+                    Spacelift.task(JBossCLI)
+                                    .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                    .file(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/databases/mysql-database-config-wildfly-changed.cli"))
+                                    .execute().await()
+                           
+                                    /*unzip migrator*/                
+                        def trgt = new File("${project.spacelift.workspace}/");
+
+                        Spacelift.task(new File("${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/target/unifiedpush-migrator-1.0.3-SNAPSHOT-dist.zip"),UnzipTool).toDir(trgt).execute().await()
+                            
+                    /*chmod*/
+                        project.ant.chmod(dir: "${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/", perm: "a+x", includes: "*")
+
+                    /*copy template*/
+                    /*run migrator*/
+                        Spacelift.task(CommandTool)
+                            .programName("${project.spacelift.workspace}/unifiedpush-migrator-1.0.3-SNAPSHOT/bin/ups-migrator")
+                            .parameter("--logLevel=DEBUG")
+                            .parameter("--url=${project.mysqlUrl}")
+                            .parameter("--username=${project.mysqlUsername}")
+                            .parameter("--password=${project.mysqlPassword}")
+                            .parameter("--changeLogFile=${project.spacelift.workspace}/aerogear-unifiedpush-server/migrator/src/main/resources/liquibase/master.xml")
+                            .parameter("update").execute().await()
+
+
+                } 
+
+                ['auth-server.war', "${project.unifiedPushType}-ag-push.war",
                  'unifiedpush-test-extension-server.war'].each {
                     // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
                     try {
@@ -918,14 +769,6 @@ spacelift {
                     }
                 }
 
-                def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
-                if(datasourceXmlFile.exists()) {
-                    Spacelift.task(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.absolutePath)
-                            .connect()
-                            .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
-                            .execute().await()
-                }
 
                 Spacelift.task(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
@@ -999,12 +842,6 @@ spacelift {
                 println "Using external maven parameters: ${project.externalMavenParameters}"
                 println "Using base uri: $baseUri"
 
-                /*Spacelift.task('mvn')
-                        .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
-                        .parameters(new CommandBuilder('unused').splitToParameters(project.externalMavenParameters).build().getParameters())
-                        .execute().await()
-                */
                 def test_task = Spacelift.task(MavenExecutor).pom("pom.xml")
                         .profile('openshift')
                         .property("containerUri=$baseUri")
