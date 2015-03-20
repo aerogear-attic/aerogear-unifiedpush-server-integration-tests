@@ -1,11 +1,9 @@
 language: java
+before_script:
+  - mysql -e "create database IF NOT EXISTS unifiedpush;" -uroot
+  - mysql -e "create user 'unifiedpush' identified by 'unifiedpush'" -uroot
+  - mysql -e "GRANT ALL ON unifiedpush.* TO 'unifiedpush';" -uroot
 jdk:
     - oraclejdk7
-    #    - openjdk7
-#install:
-#    - mvn -B -q install -DskipTests=true -s .settings.xml
-install:
-    - ./gradlew assemble -Pwildfly8
 script:
-    - ./gradlew test -Pwildfly8
-#    - mvn -B -q clean test -s .settings.xml
+    - ./gradlew --stacktrace test -Pprofile=wildfly8mysql -PupsDatasource=mysql -PmysqlUsername=unifiedpush -PmysqlPassword=unifiedpush test
