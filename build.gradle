@@ -221,7 +221,7 @@ spacelift {
         unifiedPushServer_preReleaseMaven {
             product 'aerogear'
             version '1.0.3'
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             fileName 'aerogear-unifiedpush-server-pre-release.zip'
             extractMapper { toDir(home).cutdirs() }
@@ -244,7 +244,7 @@ spacelift {
         aerogearTestingTools {
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/987077e3c65231c6adccddae0b2111489aad3890.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/f934c226a3eb94a6ee6247eb9e6e024ffc857e13.zip'
             home 'aerogear-testing-tools'
             isInstalled {
                 return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()
@@ -252,14 +252,15 @@ spacelift {
             fileName 'aerogear-testing-tools.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-                Spacelift.task(MavenExecutor)
-                    .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
-                    .goals('clean', 'install')
-                    .execute().await()
 
                 /// We need to install it before it is released
                 Spacelift.task(MavenExecutor)
-                    .pom("${home.absolutePath}/aerogear-ups-rest-api/pom.xml")
+                        .pom("${home.absolutePath}/aerogear-ups-rest-api/pom.xml")
+                        .goals('clean', 'install')
+                        .execute().await()
+
+                Spacelift.task(MavenExecutor)
+                    .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
                     .goals('clean', 'install')
                     .execute().await()
             }
@@ -649,8 +650,8 @@ spacelift {
                 commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
                 commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.jbossBindAddress} "
                 commonJavaOpts += "-Dcustom.aerogear.apns.feedback.port=16003 "
-                commonJavaOpts += "-DgcmMockCrt=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
-                commonJavaOpts += "-DgcmMockKey=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
+                commonJavaOpts += "-Dgcm.mock.certificate.path=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
+                commonJavaOpts += "-Dgcm.mock.certificate.password=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
                 if(project.ipVersion == "IPv6"){
                     commonJavaOpts += "-Djava.net.preferIPv4Stack=false "
                     commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
