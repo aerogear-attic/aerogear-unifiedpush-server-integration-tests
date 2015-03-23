@@ -51,9 +51,11 @@ ext {
     defaultOpenShiftUsername = ''
     defaultOpenShiftPassword = ''
     defaultOpenShiftAppDirectory = 'unified-push'
-    defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=jboss-mobile/jboss-unified-push-openshift-cartridge'
+    defaultOpenShiftCartridge = 'https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml'
     defaultOpenShiftRecreate = 'true'
 
+    defaultUnifiedPushModelRepository = null
+    defaultUnifiedPushModelVersion = '1.0.3'
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultIpVersion = 'IPv4'
@@ -253,14 +255,22 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             postActions {
 
+                if(project.unifiedPushModelRepository != null) {
+                    Spacelift.task(SettingsXmlUpdater)
+                            .repository("external-repository", project.unifiedPushModelRepository, false)
+                            .execute().await()
+                }
+
                 /// We need to install it before it is released
                 Spacelift.task(MavenExecutor)
                         .pom("${home.absolutePath}/aerogear-ups-rest-api/pom.xml")
+                        .property("aerogear.unifiedpush-server-model.version=${project.unifiedPushModelVersion}")
                         .goals('clean', 'install')
                         .execute().await()
 
                 Spacelift.task(MavenExecutor)
                     .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
+                    .property("aerogear.version=${project.unifiedPushModelVersion}")
                     .goals('clean', 'install')
                     .execute().await()
             }
