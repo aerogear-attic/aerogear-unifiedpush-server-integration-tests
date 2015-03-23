@@ -7,6 +7,8 @@ import org.arquillian.spacelift.gradle.*
 import org.arquillian.spacelift.gradle.android.*
 import org.arquillian.spacelift.gradle.arquillian.*
 import org.arquillian.spacelift.gradle.container.*
+import org.arquillian.spacelift.gradle.container.db.*
+import org.arquillian.spacelift.gradle.container.db.module.*
 import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.gradle.*
 import org.arquillian.spacelift.gradle.maven.*
@@ -17,9 +19,11 @@ import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
 import org.arquillian.spacelift.process.ProcessResult
+import org.arquillian.spacelift.task.archive.*
 import org.arquillian.spacelift.task.os.CommandTool
 import org.arquillian.spacelift.task.net.DownloadTool
 import org.arquillian.spacelift.task.io.WriteToFileTool
+import org.arquillian.spacelift.task.text.*
 import org.jboss.aerogear.unifiedpush.api.*
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
 import org.jboss.aerogear.test.container.manager.configuration.ContainerType
@@ -58,6 +62,10 @@ ext {
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
+    defaultUpsDatasource = "h2"
+    defaultMysqlUrl = "jdbc:mysql://localhost:3306/unifiedpush"
+    defaultMysqlUsername = "unifiedpush"
+    defaultMysqlPassword = "unifiedpush"
 
     androidSdkVersion = '23'
 
@@ -137,6 +145,15 @@ spacelift {
                 ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
+
+        wildfly8mysql(inherits: local) {
+            enabledInstallations {
+                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8ContainerMysql', "unifiedPushServer_${project.unifiedPushSource}"]
+            }
+
+            tests 'localIntegrationTests'
+        }
+
 
         externalEap6(inherits: local) {
             enabledInstallations {
@@ -299,6 +316,36 @@ spacelift {
             }
         }
 
+        wildfly8ContainerMysql (from: wildfly8Container) {
+           home { 'wildfly-8.2.0.Final_mysql' }
+           postActions {
+                project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
+                def resolvedVersion = "5.1.33"
+                def destination = home.absolutePath
+                // databases setup
+                Spacelift.task(MavenExecutor)
+                    .goal("dependency:copy")
+                    .property("artifact=mysql:mysql-connector-java:${resolvedVersion}")
+                    .property("outputDirectory=${destination}")
+                    .execute()
+                    .await()
+                def jbossManager = Spacelift.task(JBossStarter)
+                    .configuration(new JBossManagerConfiguration()
+                    .setJBossHome(home.absolutePath)
+                    .setStartupTimeoutInSeconds(600)).execute().await()
+
+
+                Spacelift.task(JBossCLI)
+                    .environment("JBOSS_HOME", home.absolutePath)
+                    .connect()
+                    .cliCommand("module add --name=com.mysql.jdbc --resources=${destination}/mysql-connector-java-${resolvedVersion}.jar --dependencies=javax.api,javax.transaction.api")
+                    .execute()
+                    .await()
+               Spacelift.task(jbossManager, JBossStopper).execute().await()
+            }
+
+        }
+
         eap6Container {
             product 'eap'
             version { project.eap6Version }
@@ -376,6 +423,13 @@ spacelift {
                         new File(home, 'servers/ups-wildfly/target/ag-push.war'),
                         new File(project.unifiedPushBinariesDir, 'wildfly-ag-push.war'))
 
+                Files.copy(
+                        new File(home, 'databases/mysql-database-config-wildfly.cli'),
+                        new File(project.unifiedPushBinariesDir, 'mysql-database-config-cli.xml'))
+
+                Files.copy(
+                        new File(home, 'migrator/target/unifiedpush-migrator-1.0.3-SNAPSHOT-dist.zip'),
+                        new File(project.unifiedPushBinariesDir, 'unifiedpush-migrator.zip'))
 
             }
         }
@@ -442,6 +496,19 @@ spacelift {
                             new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
                     )
                 }
+                if (project.unifiedPushServerMysqlDatasource != null) {
+                    Files.copy(
+                            new File(project.unifiedPushMysqlDatasource),
+                            new File(project.unifiedPushBinariesDir, 'mysql-database-config-cli.xml')
+                    )
+                }
+                if (project.unifiedPushServerMigratorZip != null) {
+                    Files.copy(
+                            new File(project.unifiedPushServerMigratorZip),
+                            new File(project.unifiedPushBinariesDir, 'unifiedpush-migrator.zip')
+                    )
+                }
+
             }
         }
 
@@ -675,7 +742,79 @@ spacelift {
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
-                ['unifiedpush-h2-ds.xml', 'auth-server.war', "${project.unifiedPushType}-ag-push.war",
+                if(project.upsDatasource=="h2"){
+                    ['unifiedpush-h2-ds.xml'].each {
+                        // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
+                        try {
+                            println "Undeploying ${it}"
+                            Spacelift.task(JBossCLI)
+                                    .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                    .connect()
+                                    .cliCommand("undeploy ${it}${undeploymentGroups}")
+                                    .execute().await()
+
+                            println "${it} undeployed successfully"
+                        } catch (Exception e) {
+                            println "${it} undeploy failed"
+                        }
+                    }
+
+                    def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
+                    if(datasourceXmlFile.exists()) {
+                        Spacelift.task(JBossCLI)
+                                .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                .connect()
+                                .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
+                                .execute().await()
+                    }
+                } else if(project.upsDatasource=="mysql") {
+                   /*load mysql*/
+
+                        new File(project.unifiedPushBinariesDir, 'unifiedpush-migrator.zip')
+                        new File("${project.unifiedPushBinariesDir}/mysql-database-config-cli.xml")
+
+                    project.ant.copy(tofile: "${project.unifiedPushBinariesDir}/mysql-database-changed.cli") {
+                        fileset(file:"${project.unifiedPushBinariesDir}/mysql-database-config-cli.xml")
+                    }
+
+                    Spacelift.task(StringReplacementTool)
+                        .in("${project.unifiedPushBinariesDir}/mysql-database-changed.cli")
+                        .replace("--connection-url=\".*\"")
+                        .with("--connection-url=\"${project.mysqlUrl}?useUnicode=true&amp;characterEncoding=UTF-8\"")
+                        .replace("--user-name=unifiedpush ")
+                        .with("--user-name=${project.mysqlUsername } ")
+                        .replace("--password=unifiedpush ")
+                        .with("--password=${project.mysqlPassword} ")
+                        .execute().await()
+
+                    Spacelift.task(JBossCLI)
+                                    .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                    .file(new File("${project.unifiedPushBinariesDir}/mysql-database-changed.cli"))
+                                    .execute().await()
+                           
+                                    /*unzip migrator*/                
+                        def trgt = new File("${project.spacelift.workspace}/migrator");
+
+                        def migrator_dir = Spacelift.task(new File("${project.unifiedPushBinariesDir}/unifiedpush-migrator.zip"),UnzipTool).cutdirs().toDir(trgt).execute().await()
+                            
+                    /*chmod*/
+                        project.ant.chmod(dir: "${migrator_dir}/bin/", perm: "a+x", includes: "*")
+
+                    /*copy template*/
+                    /*run migrator*/
+                        Spacelift.task(CommandTool)
+                            .programName("${migrator_dir}/bin/ups-migrator")
+                            .parameter("--logLevel=DEBUG")
+                            .parameter("--url=${project.mysqlUrl}")
+                            .parameter("--username=${project.mysqlUsername}")
+                            .parameter("--password=${project.mysqlPassword}")
+                            .parameter("--changeLogFile=liquibase/master.xml")
+                            .parameter("update").execute().await()
+
+
+                } 
+
+                ['auth-server.war', "${project.unifiedPushType}-ag-push.war",
                  'unifiedpush-test-extension-server.war'].each {
                     // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
                     try {
@@ -691,15 +830,7 @@ spacelift {
                         println "${it} undeploy failed"
                     }
                 }
-
-                def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
-                if(datasourceXmlFile.exists()) {
-                    Spacelift.task(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.absolutePath)
-                            .connect()
-                            .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
-                            .execute().await()
-                }
+ 
 
                 Spacelift.task(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
