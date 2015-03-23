@@ -51,7 +51,7 @@ ext {
     defaultOpenShiftUsername = ''
     defaultOpenShiftPassword = ''
     defaultOpenShiftAppDirectory = 'aerogear-push'
-    defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=AdamSaleh/openshift-origin-cartridge-aerogear-push-wildfly'
+    defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=jboss-mobile/jboss-unified-push-openshift-cartridge'
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
