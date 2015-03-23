@@ -50,7 +50,7 @@ ext {
     defaultOpenShiftGearSize = 'medium'
     defaultOpenShiftUsername = ''
     defaultOpenShiftPassword = ''
-    defaultOpenShiftAppDirectory = 'aerogear-push'
+    defaultOpenShiftAppDirectory = 'unified-push'
     defaultOpenShiftCartridge = 'https://cartreflect-claytondev.rhcloud.com/reflect?github=jboss-mobile/jboss-unified-push-openshift-cartridge'
     defaultOpenShiftRecreate = 'true'
 
