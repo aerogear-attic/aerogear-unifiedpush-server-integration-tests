@@ -1,7 +1,7 @@
 language: java
-before_script:
-  - true
 jdk:
     - oraclejdk7
+install:
+    - ./gradlew assemble -Pwildfly8
 script:
-    - ./gradlew --stacktrace test -Pprofile=wildfly8 test
+    - ./gradlew --stacktrace test -Pwildfly8 test
