@@ -781,6 +781,7 @@ public class PushServerAdminUiTestCase extends AbstractPushServerAdminUiTest {
             variantRegistrationPage.registeriOSVariant(name, desc, appleCertPath, passphrase, isProd);
         }
         variantsPage.waitForVariant(name);
+
     }
 
     /* -- Testing data section -- */

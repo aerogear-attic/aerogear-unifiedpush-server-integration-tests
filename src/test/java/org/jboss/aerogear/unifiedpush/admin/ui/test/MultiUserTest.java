@@ -18,6 +18,7 @@ import org.junit.experimental.categories.Category;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.FindBy;
 
+import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -25,6 +26,7 @@ import static org.junit.Assert.*;
 @Category(AdminUI.class)
 public class MultiUserTest extends AbstractPushServerAdminUiTest {
 
+    public static final String CONSOLE_PATH = "admin/aerogear/console/index.html";
     @Page
     private UsersPage usersPage;
 
@@ -86,12 +88,11 @@ public class MultiUserTest extends AbstractPushServerAdminUiTest {
 
     @Test
     @InSequence(0)
-    public void activateDeveloperTest() {
+    public void activateDeveloperTest() throws URISyntaxException {
         String ble = contextRoot.toExternalForm();
         driver.manage().timeouts().setScriptTimeout(15, TimeUnit.SECONDS);
 
-        driver.get(authContextRoot.toExternalForm());
-        authPage.openConsole();
+        driver.get(authContextRoot.toURI().resolve(CONSOLE_PATH).toString());
         loginPage.waitForPage();
         loginPage.login(ADMIN_USERNAME, PASSWORD);
         if (passwordChangePage.isPagePresent()) {
@@ -107,9 +108,8 @@ public class MultiUserTest extends AbstractPushServerAdminUiTest {
 
     @Test
     @InSequence(1)
-    public void createNewUserTest() {
-        driver.get(authContextRoot.toExternalForm());
-        authPage.openConsole();
+    public void createNewUserTest() throws URISyntaxException {
+        driver.get(authContextRoot.toURI().resolve(CONSOLE_PATH).toString());
         loginPage.waitForPage();
         loginPage.login(ADMIN_USERNAME, PASSWORD);
         if (passwordChangePage.isPagePresent()) {
