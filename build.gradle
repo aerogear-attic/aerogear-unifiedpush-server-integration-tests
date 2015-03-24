@@ -205,7 +205,7 @@ spacelift {
         // install UPS model, required for UPS REST API
         unifiedPushServerModel {
             product 'aerogear'
-            version "${project.unifiedPushModelVersion}"
+            version { project.unifiedPushModelVersion }
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
