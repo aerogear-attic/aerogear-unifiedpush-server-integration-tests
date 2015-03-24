@@ -123,7 +123,7 @@ spacelift {
 
     profiles {
         openshift {
-            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
             tests 'openshiftIntegrationTests'
         }
         local {
@@ -131,23 +131,23 @@ spacelift {
         }
         eap6(inherits: local) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
         wildfly8(inherits: local) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
 
         externalEap6(inherits: local) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
+                ['maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
             }
         }
 
         helloWorldCordovaQuickstart {
-            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'androidSdk', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'androidSdk', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
             tests 'helloWorldCordovaQuickstart'
         }
 
@@ -157,7 +157,7 @@ spacelift {
         }
 
         adminUIOpenshift  {
-            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServer_preReleaseMaven', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
+            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
             tests 'openshiftAdminUITests'
         }
     }
@@ -202,6 +202,52 @@ spacelift {
             }
         }
 
+        // install UPS model, required for UPS REST API
+        unifiedPushServerModel {
+            product 'aerogear'
+            version "${project.unifiedPushModelVersion}"
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
+            home 'aerogear-unifiedpush-server-pre-release'
+            extractMapper { toDir(home).cutdirs() }
+            // trigger installation only if model is not already in the repository
+            isInstalled {
+                // if there is additional Maven repository, add it there
+                if(project.unifiedPushModelRepository != null) {
+                    Spacelift.task(SettingsXmlUpdater)
+                            .repository("external-repository", project.unifiedPushModelRepository, false)
+                            .execute().await()
+                }
+
+                try {
+                    final String modelCoordinates = "org.jboss.aerogear.unifiedpush:unifiedpush-model-jpa:${version}"
+                    Maven.configureResolver()
+                        .fromFile(new File(project.spacelift.workspace, "settings.xml"))
+                        .resolve(modelCoordinates).withoutTransitivity().asSingleFile()
+                    return true
+                }
+                // TODO, we should likely rather test for NoSuchResultException here
+                catch(Exception e) {
+                    return false
+                }
+            }
+            postActions {
+                // install parent as prerequite to installing model
+                Spacelift.task(MavenExecutor).pom('pom.xml')
+                        .workingDir(home.absolutePath)
+                        .withoutSubprojects()
+                        .goals('clean', 'install')
+                        .properties( 'skipTests', 'maven.javadoc.skip=true')
+                        .execute().await()
+
+                // install model
+                Spacelift.task(MavenExecutor).pom('model/pom.xml')
+                        .workingDir(home.absolutePath)
+                        .goals('clean', 'install')
+                        .properties( 'skipTests', 'maven.javadoc.skip=true')
+                        .execute().await()
+            }
+        }
+
         littleProxy {
             product 'aerogear'
             version { project.littleProxyVersion }
@@ -220,29 +266,6 @@ spacelift {
             }
         }
 
-        unifiedPushServer_preReleaseMaven {
-            product 'aerogear'
-            version '1.0.3'
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
-            home 'aerogear-unifiedpush-server-pre-release'
-            fileName 'aerogear-unifiedpush-server-pre-release.zip'
-            extractMapper { toDir(home).cutdirs() }
-            postActions {
-                Spacelift.task(MavenExecutor).pom('pom.xml')
-                        .workingDir(home.absolutePath)
-                        .withoutSubprojects()
-                        .goals('clean', 'install')
-                        .properties( 'skipTests', 'maven.javadoc.skip=true')
-                        .execute().await()
-
-                Spacelift.task(MavenExecutor).pom('model/pom.xml')
-                        .workingDir(home.absolutePath)
-                        .goals('clean', 'install')
-                        .properties( 'skipTests', 'maven.javadoc.skip=true')
-                        .execute().await()
-            }
-        }
-
         aerogearTestingTools {
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
@@ -254,20 +277,14 @@ spacelift {
             fileName 'aerogear-testing-tools.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
-
-                if(project.unifiedPushModelRepository != null) {
-                    Spacelift.task(SettingsXmlUpdater)
-                            .repository("external-repository", project.unifiedPushModelRepository, false)
-                            .execute().await()
-                }
-
-                /// We need to install it before it is released
+                // Install UPS REST API using specific UPS model
                 Spacelift.task(MavenExecutor)
                         .pom("${home.absolutePath}/aerogear-ups-rest-api/pom.xml")
                         .property("aerogear.unifiedpush-server-model.version=${project.unifiedPushModelVersion}")
                         .goals('clean', 'install')
                         .execute().await()
 
+                // Install test extension using specific UPS model
                 Spacelift.task(MavenExecutor)
                     .pom("${home.absolutePath}/unifiedpush-test-extension/pom.xml")
                     .property("aerogear.version=${project.unifiedPushModelVersion}")
@@ -276,17 +293,6 @@ spacelift {
             }
         }
 
-        androidSdk(from:AndroidSdkInstallation) {
-            product 'androidSdk'
-            version { project.androidSdkVersion }
-            updateImages { false }
-            createAvds { false } 
-            androidTargets { project.androidTargets }
-        }
-
-        shootAndShareAndroidSdk(inherits:androidSdk) {
-            buildTools { [ "19.0.0" ] } // this version is specifically needed when building Shoot&Share quickstart
-        }
 
         wildfly8Container {
             product { 'jboss' }
@@ -358,7 +364,6 @@ spacelift {
             version '1.0.3'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
             home 'aerogear-unifiedpush-server'
-            fileName 'aerogear-unifiedpush-server.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
                 Spacelift.task(MavenExecutor).pom('pom.xml')
@@ -367,26 +372,21 @@ spacelift {
                         .properties( 'skipTests', 'maven.javadoc.skip=true')
                         .execute().await()
 
+                // copy files to directory where files to be deployed are stored
                 project.unifiedPushBinariesDir.mkdirs()
-
                 Spacelift.task(DownloadTool.class)
                         .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
                         .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
                         .execute().await()
-
                 Files.copy(
                         new File(home, 'servers/auth-server/target/auth-server.war'),
                         new File(project.unifiedPushBinariesDir, 'auth-server.war'))
-
                 Files.copy(
                         new File(home, 'servers/ups-as7/target/ag-push.war'),
                         new File(project.unifiedPushBinariesDir, 'as7-ag-push.war'))
-
                 Files.copy(
                         new File(home, 'servers/ups-wildfly/target/ag-push.war'),
                         new File(project.unifiedPushBinariesDir, 'wildfly-ag-push.war'))
-
-
             }
         }
 
@@ -403,21 +403,19 @@ spacelift {
                         .createRemoteRepository('remote_ups', project.unifiedPushMavenRepository, 'default'))
                         .withMavenCentralRepo(false)
 
-                project.unifiedPushBinariesDir.mkdirs()
 
+                // copy files to directory where files to be deployed are stored
+                project.unifiedPushBinariesDir.mkdirs()
                 Spacelift.task(DownloadTool.class)
                         .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
                         .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
                         .execute().await()
-
                 Files.copy(
                         resolver.resolve(authServerCanonicalCoordinate).withoutTransitivity().asSingleFile(),
                         new File(project.unifiedPushBinariesDir, 'auth-server.war'))
-
                 Files.copy(
                         resolver.resolve(upsAs7CanonicalCoordinate).withoutTransitivity().asSingleFile(),
                         new File(project.unifiedPushBinariesDir, 'as7-ag-push.war'))
-
                 Files.copy(
                         resolver.resolve(upsWildFlyCanonicalCoordinate).withoutTransitivity().asSingleFile(),
                         new File(project.unifiedPushBinariesDir, 'wildfly-ag-push.war'))
@@ -432,8 +430,11 @@ spacelift {
             version '1.0.2'
             isInstalled { false }
             postActions {
+                
+                // copy files to directory where files to be deployed are stored
+                // FIXME this should be deleted as well
+                // FIXME this is very good candidate for abstraction
                 project.unifiedPushBinariesDir.mkdirs()
-
                 if (project.unifiedPushServerWar != null) {
                     Files.copy(
                             new File(project.unifiedPushServerWar),
@@ -455,12 +456,17 @@ spacelift {
             }
         }
 
-        deployUnifiedPushToContainer {
-            product 'aerogear'
-            version '1.0.2'
-            postActions {
-                project.unifiedPushType
-            }
+        /* installations related to Cordova Quickstarts testing */
+        androidSdk(from:AndroidSdkInstallation) {
+            product 'androidSdk'
+            version { project.androidSdkVersion }
+            updateImages { false }
+            createAvds { false } 
+            androidTargets { project.androidTargets }
+        }
+
+        shootAndShareAndroidSdk(inherits:androidSdk) {
+            buildTools { [ "19.0.0" ] } // this version is specifically needed when building Shoot&Share quickstart
         }
 
         helloWorldCordovaQuickstart {
@@ -584,6 +590,8 @@ spacelift {
             }
         }
 
+        // we need to build desktop video recorder from sources as this component cannot be deployed to Maven Central
+        // due to license constraints
         arquillianDesktopVideoRecorder {
             product 'arquillian-desktop-video-recorder'
             version '1.0.0.Beta1'
@@ -602,6 +610,8 @@ spacelift {
             }
         }
     }
+
+    /* TESTS */
 
     tests {
         openshiftIntegrationTests {
@@ -667,6 +677,8 @@ spacelift {
                     commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
                 }
 
+                // deployment groups are related to domain mode
+                // we figure out that we are on domain mode via external property
                 def deploymentGroups = ""
                 def undeploymentGroups = ""
                 if (project.jbossDomainMode == true) {
@@ -681,6 +693,7 @@ spacelift {
                     jbossManagerConfiguration.setJavaOpts(javaOpts)
                 }
 
+                // FIXME this should be in test, not in ext
                 project.ext.jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
@@ -722,6 +735,8 @@ spacelift {
                         .then(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
                         .connect()
+                        // FIXME move test extension result to binaries dir as well
+                        // iterate over content of the repository - eventually filter to have just unifiedPushType for ag-push war
                         .cliCommand("deploy ${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war').absolutePath}${deploymentGroups}")
                         .execute().await()
 
@@ -738,6 +753,22 @@ spacelift {
                     }
                 })
                 println 'The unifiedpush-test-extension-server.war was successfully deployed.'
+
+                println 'Waiting for Keycloak to be initialized and ready'
+                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(10, TimeUnit.SECONDS).until(new Callable<Boolean>() {
+                    @Override
+                    Boolean call() throws Exception {
+                        Response response = RestAssured.given()
+                                .baseUri(baseUri)
+                                .get('/keycloak/realms')
+
+                        response.then().log().all(true)
+
+                        List<String> result = (List<String>) response.as(List.class)
+
+                        return result.contains("aerogear")
+                    }
+                })
 
                 println 'Reconfiguring KeyCloak.'
                 RestAssured.given()
@@ -783,26 +814,23 @@ spacelift {
                 println "Using external maven parameters: ${project.externalMavenParameters}"
                 println "Using base uri: $baseUri"
 
-                /*Spacelift.task('mvn')
-                        .parameters('-Popenshift', "-DcontainerUri=$baseUri", 'clean', 'test')
-                        .interaction(new ProcessInteractionBuilder().when(".*").printToOut())
-                        .parameters(new CommandBuilder('unused').splitToParameters(project.externalMavenParameters).build().getParameters())
-                        .execute().await()
-                */
-                def test_task = Spacelift.task(MavenExecutor).pom("pom.xml")
+                def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
+                        // FIXME this profile should be removed here - now it is there to use non-deploying container
                         .profile('openshift')
                         .property("containerUri=$baseUri")
                         .goals('clean', 'test')
                 for(prop in project.externalMavenParameters.split()){
-                        test_task.property(prop)
+                        maven.property(prop)
                 }
 
-                test_task.execute().await()
+                maven.execute().await()
             }
             afterSuite {
                 Spacelift.task(project.jbossManager, JBossStopper).execute().await()
             }
         }
+
+        /* Quickstarts related tests */
 
         helloWorldCordovaQuickstart {
 
