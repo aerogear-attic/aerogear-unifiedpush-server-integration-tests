@@ -856,7 +856,7 @@ spacelift {
 
                 Spacelift.task(MavenExecutor)
                     .pom("${project.rootDir.absolutePath}/quickstartTests/aerogear-push-helloworld-cordova/pom.xml")
-                    .property("selendroid.test.app=${helloworldCordovaQuickstart.home}/cordova/platforms/android/ant-build/CordovaApp-debug.apk")
+                    .property("selendroid.test.app=${helloWorldCordovaQuickstart.home}/cordova/platforms/android/ant-build/CordovaApp-debug.apk")
                     .property("arquillian.debug=true")
                     .property("pushApplicationId=${project.quickstartPushApplicationId}")
                     .property("pushApplicationSecret=${project.quickstartPushApplicationMasterSecret}")
