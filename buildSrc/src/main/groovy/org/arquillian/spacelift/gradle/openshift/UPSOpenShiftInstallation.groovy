@@ -172,10 +172,6 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
         // intentionally empty
     }
 
-    public boolean turnProxyOn() {
-        turnProxyOn.resolve()
-    }
-
     public CharSequence[] getOpenShiftCartridges() {
         openShiftCartridges.resolve().toArray(new CharSequence[0])
     }
@@ -257,7 +253,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                 .execute().await()
 
 
-        if (turnProxyOn) {
+        if (turnProxyOn.resolve()) {
             String[] JAVA_OPTS_EXT_PARAMETERS = [
                     "-Dhttp.proxyHost=$ip",
                     "-Dhttp.proxyPort=${openShiftHttpProxyPort.resolve()}",
@@ -397,7 +393,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
 
         println 'The unifiedpush-test-extension-server.war was successfully deployed.'
 
-        if (turnProxyOn()) {
+        if (turnProxyOn.resolve()) {
             println "Trying to activate proxy."
 
             Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
