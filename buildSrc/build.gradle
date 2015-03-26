@@ -18,9 +18,8 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.1'
 
     // Spacelift abstracts execution of external commands
-    compile 'org.arquillian.spacelift:arquillian-spacelift:1.0.0.Alpha6'
     compile 'com.jayway.restassured:rest-assured:2.4.0'
     compile 'com.jayway.awaitility:awaitility-groovy:1.6.3'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-    compile 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-9'
+    compile 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-11'
 }

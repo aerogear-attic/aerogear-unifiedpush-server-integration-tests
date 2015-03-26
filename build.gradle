@@ -6,6 +6,7 @@ import org.arquillian.spacelift.Spacelift;
 import org.arquillian.spacelift.gradle.*
 import org.arquillian.spacelift.gradle.android.*
 import org.arquillian.spacelift.gradle.arquillian.*
+import org.arquillian.spacelift.gradle.certs.*
 import org.arquillian.spacelift.gradle.container.*
 import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.gradle.*
@@ -43,6 +44,7 @@ import java.util.concurrent.TimeUnit
 apply plugin: 'spacelift'
 
 ext {
+    
     defaultOpenShiftAppName = 'upsintegrationtests'
     defaultOpenShiftAppNameAdminUI = 'upsadminui'
     defaultOpenShiftAppNameQuickstarts = 'quickstarts'
@@ -67,6 +69,7 @@ ext {
         [ name: 'android-19' ]
     ]
 
+    unifiedPushSource = 'repository'
     defaultUnifiedPushSource = 'repository'
     defaultUnifiedPushMavenRepository = 'http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/'
 
@@ -122,28 +125,40 @@ spacelift {
     }
 
     profiles {
-        openshift {
-            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerOpenshift'
-            tests 'openshiftIntegrationTests'
+        requiredInstallations {
+            enabledInstallations 'keystore', 'maven'
         }
-        local {
+        requiredInstallationsWithLocalTests(from:requiredInstallations) {
             tests 'localIntegrationTests'
         }
-        eap6(inherits: local) {
+        openshift(from: requiredInstallations) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'eap6Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                requiredInstallations.enabledInstallations + ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerOpenshift']
+            }
+            tests 'openshiftIntegrationTests'
+        }
+
+        // abstract test that use a jboss container
+        jbossContainer(from: requiredInstallationsWithLocalTests) {
+            enabledInstallations {
+                requiredInstallationsWithLocalTests.enabledInstallations +
+                        ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}" ]
             }
         }
-        wildfly8(inherits: local) {
+        wildfly8(from: jbossContainer) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'wildfly8Container', "unifiedPushServer_${project.unifiedPushSource}"]
+                jbossContainer.enabledInstallations + 'wildfly8Container'
             }
         }
 
-        externalEap6(inherits: local) {
+        eap6(from: jbossContainer) {
             enabledInstallations {
-                ['maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}"]
+                jbossContainer.enabledInstallations + 'eap6Container'
             }
+        }
+
+        // FIXME, remove, this is deprecated name alias
+        externalEap6(from: jbossContainer) {
         }
 
         helloWorldCordovaQuickstart {
@@ -165,10 +180,9 @@ spacelift {
     installations {
         maven {
             product 'maven'
-            version { '3.2.5' }
+            version '3.2.5'
             remoteUrl "http://www.eu.apache.org/dist/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.zip"
-            home 'maven'
-            fileName "maven.zip"
+            home 'maven'            
             extractMapper { toDir(home).cutdirs() }
             tools {
                 mvn {
@@ -180,6 +194,7 @@ spacelift {
                 }
             }
             postActions {
+                // FIXME we need chmod task as well
                 if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
                     return
                 }
@@ -200,6 +215,10 @@ spacelift {
                     "ANDROID_SDK_HOME" : androidSdk.home.parentFile.canonicalPath
                 ]
             }
+        }
+
+        // installs keystore
+        keystore(from:KeystoreInstallation) {
         }
 
         // install UPS model, required for UPS REST API
@@ -664,8 +683,8 @@ spacelift {
                 def commonJavaOpts = " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
                 commonJavaOpts += "-Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000 "
                 commonJavaOpts += "-Djboss.bind.address=${project.jbossBindAddress} "
-                commonJavaOpts += "-Djavax.net.ssl.trustStore=setup/aerogear.truststore "
-                commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=aerogear "
+                commonJavaOpts += "-Djavax.net.ssl.trustStore=${keystore.truststore.canonicalPath}"
+                commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass}"
                 commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.jbossBindAddress} "
                 commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
                 commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.jbossBindAddress} "
@@ -917,7 +936,7 @@ buildscript {
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
         classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.6.0'
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-10'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-11'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'
         classpath 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'

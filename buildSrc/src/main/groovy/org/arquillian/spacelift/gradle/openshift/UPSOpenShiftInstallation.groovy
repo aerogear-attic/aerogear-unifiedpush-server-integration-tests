@@ -1,7 +1,6 @@
 package org.arquillian.spacelift.gradle.openshift
 
 import org.arquillian.spacelift.gradle.CertificateGenerator
-import org.arquillian.spacelift.gradle.keytool.KeyTool
 
 import java.io.File
 import java.lang.reflect.Array
