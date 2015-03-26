@@ -28,16 +28,14 @@
     </engine>
     -->    
 
-    <!-- Configuration to be used when the JBoss managed profile is active -->
+    <!-- Configuration to be used when the OpenShift profile is active -->
     <!-- Here, we reference "main-server-group", as this is the default for tests running in domain mode -->
     <container qualifier="main-server-group" default="true">
         <configuration>
-            <property name="jbossHome">${env.JBOSS_HOME:jboss-as-7.1.1.Final}</property>
-            <!-- <property name="serverConfig">standalone-full.xml</property> -->
-            <property name="javaVmArguments">-Djboss.bind.address=${jbossBindAddress:127.0.0.1} -Djboss.bind.address.management=${jbossBindAddressManagement:127.0.0.1} -Xmx1024m -XX:MaxPermSize=256m</property>
-            <property name="managementAddress">${jbossBindAddressManagement:127.0.0.1}</property>
-
-
+            <property name="baseURI">${containerUri:http://localhost:8080/}</property>
+            <!-- FIXME this mapping should not be there but without it KC yields redirect invalid URI, investigate -->
+            <property name="contextRootRemap">{'ag-push' : '/ag-push', 'auth-server' : '/auth'}</property>
+            <property name="check">org.jboss.aerogear.unifiedpush.admin.ui.utils.UpsOpenshiftStatusCheck</property>
         </configuration>
     </container>
 
@@ -48,10 +46,17 @@
         <property name="waitGuiInterval">5</property>
     </extension>
 
+    <extension qualifier="reporter">
+      <property name="report">html</property>
+    </extension>
+
+    <extension qualifier="recorder">
+    <property name="startBeforeClass">true</property>
+    <!-- <property name="takeOnlyOnFail">false</property> -->
+</extension>
+
     <extension qualifier="webdriver">
         <property name="browser">${browser:firefox}</property>
         <property name="dimensions">1200x900</property>
     </extension>
-
-
 </arquillian>
