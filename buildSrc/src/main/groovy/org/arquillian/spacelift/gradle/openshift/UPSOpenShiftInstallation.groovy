@@ -178,14 +178,14 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
     @Override
     public void install(Logger logger) {
 
-        println 'Creating UPS OpenShift cartridge.'
+        logger.info(":install:${name} Creating UPS OpenShift cartridge.")
 
         File repository = openShiftRepository.resolve()
         if (repository == null || !repository.exists() || !repository.isDirectory()) {
             repository = File.createTempDir()
         }
 
-        println "UPS OpenShift repository will be cloned to ${repository.canonicalPath}"
+        logger.info(":install:${name} UPS OpenShift repository will be cloned to ${repository.canonicalPath}")
 
         Spacelift.task(CreateOpenShiftCartridge)
                 .server(openShiftServer.resolve())
@@ -303,7 +303,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                 .add(gcmKeyTarget)
                 .execute().await()
 
-        addedFiles.each { addedFile ->
+        addedFiles.each { File addedFile ->
             println addedFile.canonicalPath
             Spacelift.task(CommandTool)
                     .workingDirectory(repository.canonicalPath)
@@ -313,22 +313,22 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                     .execute().await()
         }
 
-        println 'Added files to OpenShift repository'
+        logger.info(":install:${name} Added files to OpenShift repository")
 
-        println 'Committing unifiedpush-test-extension-server.war into the OpenShift repository.'
+        logger.info(":install:${name} Committing unifiedpush-test-extension-server.war into the OpenShift repository.")
 
         Spacelift.task(repository, GitCommitTool).message('Add test extension war.').execute().await()
 
         File gitSshFile = gitSsh.resolve()
 
-        println 'Pushing added unifiedpush-test-extension-server.war into the OpenShift repository'
+        logger.info(":install:${name} Pushing added unifiedpush-test-extension-server.war into the OpenShift repository")
 
         Spacelift.task(repository, GitPushTool).gitSsh(gitSshFile).execute().await()
 
         final String baseUri = "https://" + openShiftAppName.resolve() + "-" + openShiftNamespace.resolve() + ".rhcloud.com/unifiedpush-test-extension-server"
 
-        println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-        println "Expected deployment url: $baseUri"
+        logger.info(":install:${name} Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)")
+        logger.info(":install:${name} Expected deployment url: $baseUri")
 
         Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
                     @Override
@@ -341,7 +341,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                     }
                 })
 
-        println 'The unifiedpush-test-extension-server.war was successfully deployed.'
+        logger.info(":install:${name}The unifiedpush-test-extension-server.war was successfully deployed.")
 
         Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(10, TimeUnit.SECONDS).until(new Callable<Boolean>() {
                     @Override
@@ -358,7 +358,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                     }
                 })
 
-        println 'Reconfiguring KeyCloak.'
+        logger.info(":install:${name} Reconfiguring KeyCloak.")
         RestAssured.given()
                 .baseUri(baseUri)
                 .get('/keycloak')
@@ -366,7 +366,8 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                 .log().all(true)
                 .statusCode(200)
 
-        println 'Restaring the cartridge.'
+        logger.info(":install:${name} Restaring the cartridge.")
+
         Spacelift.task(CommandTool)
                 .programName("rhc")
                 .parameters('app', 'restart')
@@ -376,7 +377,7 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                 .parameters('-p', openShiftPassword.resolve())
                 .execute().await()
 
-        println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
+        logger.info(":install:${name} Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)")
         println "Expected deployment url: $baseUri"
 
         Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
@@ -390,23 +391,22 @@ class UPSOpenShiftInstallation extends BaseContainerizableObject<UPSOpenShiftIns
                     }
                 })
 
-        println 'The unifiedpush-test-extension-server.war was successfully deployed.'
+        logger.info(":install:${name} The unifiedpush-test-extension-server.war was successfully deployed.")
 
         if (turnProxyOn.resolve()) {
-            println "Trying to activate proxy."
+            logger.info(":install:${name} Trying to activate proxy.")
 
             Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
                         @Override
                         Boolean call() throws Exception {
                             Response response = RestAssured.given().baseUri(baseUri).get("/proxy/activate")
-
-                            println "returned status code: " + response.statusCode
+                            logger.info(":install:${name} proxy status code ${response.statusCode}")
 
                             return response.statusCode == 200
                         }
                     })
 
-            println "Proxy was activated."
+            logger.info(":install:${name} Proxy was activated.")
         }
     }
 }
