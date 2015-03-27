@@ -59,13 +59,8 @@ ext {
     defaultUnifiedPushModelRepository = null
     defaultUnifiedPushModelVersion = '1.0.3'
     defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
-    defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
-    androidSdkVersion = '23'
-    androidTargets = [
-        [ name: 'android-19' ]
-    ]
 
     defaultUnifiedPushMavenRepository = 'http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/'
 
@@ -75,17 +70,6 @@ ext {
 
     defaultProtocols = [ 'http' ]
     defaultBrowser = 'firefox'
-
-    defaultUnifiedPushType = 'as7'
-    defaultUnifiedPushServerWar = null
-    defaultUnifiedPushAuthServerWar = null
-    defaultUnifiedPushServerDatasource = null
-
-    defaultJbossDomainMode = false
-    defaultJbossHome = null
-    defaultJbossContainerType = ContainerType.EAP
-    defaultJbossBindAddress = '127.0.0.1'
-    defaultLocalDomain = '127.0.0.1'
 
     // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
     // If there is problem, you can exclude category.GCM as well
@@ -104,7 +88,24 @@ ext {
     defaultFacebookEmail = ''
     defaultFacebookPassword = ''
 
-    defaultUnifiedPushBinariesDir = new File(project.rootDir, 'spacelift/upsBin')
+    // FIXME these object are used to persist states in between installations as we don't have better model
+    // container related configuration
+    // you should pass jbossHome iff you want to use externally prepared container
+    container = [
+        home: project.hasProperty('jbossHome') ? project.jbossHome : null,
+        configuration: new JBossManagerConfiguration()
+                        .setContainerType(ContainerType.EAP)
+                        .setStartupTimeoutInSeconds(300),
+        bindAddress: project.hasProperty('jbossBindAddress') ? project.jbossBindAddress : '127.0.0.1',
+        localDomain: project.hasProperty('localDomain') ? project.localDomain : '127.0.0.1'
+    ]
+
+    // unified push related configuration
+    unifiedpush = [
+        type: 'as7',
+        binariesDir: new File(project.rootDir, 'spacelift/upsBin')
+    ]
+
 }
 
 spacelift {
@@ -137,7 +138,7 @@ spacelift {
                 if(container != 'openshift') {
                     _installations << "${container}Container"
                 }
-                _installations << ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', ups]
+                _installations += ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', ups]
                 def _tests = container!='openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
@@ -181,15 +182,7 @@ spacelift {
                 }
             }
             postActions {
-                // FIXME we need chmod task as well, can be done via Ant as well
-                if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-                    return
-                }
-
-                def executable = new File("${maven.home.absolutePath}/bin/mvn").toPath();
-                Set<PosixFilePermission> perms = Collections.synchronizedSet(EnumSet.allOf(PosixFilePermission.class));
-
-                java.nio.file.Files.setPosixFilePermissions(executable, perms)
+                project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/mvn")
             }
         }
         
@@ -256,7 +249,7 @@ spacelift {
 
         littleProxy {
             product 'aerogear'
-            version { project.littleProxyVersion }
+            version '1.1.0-beta-1-SNAPSHOT'
             remoteUrl 'https://github.com/adamfisk/LittleProxy/archive/696e3a87a64e9ede019e68312e0c8f9674d1b2a8.zip'
             home 'littleproxy'
             isInstalled {
@@ -308,8 +301,9 @@ spacelift {
             home { 'wildfly-8.2.0.Final' }
             extractMapper { toDir(home).cutdirs() }
             isInstalled {
-                project.jbossHome = home
-                project.jbossContainerType = ContainerType.WILDFLY
+                // override connfiguration
+                project.container.configuration.setContainerType(ContainerType.WILDFLY)
+                project.container.home = home
                 project.unifiedPushType = 'wildfly'
 
                 // There seems to be an error on subsequent runs with the keycloak-default persistence unit
@@ -328,8 +322,8 @@ spacelift {
             remoteUrl { project.eap6RemoteUrl }
             extractMapper { toDir(home).cutdirs() }
             isInstalled {
-                project.jbossHome = home
-                project.jbossContainerType = ContainerType.EAP
+                project.container.home = home
+                project.container.configuration.setContainerType(ContainerType.EAP)
                 project.unifiedPushType = 'as7'
 
                 return home.exists()
@@ -465,10 +459,10 @@ spacelift {
         /* installations related to Cordova Quickstarts testing */
         androidSdk(from:AndroidSdkInstallation) {
             product 'androidSdk'
-            version { project.androidSdkVersion }
+            version '23'
             updateImages { false }
             createAvds { false } 
-            androidTargets { project.androidTargets }
+            androidTargets ([[name:'android-19']])
         }
 
         shootAndShareAndroidSdk(inherits:androidSdk) {
@@ -478,16 +472,12 @@ spacelift {
         helloWorldCordovaQuickstart {
             product 'aerogear'
             version '1.0.1'
-
             home "aerogear-push-helloworld-${version}"
             remoteUrl "https://github.com/jboss-mobile/unified-push-helloworld/archive/${version}.zip"
-
             isInstalled { false }
-
             extractMapper {
                 toDir(home).cutdirs()
             }
-
             postActions {
 
                 // I almost always forget these ...
@@ -652,28 +642,26 @@ spacelift {
             }
         }
         localIntegrationTests {
+
+            def jbossManager = null
+
             dataProvider {
                 project.protocols as ArrayList
             }
             beforeSuite {
-                def jbossHome = project.jbossHome
-                if (jbossHome instanceof CharSequence) {
-                    jbossHome = new File(jbossHome)
-                }
-                final def baseUri = "http://${project.localDomain}:8080/unifiedpush-test-extension-server"
-                final def jbossManagerConfiguration = new JBossManagerConfiguration()
-                        .setContainerType(project.jbossContainerType)
-                        .setJBossHome(jbossHome.absolutePath)
-                        .setStartupTimeoutInSeconds(300)
+                final def baseUri = "http://${project.container.localDomain}:8080/unifiedpush-test-extension-server"
+                final def jbossManagerConfiguration = project.container.configuration
+                final def jbossHome = project.container.home
+                jbossManagerConfiguration.setJBossHome(jbossHome)
 
-                def commonJavaOpts = " -Dhttp.proxyHost=${project.jbossBindAddress} -Dhttp.proxyPort=16000 "
-                commonJavaOpts += "-Dhttps.proxyHost=${project.jbossBindAddress} -Dhttps.proxyPort=16000 "
-                commonJavaOpts += "-Djboss.bind.address=${project.jbossBindAddress} "
+                def commonJavaOpts = " -Dhttp.proxyHost=${project.container.bindAddress} -Dhttp.proxyPort=16000 "
+                commonJavaOpts += "-Dhttps.proxyHost=${project.container.bindAddress} -Dhttps.proxyPort=16000 "
+                commonJavaOpts += "-Djboss.bind.address=${project.container.bindAddress} "
                 commonJavaOpts += "-Djavax.net.ssl.trustStore=${keystore.truststore.canonicalPath}"
                 commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass}"
-                commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.jbossBindAddress} "
+                commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.container.bindAddress} "
                 commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
-                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.jbossBindAddress} "
+                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.container.bindAddress} "
                 commonJavaOpts += "-Dcustom.aerogear.apns.feedback.port=16003 "
                 commonJavaOpts += "-Dgcm.mock.certificate.path=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
                 commonJavaOpts += "-Dgcm.mock.certificate.password=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
@@ -682,24 +670,11 @@ spacelift {
                     commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
                 }
 
-                // deployment groups are related to domain mode
-                // we figure out that we are on domain mode via external property
-                def deploymentGroups = ""
-                def undeploymentGroups = ""
-                if (project.jbossDomainMode == true) {
-                    def javaOpts = jbossManagerConfiguration.getProcessControllerJavaOpts() + " "
-                    javaOpts += commonJavaOpts
-                    jbossManagerConfiguration.domain().setProcessControllerJavaOpts(javaOpts)
-                    deploymentGroups = " --all-server-groups"
-                    undeploymentGroups = " --all-relevant-server-groups"
-                } else {
-                    def javaOpts = jbossManagerConfiguration.getJavaOpts()
-                    javaOpts += commonJavaOpts
-                    jbossManagerConfiguration.setJavaOpts(javaOpts)
-                }
+                def javaOpts = jbossManagerConfiguration.getJavaOpts()
+                javaOpts += commonJavaOpts
+                jbossManagerConfiguration.setJavaOpts(javaOpts)
 
-                // FIXME this should be in test, not in ext
-                project.ext.jbossManager = Spacelift.task(JBossStarter)
+                jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
@@ -711,7 +686,7 @@ spacelift {
                         Spacelift.task(JBossCLI)
                                 .environment("JBOSS_HOME", jbossHome.absolutePath)
                                 .connect()
-                                .cliCommand("undeploy ${it}${undeploymentGroups}")
+                                .cliCommand("undeploy ${it}")
                                 .execute().await()
 
                         println "${it} undeployed successfully"
@@ -725,24 +700,24 @@ spacelift {
                     Spacelift.task(JBossCLI)
                             .environment("JBOSS_HOME", jbossHome.absolutePath)
                             .connect()
-                            .cliCommand("deploy ${datasourceXmlFile.absolutePath}${deploymentGroups}")
+                            .cliCommand("deploy ${datasourceXmlFile.absolutePath}")
                             .execute().await()
                 }
 
                 Spacelift.task(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
                         .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}${deploymentGroups}")
+                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}")
                         .then(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
                         .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war").absolutePath}${deploymentGroups}")
+                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war").absolutePath}")
                         .then(JBossCLI)
                         .environment("JBOSS_HOME", jbossHome.absolutePath)
                         .connect()
                         // FIXME move test extension result to binaries dir as well
                         // iterate over content of the repository - eventually filter to have just unifiedPushType for ag-push war
-                        .cliCommand("deploy ${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war').absolutePath}${deploymentGroups}")
+                        .cliCommand("deploy ${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war').absolutePath}")
                         .execute().await()
 
                 println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
@@ -784,9 +759,9 @@ spacelift {
                         .statusCode(200)
 
                 println 'Restarting container.'
-                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
+                Spacelift.task(jbossManager, JBossStopper).execute().await()
 
-                project.ext.jbossManager = Spacelift.task(JBossStarter)
+                jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
@@ -830,7 +805,7 @@ spacelift {
                 maven.execute().await()
             }
             afterSuite {
-                Spacelift.task(project.jbossManager, JBossStopper).execute().await()
+                Spacelift.task(jbossManager, JBossStopper).execute().await()
             }
         }
 
