@@ -256,17 +256,17 @@
             <version>2.1.0.Alpha2</version>
             <type>pom</type>
         </dependency>
+        <!-- FIXME, update to latest version - current does not work -->
         <dependency>
             <groupId>org.jboss.aerogear.test.arquillian</groupId>
             <artifactId>arquillian-non-deploying-container-checks-api</artifactId>
-            <version>0.4.0</version>
+            <version>0.3.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.aerogear.test.arquillian</groupId>
             <artifactId>arquillian-non-deploying-container</artifactId>
-            <version>0.4.0</version>
-            <version>${version.arquillian.non.deploying.container}</version>
+            <version>0.3.0</version>
             <scope>test</scope>
         </dependency>
 
