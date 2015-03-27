@@ -62,15 +62,11 @@ ext {
     defaultLittleProxyVersion = '1.1.0-beta1-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
-
     androidSdkVersion = '23'
-
     androidTargets = [
         [ name: 'android-19' ]
     ]
 
-    unifiedPushSource = 'repository'
-    defaultUnifiedPushSource = 'repository'
     defaultUnifiedPushMavenRepository = 'http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/'
 
     defaultEap6Version = '6.3.0'
@@ -87,7 +83,7 @@ ext {
 
     defaultJbossDomainMode = false
     defaultJbossHome = null
-    defaultJbossContainer = ContainerType.EAP
+    defaultJbossContainerType = ContainerType.EAP
     defaultJbossBindAddress = '127.0.0.1'
     defaultLocalDomain = '127.0.0.1'
 
@@ -125,40 +121,31 @@ spacelift {
     }
 
     profiles {
-        requiredInstallations {
-            enabledInstallations 'keystore', 'maven'
-        }
-        requiredInstallationsWithLocalTests(from:requiredInstallations) {
-            tests 'localIntegrationTests'
-        }
-        openshift(from: requiredInstallations) {
-            enabledInstallations {
-                requiredInstallations.enabledInstallations + ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerOpenshift']
-            }
-            tests 'openshiftIntegrationTests'
-        }
 
-        // abstract test that use a jboss container
-        jbossContainer(from: requiredInstallationsWithLocalTests) {
-            enabledInstallations {
-                requiredInstallationsWithLocalTests.enabledInstallations +
-                        ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', "unifiedPushServer_${project.unifiedPushSource}" ]
-            }
-        }
-        wildfly8(from: jbossContainer) {
-            enabledInstallations {
-                jbossContainer.enabledInstallations + 'wildfly8Container'
-            }
-        }
+        // dynamically create profiles for combination of container type and ups source
+        // containers
+        ['wildfly8', 'eap6', 'any', 'openshift'].each { String container ->
+            // ups installations
+            ['upsProvided', 'upsFromSource', 'upsFromRepository', 'upsFromCart'].each { String ups ->
 
-        eap6(from: jbossContainer) {
-            enabledInstallations {
-                jbossContainer.enabledInstallations + 'eap6Container'
-            }
-        }
+                // openshift is valid only from cart
+                if((container=='openshift' && ups != 'upsFromCart') || (container!='openshift' && ups == 'upsFromCart') ) {
+                    return true;
+                }
+                // order installations, container must be installed prior ups
+                def _installations = [ 'keystore', 'maven']
+                if(container != 'openshift') {
+                    _installations << "${container}Container"
+                }
+                _installations << ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', ups]
+                def _tests = container!='openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
-        // FIXME, remove, this is deprecated name alias
-        externalEap6(from: jbossContainer) {
+                // dynamically create profile with name e.g. wildfly8UpsProvided
+                create ("${container}${ups.capitalize()}", [:], DeferredValue.of(Void.class).ownedBy(this).from {
+                    enabledInstallations _installations
+                    tests _tests
+                })
+            }
         }
 
         helloWorldCordovaQuickstart {
@@ -194,7 +181,7 @@ spacelift {
                 }
             }
             postActions {
-                // FIXME we need chmod task as well
+                // FIXME we need chmod task as well, can be done via Ant as well
                 if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
                     return
                 }
@@ -322,7 +309,7 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             isInstalled {
                 project.jbossHome = home
-                project.jbossContainer = ContainerType.WILDFLY
+                project.jbossContainerType = ContainerType.WILDFLY
                 project.unifiedPushType = 'wildfly'
 
                 // There seems to be an error on subsequent runs with the keycloak-default persistence unit
@@ -342,7 +329,7 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             isInstalled {
                 project.jbossHome = home
-                project.jbossContainer = ContainerType.EAP
+                project.jbossContainerType = ContainerType.EAP
                 project.unifiedPushType = 'as7'
 
                 return home.exists()
@@ -366,7 +353,7 @@ spacelift {
             }
         }
 
-        unifiedPushServerOpenshift(inherits:unifiedPushServerOpenshiftWithoutProxy) {
+        upsFromCart(inherits:unifiedPushServerOpenshiftWithoutProxy) {
             turnProxyOn { true }
         }
 
@@ -378,7 +365,7 @@ spacelift {
             openShiftAppName { project.openShiftAppNameAdminUI } 
         }
 
-        unifiedPushServer_repository {
+        upsFromSource {
             product 'aerogear'
             version '1.0.3'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
@@ -409,7 +396,7 @@ spacelift {
             }
         }
 
-        unifiedPushServer_maven {
+        upsFromMavenRepository {
             product 'aerogear'
             version '1.0.2'
             postActions {
@@ -444,7 +431,7 @@ spacelift {
         /**
          * Purpose of this is to enable running against previously downloaded wars.
          */
-        unifiedPushServer_none {
+        upsProvided {
             product 'aerogear'
             version '1.0.2'
             isInstalled { false }
@@ -638,7 +625,6 @@ spacelift {
                 def baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
 
                 Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .profile('openshift')
                         .property("http.ignore=true")
                         .property("containerUri=$baseUri")
                         .property("keystore.ignore=true")
@@ -651,7 +637,7 @@ spacelift {
                 def baseUri = "https://${project.openShiftAppNameAdminUI}-${project.openShiftNamespace}.rhcloud.com:443";
 
                 def mavenTask = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .profiles('openshift', 'recorder')
+                        .profiles('recorder')
                         .property('groups=category.AdminUI')
                         .property('excludedGroups=')
                         .property("containerUri=$baseUri")
@@ -676,7 +662,7 @@ spacelift {
                 }
                 final def baseUri = "http://${project.localDomain}:8080/unifiedpush-test-extension-server"
                 final def jbossManagerConfiguration = new JBossManagerConfiguration()
-                        .setContainerType(project.jbossContainer)
+                        .setContainerType(project.jbossContainerType)
                         .setJBossHome(jbossHome.absolutePath)
                         .setStartupTimeoutInSeconds(300)
 
@@ -835,7 +821,6 @@ spacelift {
 
                 def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
                         // FIXME this profile should be removed here - now it is there to use non-deploying container
-                        .profile('openshift')
                         .property("containerUri=$baseUri")
                         .goals('clean', 'test')
                 for(prop in project.externalMavenParameters.split()){
