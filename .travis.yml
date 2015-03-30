@@ -2,6 +2,6 @@ language: java
 jdk:
     - oraclejdk7
 install:
-    - ./gradlew assemble -Pwildfly8
+    - ./gradlew assemble -Pwildfly8UpsFromSource
 script:
-    - ./gradlew --stacktrace test -Pwildfly8 test
+    - ./gradlew --stacktrace test -Pwildfly8UpsFromSource

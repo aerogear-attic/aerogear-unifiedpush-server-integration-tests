@@ -8,18 +8,23 @@ import org.arquillian.spacelift.gradle.android.*
 import org.arquillian.spacelift.gradle.arquillian.*
 import org.arquillian.spacelift.gradle.certs.*
 import org.arquillian.spacelift.gradle.container.*
+import org.arquillian.spacelift.gradle.container.db.*
+import org.arquillian.spacelift.gradle.container.db.module.*
 import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.gradle.*
 import org.arquillian.spacelift.gradle.maven.*
 import org.arquillian.spacelift.gradle.openshift.*
 import org.arquillian.spacelift.gradle.quickstart.*
+import org.arquillian.spacelift.gradle.text.ProcessTemplate
 import org.arquillian.spacelift.gradle.utils.*
 import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
 import org.arquillian.spacelift.process.ProcessResult
+import org.arquillian.spacelift.task.archive.*
 import org.arquillian.spacelift.task.os.CommandTool
-import org.arquillian.spacelift.task.net.DownloadTool
+import org.arquillian.spacelift.task.net.*
+import org.arquillian.spacelift.task.io.*
 import org.arquillian.spacelift.task.io.WriteToFileTool
 import org.jboss.aerogear.unifiedpush.api.*
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
@@ -62,7 +67,7 @@ ext {
     defaultIpVersion = 'IPv4'
 
 
-    defaultUnifiedPushMavenRepository = 'http://dl.bintray.com/aerogear/AeroGear-UnifiedPush/'
+    defaultUnifiedPushMavenRepository = 'https://repository.jboss.org/nexus/content/groups/staging'
 
     defaultEap6Version = '6.3.0'
     defaultEap6FileName = "jboss-eap-${defaultEap6Version}.zip"
@@ -103,7 +108,14 @@ ext {
     // unified push related configuration
     unifiedpush = [
         type: 'as7',
-        binariesDir: new File(project.rootDir, 'spacelift/upsBin')
+        binariesDir: new File(project.rootDir, 'spacelift/upsBin'),
+        datasource: project.hasProperty('datasource') ? project.datasource : null,
+        db: [
+            jdbc_url: project.hasProperty('dbJdbc_url') ? project.dbJbdc_url : 'jdbc:mysql://localhost:3306/unifiedpush?useUnicode=true&amp;characterEncoding=UTF-8',
+            username: project.hasProperty('dbUsername') ? project.dbUsername : 'unifiedpush',
+            password: project.hasProperty('dbPassword') ? project.dbPassword : 'unifiedpush'
+        ],
+        runMigrator: project.hasProperty('runMigrator') ? Boolean.parseBoolean(project.runMigrator) : false
     ]
 
 }
@@ -127,22 +139,37 @@ spacelift {
         // containers
         ['wildfly8', 'eap6', 'any', 'openshift'].each { String container ->
             // ups installations
-            ['upsProvided', 'upsFromSource', 'upsFromRepository', 'upsFromCart'].each { String ups ->
+            ['upsProvided', 'upsFromSource', 'upsFromMavenRepository', 'upsFromCart'].each { String ups ->
+
+                def profileName = "${container}${ups.capitalize()}"
 
                 // openshift is valid only from cart
                 if((container=='openshift' && ups != 'upsFromCart') || (container!='openshift' && ups == 'upsFromCart') ) {
                     return true;
                 }
-                // order installations, container must be installed prior ups
+                // order installations, container must be installed prior ups and aerogearTestingTools as latest
                 def _installations = [ 'keystore', 'maven']
                 if(container != 'openshift') {
                     _installations << "${container}Container"
                 }
-                _installations += ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', ups]
+
+                // add datasource installation
+                switch(project.unifiedpush.datasource) {
+                    case "mysql":
+                    case "postgresql":
+                        logger.warn(":init:Profile ${profileName} will trigger ${project.unifiedpush.datasource} datasource installation")
+                        _installations << project.unifiedpush.datasource
+                        break
+                    default:
+                        logger.warn(":init:Profile ${profileName} will not trigger datasource installation")
+
+                }
+
+                _installations += ['littleProxy', 'unifiedPushServerModel', ups, 'aerogearTestingTools']
                 def _tests = container!='openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
-                create ("${container}${ups.capitalize()}", [:], DeferredValue.of(Void.class).ownedBy(this).from {
+                create (profileName, [:], DeferredValue.of(Void.class).ownedBy(this).from {
                     enabledInstallations _installations
                     tests _tests
                 })
@@ -266,12 +293,15 @@ spacelift {
         }
 
         aerogearTestingTools {
+
+            def testExtensionWar = new File(project.unifiedpush.binariesDir, 'unifiedpush-test-extension-server.war')
+
             product 'aerogear'
             version { project.unifiedPushTestExtensionVersion }
             remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/f934c226a3eb94a6ee6247eb9e6e024ffc857e13.zip'
             home 'aerogear-testing-tools'
             isInstalled {
-                return new File(project.spacelift.workspace, ".repository/org/jboss/aerogear/test/unifiedpush-test-extension/${version}").exists()
+                return testExtensionWar.exists()
             }
             fileName 'aerogear-testing-tools.zip'
             extractMapper { toDir(home).cutdirs() }
@@ -289,6 +319,10 @@ spacelift {
                     .property("aerogear.version=${project.unifiedPushModelVersion}")
                     .goals('clean', 'install')
                     .execute().await()
+
+                Files.copy(
+                        new File(home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war'),
+                        testExtensionWar)
             }
         }
 
@@ -304,7 +338,7 @@ spacelift {
                 // override connfiguration
                 project.container.configuration.setContainerType(ContainerType.WILDFLY)
                 project.container.home = home
-                project.unifiedPushType = 'wildfly'
+                project.unifiedpush.type = 'wildfly'
 
                 // There seems to be an error on subsequent runs with the keycloak-default persistence unit
                 // so we reinstall each time.
@@ -324,13 +358,70 @@ spacelift {
             isInstalled {
                 project.container.home = home
                 project.container.configuration.setContainerType(ContainerType.EAP)
-                project.unifiedPushType = 'as7'
+                project.unifiedpush.type = 'as7'
 
                 return home.exists()
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
             }
+        }
+
+        // this is used to use already existing and preconfigured container
+        anyContainer {
+            product 'unused'
+            version 'unused'
+            preconditions {
+                if(!project.container.home) {
+                    throw new IllegalStateException("You must specify 'jbossHome with path to home of your container")
+                }
+                if(!project.container.bindAddress) {
+                    throw new IllegalStateException("You must specify 'jbossBindAddress' with ip address")
+                }
+                if(!project.container.localDomain) {
+                    throw new IllegalStateException("You must specify 'localDomain' with ip address")
+                }
+                return true
+            }
+            isInstalled true
+        }
+
+        // mysql installation in valid only if container was installed
+        mysql {
+            product 'unused'
+            version 'unused'
+            isInstalled false
+            postActions {
+                // install module
+                new MySQLDatabaseModule('com.mysql.jdbc', project.container.home)
+                        .shouldStartContainer()
+                        .version('5.1.18')
+                        // FIXME it would be better to uninstall it first
+                        .install()
+
+                // install datasource
+                File scriptTemplate = new File(project.rootDir, "setup/mysql-${project.unifiedpush.type}.cli")
+                File script = Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush).execute().await()
+                new UpdateJBossDatasource().withJBossHome(project.container.home).withScript(script).shouldStartContainer().update()
+            }
+        }
+
+        // postgres installation is valid only if container was installed
+        postgresql {
+            product 'unused'
+            version 'unused'
+            isInstalled false
+            postActions {
+                // install module
+                new PostgreSQLDatabaseModule('org.postgresql', project.container.home)
+                        .shouldStartContainer()
+                        // FIXME it would be better to uninstall it first
+                        .install()
+
+                // install datasource
+                File scriptTemplate = new File(project.rootDir, "setup/mysql.cli")
+                File script = Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush).execute().await()
+                new UpdateJBossDatasource().withJBossHome(project.container.home).withScript(script).shouldStartContainer().update()            }
         }
 
         unifiedPushServerOpenshiftWithoutProxy(from:UPSOpenShiftInstallation) {
@@ -362,6 +453,7 @@ spacelift {
         upsFromSource {
             product 'aerogear'
             version '1.0.3'
+            isInstalled { false }
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
@@ -373,30 +465,28 @@ spacelift {
                         .execute().await()
 
                 // copy files to directory where files to be deployed are stored
-                project.unifiedPushBinariesDir.mkdirs()
-                Spacelift.task(DownloadTool.class)
-                        .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
-                        .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
-                        .execute().await()
+                project.ant.delete(dir: project.unifiedpush.binariesDir)
+                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
+
                 Files.copy(
                         new File(home, 'servers/auth-server/target/auth-server.war'),
-                        new File(project.unifiedPushBinariesDir, 'auth-server.war'))
+                        new File(project.unifiedpush.binariesDir, 'auth-server.war'))
                 Files.copy(
-                        new File(home, 'servers/ups-as7/target/ag-push.war'),
-                        new File(project.unifiedPushBinariesDir, 'as7-ag-push.war'))
-                Files.copy(
-                        new File(home, 'servers/ups-wildfly/target/ag-push.war'),
-                        new File(project.unifiedPushBinariesDir, 'wildfly-ag-push.war'))
+                        new File(home, "servers/ups-${project.unifiedpush.type}/target/ag-push.war"),
+                        new File(project.unifiedpush.binariesDir, 'ag-push.war'))
+
+                // prepare migrator
             }
         }
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.0.2'
+            version '1.0.3'
+            isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
-                final upsAs7CanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server-as7:war:${version}"
-                final upsWildFlyCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server-wildfly:war:${version}"
+                final agpushCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server-${project.unifiedpush.type}:war:${version}"
+                final agpushMigratorCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-migrator:zip:dist:${version}"
 
                 ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
                         .withRemoteRepo(MavenRemoteRepositories
@@ -405,21 +495,29 @@ spacelift {
 
 
                 // copy files to directory where files to be deployed are stored
-                project.unifiedPushBinariesDir.mkdirs()
-                Spacelift.task(DownloadTool.class)
-                        .from('https://raw.githubusercontent.com/aerogear/aerogear-unifiedpush-server/master/databases/unifiedpush-h2-ds.xml')
-                        .to(new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml'))
-                        .execute().await()
+                project.ant.delete(dir: project.unifiedpush.binariesDir)
+                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
+
                 Files.copy(
                         resolver.resolve(authServerCanonicalCoordinate).withoutTransitivity().asSingleFile(),
-                        new File(project.unifiedPushBinariesDir, 'auth-server.war'))
+                        new File(project.unifiedpush.binariesDir, 'auth-server.war'))
                 Files.copy(
-                        resolver.resolve(upsAs7CanonicalCoordinate).withoutTransitivity().asSingleFile(),
-                        new File(project.unifiedPushBinariesDir, 'as7-ag-push.war'))
-                Files.copy(
-                        resolver.resolve(upsWildFlyCanonicalCoordinate).withoutTransitivity().asSingleFile(),
-                        new File(project.unifiedPushBinariesDir, 'wildfly-ag-push.war'))
+                        resolver.resolve(agpushCanonicalCoordinate).withoutTransitivity().asSingleFile(),
+                        new File(project.unifiedpush.binariesDir, 'ag-push.war'))
+
+                // prepare migrator
+                Spacelift.task(resolver.resolve(agpushMigratorCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
+                    .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).cutdirs().execute().await()
+                project.ant.chmod(dir: "${ new File(project.unifiedpush.binariesDir, 'migrator/bin/').canonicalPath}", perm: "a+x", includes: "*")
             }
+            tools {
+                /*
+                upsmigrator {
+
+                }
+                */
+            }
+            // create migrator tool here!
         }
 
         /**
@@ -427,32 +525,28 @@ spacelift {
          */
         upsProvided {
             product 'aerogear'
-            version '1.0.2'
+            version '1.0.3'
+            preconditions {
+                if(!project.unifiedPushServerWar) {
+                    throw new IllegalStateException("You must specify path to ag-push.war via unifiedPushServerWar property")
+                }
+                if(!project.unifiedPushAuthServerWar) {
+                    throw new IllegalStateException("You must specify path to auth-server.war via unifiedAuthServerWar property")
+                }
+            }
             isInstalled { false }
             postActions {
                 
                 // copy files to directory where files to be deployed are stored
-                // FIXME this should be deleted as well
-                // FIXME this is very good candidate for abstraction
-                project.unifiedPushBinariesDir.mkdirs()
-                if (project.unifiedPushServerWar != null) {
-                    Files.copy(
-                            new File(project.unifiedPushServerWar),
-                            new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war")
-                    )
-                }
-                if (project.unifiedPushAuthServerWar != null) {
-                    Files.copy(
-                            new File(project.unifiedPushAuthServerWar),
-                            new File(project.unifiedPushBinariesDir, 'auth-server.war')
-                    )
-                }
-                if (project.unifiedPushServerDatasource != null) {
-                    Files.copy(
-                            new File(project.unifiedPushServerDatasource),
-                            new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
-                    )
-                }
+                project.ant.delete(dir: project.unifiedpush.binariesDir)
+                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
+
+                Files.copy(
+                        new File(project.unifiedPushServerWar),
+                        new File(project.unifiedpush.binariesDir, "ag-push.war"))
+                Files.copy(
+                        new File(project.unifiedPushAuthServerWar),
+                        new File(project.unifiedpush.binariesDir, 'auth-server.war'))
             }
         }
 
@@ -652,7 +746,7 @@ spacelift {
                 final def baseUri = "http://${project.container.localDomain}:8080/unifiedpush-test-extension-server"
                 final def jbossManagerConfiguration = project.container.configuration
                 final def jbossHome = project.container.home
-                jbossManagerConfiguration.setJBossHome(jbossHome)
+                jbossManagerConfiguration.setJBossHome(jbossHome.canonicalPath)
 
                 def commonJavaOpts = " -Dhttp.proxyHost=${project.container.bindAddress} -Dhttp.proxyPort=16000 "
                 commonJavaOpts += "-Dhttps.proxyHost=${project.container.bindAddress} -Dhttps.proxyPort=16000 "
@@ -678,47 +772,34 @@ spacelift {
                         .configuration(jbossManagerConfiguration)
                         .execute().await()
 
-                ['unifiedpush-h2-ds.xml', 'auth-server.war', "${project.unifiedPushType}-ag-push.war",
-                 'unifiedpush-test-extension-server.war'].each {
+                // undeploy content
+                ['auth-server.war', "ag-push.war", 'unifiedpush-test-extension-server.war'].each { war ->
                     // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
                     try {
-                        println "Undeploying ${it}"
+                        println "Undeploying ${war}"
                         Spacelift.task(JBossCLI)
-                                .environment("JBOSS_HOME", jbossHome.absolutePath)
+                                .environment("JBOSS_HOME", jbossHome.canonicalPath)
                                 .connect()
-                                .cliCommand("undeploy ${it}")
+                                .cliCommand("undeploy ${war}")
                                 .execute().await()
 
-                        println "${it} undeployed successfully"
+                        println "${war} undeployed successfully"
                     } catch (Exception e) {
-                        println "${it} undeploy failed"
+                        println "${war} undeploy failed"
                     }
                 }
 
-                def datasourceXmlFile = new File(project.unifiedPushBinariesDir, 'unifiedpush-h2-ds.xml')
-                if(datasourceXmlFile.exists()) {
+
+
+                ['auth-server.war', "ag-push.war", 'unifiedpush-test-extension-server.war'].each { war ->
+                    println "Deploying ${war}"
+
                     Spacelift.task(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.absolutePath)
+                            .environment("JBOSS_HOME", jbossHome.canonicalPath)
                             .connect()
-                            .cliCommand("deploy ${datasourceXmlFile.absolutePath}")
+                            .cliCommand("deploy ${new File(project.unifiedpush.binariesDir, war).canonicalPath}")
                             .execute().await()
                 }
-
-                Spacelift.task(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, 'auth-server.war').absolutePath}")
-                        .then(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        .cliCommand("deploy ${new File(project.unifiedPushBinariesDir, "${project.unifiedPushType}-ag-push.war").absolutePath}")
-                        .then(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.absolutePath)
-                        .connect()
-                        // FIXME move test extension result to binaries dir as well
-                        // iterate over content of the repository - eventually filter to have just unifiedPushType for ag-push war
-                        .cliCommand("deploy ${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war').absolutePath}")
-                        .execute().await()
 
                 println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
                 println "Expected deployment url: $baseUri"
@@ -895,8 +976,8 @@ buildscript {
     }
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
-        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.6.0'
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-11'
+        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.7.0'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-12'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'
         classpath 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
