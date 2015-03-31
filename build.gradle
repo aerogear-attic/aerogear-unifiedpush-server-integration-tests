@@ -21,6 +21,7 @@ import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.process.ProcessInteractionBuilder
 import org.arquillian.spacelift.process.ProcessResult
+import org.arquillian.spacelift.task.InvalidTaskException
 import org.arquillian.spacelift.task.archive.*
 import org.arquillian.spacelift.task.os.CommandTool
 import org.arquillian.spacelift.task.net.*
@@ -34,6 +35,7 @@ import org.jboss.aerogear.test.Session
 import org.jboss.aerogear.test.api.auth.*
 import org.jboss.aerogear.test.api.application.*
 import org.jboss.aerogear.test.api.variant.android.*
+import org.jboss.shrinkwrap.resolver.api.ResolutionException
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem
 import org.jboss.shrinkwrap.resolver.api.maven.Maven
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories
@@ -101,6 +103,7 @@ ext {
         configuration: new JBossManagerConfiguration()
                         .setContainerType(ContainerType.EAP)
                         .setStartupTimeoutInSeconds(300),
+        // FIXME @tkriz - why we have 2 properties for this?
         bindAddress: project.hasProperty('jbossBindAddress') ? project.jbossBindAddress : '127.0.0.1',
         localDomain: project.hasProperty('localDomain') ? project.localDomain : '127.0.0.1'
     ]
@@ -113,9 +116,10 @@ ext {
         db: [
             jdbc_url: project.hasProperty('dbJdbc_url') ? project.dbJbdc_url : 'jdbc:mysql://localhost:3306/unifiedpush?useUnicode=true&amp;characterEncoding=UTF-8',
             username: project.hasProperty('dbUsername') ? project.dbUsername : 'unifiedpush',
-            password: project.hasProperty('dbPassword') ? project.dbPassword : 'unifiedpush'
+            password: project.hasProperty('dbPassword') ? project.dbPassword : 'unifiedpush',
+            driver: project.hasProperty('dbDriver') ? project.dbDriver: 'com.mysql.jdbc.Driver'
         ],
-        runMigrator: project.hasProperty('runMigrator') ? Boolean.parseBoolean(project.runMigrator) : false
+        runMigrator: project.hasProperty('runMigrator') ? Boolean.parseBoolean(project.runMigrator) : true
     ]
 
 }
@@ -251,8 +255,7 @@ spacelift {
                         .resolve(modelCoordinates).withoutTransitivity().asSingleFile()
                     return true
                 }
-                // TODO, we should likely rather test for NoSuchResultException here
-                catch(Exception e) {
+                catch(ResolutionException e) {
                     return false
                 }
             }
@@ -476,8 +479,26 @@ spacelift {
                         new File(project.unifiedpush.binariesDir, 'ag-push.war'))
 
                 // prepare migrator
+                if(project.unifiedpush.runMigrator) {
+                    List<String> migratorDist = new FileNameFinder().getFileNames(new File(home, "migrator/target").canonicalPath, "*.zip")
+                    if (migratorDist == null || migratorDist.size() != 1) {
+                        throw new IllegalStateException("Expecting migrator dist in migrator/target directory")
+                    }
+                    Spacelift.task(new File("${migratorDist[0]}"), UnzipTool.class)
+                            .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).cutdirs().execute().await()
+                    project.ant.chmod(dir: "${new File(project.unifiedpush.binariesDir, 'migrator/bin/').canonicalPath}", perm: "a+x", includes: "*")
+                }
+
             }
-        }
+            tools {
+                migrator {
+                    command {
+                        return new CommandBuilder("${project.unifiedpush.binariesDir}/migrator/bin/ups-migrator")
+                            .parameter("--logLevel=DEBUG")
+                            .parameter("--changeLogFile=${home}/migrator/src/main/resources/liquibase/master.xml")
+                    }
+                }
+            }        }
 
         upsFromMavenRepository {
             product 'aerogear'
@@ -487,6 +508,7 @@ spacelift {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
                 final agpushCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-server-${project.unifiedpush.type}:war:${version}"
                 final agpushMigratorCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-migrator:zip:dist:${version}"
+                final agpushMigratorJarCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-migrator:${version}"
 
                 ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
                         .withRemoteRepo(MavenRemoteRepositories
@@ -505,19 +527,24 @@ spacelift {
                         resolver.resolve(agpushCanonicalCoordinate).withoutTransitivity().asSingleFile(),
                         new File(project.unifiedpush.binariesDir, 'ag-push.war'))
 
-                // prepare migrator
+                // prepare migrator, we need to download both binary dist and changeset in jar
                 Spacelift.task(resolver.resolve(agpushMigratorCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
                     .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).cutdirs().execute().await()
                 project.ant.chmod(dir: "${ new File(project.unifiedpush.binariesDir, 'migrator/bin/').canonicalPath}", perm: "a+x", includes: "*")
+
+                Spacelift.task(resolver.resolve(agpushMigratorJarCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
+                    .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).execute().await()
+
             }
             tools {
-                /*
-                upsmigrator {
-
+                migrator {
+                    command {
+                        return new CommandBuilder("${project.unifiedpush.binariesDir}/migrator/bin/ups-migrator")
+                            .parameter("--logLevel=DEBUG")
+                            .parameter("--changeLogFile=${project.unifiedpush.binariesDir}/migrator/liquibase/master.xml")
+                    }
                 }
-                */
             }
-            // create migrator tool here!
         }
 
         /**
@@ -789,6 +816,22 @@ spacelift {
                     }
                 }
 
+                // run migrator
+                if(project.unifiedpush.runMigrator) {
+                    try {
+                        Spacelift.task('migrator')
+                                .parameter("--url=${project.unifiedpush.db.jdbc_url}")
+                                .parameter("--username=${project.unifiedpush.db.username}")
+                                .parameter("--password=${project.unifiedpush.db.password}")
+                                .parameter("--driver=${project.unifiedpush.db.driver}")
+                                .parameter("update")
+                                .execute().await()
+                    }
+                    catch(InvalidTaskException e) {
+                        throw new RuntimeException("Migrator tool was not registered but set to run via project.unifiedPush.runMigrator flag." +
+                            "Make sure that UPS installation provides migrator tool.", e)
+                    }
+                }
 
 
                 ['auth-server.war', "ag-push.war", 'unifiedpush-test-extension-server.war'].each { war ->
@@ -870,7 +913,7 @@ spacelift {
             }
             execute { protocol ->
                 def port = protocol == 'https' ? 8443 : 8080
-                def baseUri = "$protocol://${project.localDomain}:$port"
+                def baseUri = "$protocol://${project.container.localDomain}:$port"
 
                 println "Using external maven parameters: ${project.externalMavenParameters}"
                 println "Using base uri: $baseUri"

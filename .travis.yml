@@ -1,7 +1,11 @@
 language: java
 jdk:
     - oraclejdk7
+before_install:
+    - mysql -e 'create database unifiedpush default character set = "UTF8" default collate = "utf8_general_ci";' -uroot
+    - mysql -e "create user 'unifiedpush'@'localhost' identified by 'unifiedpush';" -uroot
+    - mysql -e "GRANT SELECT,INSERT,UPDATE,ALTER,DELETE,CREATE,DROP ON unifiedpush.* TO 'unifiedpush'@'localhost';" -uroot
 install:
-    - ./gradlew assemble -Pwildfly8UpsFromSource
+    - ./gradlew --stacktrace assemble -Pwildfly8UpsFromSource -Pdatasource=mysql
 script:
-    - ./gradlew --stacktrace test -Pwildfly8UpsFromSource
+    - ./gradlew --stacktrace test -Pwildfly8UpsFromSource -Pdatasource=mysql
