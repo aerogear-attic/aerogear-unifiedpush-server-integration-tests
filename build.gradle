@@ -103,7 +103,6 @@ ext {
         configuration: new JBossManagerConfiguration()
                         .setContainerType(ContainerType.EAP)
                         .setStartupTimeoutInSeconds(300),
-        // FIXME @tkriz - why we have 2 properties for this?
         bindAddress: project.hasProperty('jbossBindAddress') ? project.jbossBindAddress : '127.0.0.1',
         localDomain: project.hasProperty('localDomain') ? project.localDomain : '127.0.0.1'
     ]
@@ -119,7 +118,11 @@ ext {
             password: project.hasProperty('dbPassword') ? project.dbPassword : 'unifiedpush',
             driver: project.hasProperty('dbDriver') ? project.dbDriver: 'com.mysql.jdbc.Driver'
         ],
-        runMigrator: project.hasProperty('runMigrator') ? Boolean.parseBoolean(project.runMigrator) : true
+        runMigrator: project.hasProperty('runMigrator') ? Boolean.parseBoolean(project.runMigrator) : true,
+        // TODO spacelift.workspace is not yet available here
+        apnsCert: new File(project.rootDir, 'spacelift/workspace/certs/apns_server.jks'),
+        gcmCert: new File(project.rootDir, 'spacelift/workspace/certs/gcm_mock.crt'),
+        gcmKey: new File(project.rootDir, 'spacelift/workspace/certs/gcm_mock.key')
     ]
 
 }
@@ -230,6 +233,13 @@ spacelift {
 
         // installs keystore
         keystore(from:KeystoreInstallation) {
+            isInstalled {
+                // we need to delete keystore/truststore later updates - apns cert generation needs to be regenerated
+                // and put into truststore - hence fresh truststore is needed
+                // as a side effect, this call will also remove any existing project.unifiedpush.apnsCert file
+                project.ant.delete(dir: "${home.canonicalPath}")
+                return false
+            }
         }
 
         // install UPS model, required for UPS REST API
@@ -304,6 +314,7 @@ spacelift {
             remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/f934c226a3eb94a6ee6247eb9e6e024ffc857e13.zip'
             home 'aerogear-testing-tools'
             isInstalled {
+                // note this will actually never exist, as ups-* installations will delete directory
                 return testExtensionWar.exists()
             }
             fileName 'aerogear-testing-tools.zip'
@@ -326,6 +337,18 @@ spacelift {
                 Files.copy(
                         new File(home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war'),
                         testExtensionWar)
+
+                // update truststore with certificate and push certs to a convenient location
+                Files.copy(new File(home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt'), project.unifiedpush.gcmCert)
+                Files.copy(new File(home, 'unifiedpush-test-extension/sslcert/gcm_mock.key'), project.unifiedpush.gcmKey)
+                CertificateGenerator certificateGenerator = Spacelift.task(CertificateGenerator)
+                        .apnsCertificate(project.unifiedpush.apnsCert)
+                        .gcmCertificate(project.unifiedpush.gcmCert)
+                        // update existing keystore
+                        .trustStore(keystore.truststore)
+                        .commonName(project.container.localDomain)
+
+                certificateGenerator.execute().await()
             }
         }
 
@@ -456,7 +479,7 @@ spacelift {
         upsFromSource {
             product 'aerogear'
             version '1.0.3'
-            isInstalled { false }
+            isInstalled false
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
@@ -575,6 +598,7 @@ spacelift {
                         new File(project.unifiedPushAuthServerWar),
                         new File(project.unifiedpush.binariesDir, 'auth-server.war'))
             }
+            // FIXME missing migrator here
         }
 
         /* installations related to Cordova Quickstarts testing */
@@ -775,25 +799,35 @@ spacelift {
                 final def jbossHome = project.container.home
                 jbossManagerConfiguration.setJBossHome(jbossHome.canonicalPath)
 
-                def commonJavaOpts = " -Dhttp.proxyHost=${project.container.bindAddress} -Dhttp.proxyPort=16000 "
-                commonJavaOpts += "-Dhttps.proxyHost=${project.container.bindAddress} -Dhttps.proxyPort=16000 "
-                commonJavaOpts += "-Djboss.bind.address=${project.container.bindAddress} "
-                commonJavaOpts += "-Djavax.net.ssl.trustStore=${keystore.truststore.canonicalPath}"
-                commonJavaOpts += "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass}"
-                commonJavaOpts += "-Dcustom.aerogear.apns.push.host=${project.container.bindAddress} "
-                commonJavaOpts += "-Dcustom.aerogear.apns.push.port=16002 "
-                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.host=${project.container.bindAddress} "
-                commonJavaOpts += "-Dcustom.aerogear.apns.feedback.port=16003 "
-                commonJavaOpts += "-Dgcm.mock.certificate.path=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt').absolutePath} "
-                commonJavaOpts += "-Dgcm.mock.certificate.password=${new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key').absolutePath} "
+
+                def javaOpts = [
+                        "-Dhttp.proxyHost=${project.container.bindAddress}",
+                        "-Dhttp.proxyPort=16000",
+                        "-Dhttps.proxyHost=${project.container.bindAddress}",
+                        "-Dhttps.proxyPort=16000",
+                        "-Djboss.bind.address=${project.container.bindAddress}",
+                        "-Djavax.net.ssl.trustStore=${keystore.truststore.canonicalPath}",
+                        "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass.resolve()}",
+                        "-Dcustom.aerogear.apns.push.host=${project.container.bindAddress}",
+                        "-Dcustom.aerogear.apns.push.port=16002",
+                        "-Dcustom.aerogear.apns.feedback.host=${project.container.bindAddress}",
+                        "-Dcustom.aerogear.apns.feedback.port=16003",
+                        "-Dcustom.aerogear.apns.keystore.path=${project.unifiedpush.apnsCert.canonicalPath}",
+                        "-Dcustom.aerogear.apns.keystore.password=${keystore.keystorePass.resolve()}",
+                        "-Dcustom.aerogear.apns.keystore.type=JKS",
+                        "-Dgcm.mock.certificate.path=${project.unifiedpush.gcmCert.canonicalPath}",
+                        "-Dgcm.mock.certificate.password=${project.unifiedpush.gcmKey.canonicalPath}",
+                        "-Dgcm.mock.server.port=16010" ]
+
                 if(project.ipVersion == "IPv6"){
-                    commonJavaOpts += "-Djava.net.preferIPv4Stack=false "
-                    commonJavaOpts += "-Djava.net.preferIPv6Addresses=true "
+                    javaOpts << "-Djava.net.preferIPv4Stack=false"
+                    javaOpts << "-Djava.net.preferIPv6Addresses=true"
                 }
 
-                def javaOpts = jbossManagerConfiguration.getJavaOpts()
-                javaOpts += commonJavaOpts
-                jbossManagerConfiguration.setJavaOpts(javaOpts)
+                // update javaOpts
+                jbossManagerConfiguration.setJavaOpts("${jbossManagerConfiguration.getJavaOpts()} ${javaOpts.join(' ')}")
+
+                println "WOT java opts ${jbossManagerConfiguration.getJavaOpts()}"
 
                 jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
@@ -913,13 +947,12 @@ spacelift {
             }
             execute { protocol ->
                 def port = protocol == 'https' ? 8443 : 8080
-                def baseUri = "$protocol://${project.container.localDomain}:$port"
+                def baseUri = "${protocol}://${project.container.localDomain}:$port"
 
                 println "Using external maven parameters: ${project.externalMavenParameters}"
                 println "Using base uri: $baseUri"
 
                 def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        // FIXME this profile should be removed here - now it is there to use non-deploying container
                         .property("containerUri=$baseUri")
                         .goals('clean', 'test')
                 for(prop in project.externalMavenParameters.split()){
