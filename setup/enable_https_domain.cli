@@ -1,9 +1,0 @@
-connect
-batch
-
-# default group uses full socket bindings
-/profile=full/subsystem=web/connector=https/:add(socket-binding="https",scheme="https",protocol="HTTP/1.1",secure="true")
-/profile=full/subsystem=web/connector=https/ssl=configuration:add(name="aerogear-ssl",key-alias="aerogear",password="aerogear",certificate-key-file="${jboss.domain.config.dir}/aerogear.keystore",protocol="ALL",verify-client="false",certificate-file="${jboss.domain.config.dir}/aerogear.keystore",ca-certificate-file="${jboss.domain.config.dir}/aerogear.truststore")
-
-
-run-batch

@@ -1,6 +1,0 @@
-connect
-batch
-
-/profile=full/subsystem=undertow/server=default-server/https-listener=https:add(socket-binding="https", security-realm="SSLRealm")
-
-run-batch
