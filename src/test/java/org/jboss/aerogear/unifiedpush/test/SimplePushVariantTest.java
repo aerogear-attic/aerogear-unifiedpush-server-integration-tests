@@ -71,16 +71,7 @@ public class SimplePushVariantTest {
     };
 
     @Rule
-    public CheckingExpectedException exception = new CheckingExpectedException() {
-        @Override
-        protected void afterExceptionAssert() {
-            List<SimplePushVariant> variants = ups.with(SimplePushVariantWorker.worker(), getRegisteredApplication())
-                    .findAll()
-                    .detachEntities();
-
-            assertThat(variants.size(), is(0));
-        }
-    };
+    public CheckingExpectedException exception = CheckingExpectedException.none();
 
     @BeforeClass
     public static void setup() {
