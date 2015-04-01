@@ -1,0 +1,8 @@
+connect
+batch
+
+/core-service=management/security-realm=SSLRealm:add()
+/core-service=management/security-realm=SSLRealm/server-identity=ssl:add(alias="${alias}",key-password="${keyPassword}",keystore-password="${keystorePassword}",keystore-path="${keystore}")
+/subsystem=undertow/server=default-server/https-listener=https:add(socket-binding="https", security-realm="SSLRealm")
+
+run-batch

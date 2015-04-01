@@ -16,8 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.rest.security;
 
-import com.jayway.restassured.RestAssured;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -32,7 +30,6 @@ public class SecureAuthenticationEndpointTest extends AuthenticationEndpointTest
 
     @BeforeClass
     public static void setup() {
-        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
     }
 
     @Override

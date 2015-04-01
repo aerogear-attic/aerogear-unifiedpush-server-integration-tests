@@ -372,6 +372,17 @@ spacelift {
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
+
+                // install datasource
+                File scriptTemplate = new File(project.rootDir, "setup/enable_https-${project.unifiedpush.type}.cli")
+                Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(
+                        [
+                                alias           : keystore.alias,
+                                keyPassword     : keystore.keystorePass,
+                                keystorePassword: keystore.keystorePass,
+                                keystore        : keystore.keystore.canonicalPath,
+                                truststore      : keystore.truststore
+                        ]).then(UpdateJBossConfig.class).shouldStartContainer().jbossHome(project.container.home).execute().await()
             }
         }
 
@@ -390,6 +401,17 @@ spacelift {
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
+
+                // install datasource
+                File scriptTemplate = new File(project.rootDir, "setup/enable_https-${project.unifiedpush.type}.cli")
+                Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(
+                        [
+                                alias           : keystore.alias,
+                                keyPassword     : keystore.keystorePass,
+                                keystorePassword: keystore.keystorePass,
+                                keystore        : keystore.keystore.canonicalPath,
+                                truststore      : keystore.truststore
+                        ]).then(UpdateJBossConfig.class).shouldStartContainer().jbossHome(project.container.home).execute().await()
             }
         }
 
@@ -427,8 +449,8 @@ spacelift {
 
                 // install datasource
                 File scriptTemplate = new File(project.rootDir, "setup/mysql-${project.unifiedpush.type}.cli")
-                File script = Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush).execute().await()
-                new UpdateJBossDatasource().withJBossHome(project.container.home).withScript(script).shouldStartContainer().update()
+                Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush)
+                        .then(UpdateJBossConfig.class).jbossHome(project.container.home).shouldStartContainer().execute().await()
             }
         }
 
@@ -441,13 +463,14 @@ spacelift {
                 // install module
                 new PostgreSQLDatabaseModule('org.postgresql', project.container.home)
                         .shouldStartContainer()
-                        // FIXME it would be better to uninstall it first
+                // FIXME it would be better to uninstall it first
                         .install()
 
                 // install datasource
                 File scriptTemplate = new File(project.rootDir, "setup/mysql.cli")
-                File script = Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush).execute().await()
-                new UpdateJBossDatasource().withJBossHome(project.container.home).withScript(script).shouldStartContainer().update()            }
+                Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush)
+                        .then(UpdateJBossConfig.class).jbossHome(project.container.home).shouldStartContainer().execute().await()
+            }
         }
 
         unifiedPushServerOpenshiftWithoutProxy(from:UPSOpenShiftInstallation) {
@@ -807,13 +830,13 @@ spacelift {
                         "-Dhttps.proxyPort=16000",
                         "-Djboss.bind.address=${project.container.bindAddress}",
                         "-Djavax.net.ssl.trustStore=${keystore.truststore.canonicalPath}",
-                        "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass.resolve()}",
+                        "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass}",
                         "-Dcustom.aerogear.apns.push.host=${project.container.bindAddress}",
                         "-Dcustom.aerogear.apns.push.port=16002",
                         "-Dcustom.aerogear.apns.feedback.host=${project.container.bindAddress}",
                         "-Dcustom.aerogear.apns.feedback.port=16003",
                         "-Dcustom.aerogear.apns.keystore.path=${project.unifiedpush.apnsCert.canonicalPath}",
-                        "-Dcustom.aerogear.apns.keystore.password=${keystore.keystorePass.resolve()}",
+                        "-Dcustom.aerogear.apns.keystore.password=${keystore.keystorePass}",
                         "-Dcustom.aerogear.apns.keystore.type=JKS",
                         "-Dgcm.mock.certificate.path=${project.unifiedpush.gcmCert.canonicalPath}",
                         "-Dgcm.mock.certificate.password=${project.unifiedpush.gcmKey.canonicalPath}",
@@ -826,8 +849,6 @@ spacelift {
 
                 // update javaOpts
                 jbossManagerConfiguration.setJavaOpts("${jbossManagerConfiguration.getJavaOpts()} ${javaOpts.join(' ')}")
-
-                println "WOT java opts ${jbossManagerConfiguration.getJavaOpts()}"
 
                 jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
@@ -953,8 +974,17 @@ spacelift {
                 println "Using base uri: $baseUri"
 
                 def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
+                        .property("containerUri=${baseUri}")
+                        // we need to propage keystore/truststore setup so test can confirm
+                        // authenticity of locally runing server
+                        .property("keystore=${keystore.keystore.canonicalPath}")
+                        .property("keystorePass=${keystore.keystorePass}")
+                        .property("truststore=${keystore.truststore.canonicalPath}")
+                        .property("truststorePass=${keystore.truststorePass}")
                         .property("containerUri=$baseUri")
+                        .ignoreTestFailures()
                         .goals('clean', 'test')
+
                 for(prop in project.externalMavenParameters.split()){
                         maven.property(prop)
                 }

@@ -20,7 +20,6 @@ import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.unifiedpush.test.Deployments;
 import org.jboss.aerogear.unifiedpush.test.UnifiedPushServer;
-import org.jboss.aerogear.unifiedpush.utils.Constants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -67,7 +66,6 @@ public abstract class AbstractBatchTest {
             .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
             .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
 
-        RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
     }
 
     @AfterClass

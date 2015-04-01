@@ -16,17 +16,18 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
+import com.jayway.awaitility.Duration;
+
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.extension.JavaSenderTestRequest;
+import org.jboss.aerogear.test.api.extension.SenderStatisticsRequest;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
-import org.jboss.aerogear.test.api.sender.PushMessageInformationRequest;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
-import org.jboss.aerogear.unifiedpush.api.PushMessageInformation;
 import org.jboss.aerogear.unifiedpush.utils.TestUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
@@ -37,11 +38,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.List;
-
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
@@ -110,10 +107,9 @@ public class JavaSenderKeyStoreSharingTest {
 
         assertThat(response, is("Message sent!"));
 
-        // check that the message was sent
-        List<PushMessageInformation> pmi = ups.with(PushMessageInformationRequest.request()).get(appId);
-
-        assertThat(pmi, is(not(empty())));
+        // check that the message was sent - just one message was sent
+        ups.with(SenderStatisticsRequest.request())
+                .awaitGetAndClear(1, Duration.FIVE_SECONDS);
     }
 
 }

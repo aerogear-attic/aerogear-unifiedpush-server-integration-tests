@@ -27,10 +27,6 @@ public final class Constants {
     public final static String IOS_CERTIFICATE_PATH = "src/test/resources/certs/qaAerogear.p12";
     public final static String IOS_CERTIFICATE_PASSPHRASE = "aerogear";
 
-    public static final String KEYSTORE_PATH = "setup/aerogear.keystore";
-
-    public static final String KEYSTORE_PASSWORD = "aerogear";
-
     public static final int SOCKET_SERVER_PORT = 8081;
 
 

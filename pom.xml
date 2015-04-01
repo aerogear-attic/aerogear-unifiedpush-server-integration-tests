@@ -283,6 +283,13 @@
                         <ups.server.type>${ups.server.type}</ups.server.type>
                         <excludedGroups>${excludedGroups}</excludedGroups>
                         <groups>${groups}</groups>
+                        <!-- following properties must be set if you are executing tests against local container -->
+                        <!-- Surefire plugin will fork new VM which does not preserve original values from MAVEN_OPTS -->
+                        <!-- Make sure that your keystore/truststore contains default JVM keystore/truststore as well -->
+                        <javax.net.ssl.keyStore>${keystore}</javax.net.ssl.keyStore>
+                        <javax.net.ssl.keyStorePassword>${keystorePass}</javax.net.ssl.keyStorePassword>
+                        <javax.net.ssl.trustStore>${truststore}</javax.net.ssl.trustStore>
+                        <javax.net.ssl.trustStorePassword>${truststorePass}</javax.net.ssl.trustStorePassword>
                     </systemPropertyVariables>
                     <excludedGroups>${excludedGroups}</excludedGroups>
                     <groups>${groups}</groups>

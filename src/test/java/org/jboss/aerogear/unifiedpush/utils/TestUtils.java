@@ -70,18 +70,10 @@ public class TestUtils {
         return shouldRun(AdminUI.class);
     }
 
-    public static boolean ignoreCustomKeystore() {
-        return Boolean.getBoolean("keystore.ignore");
-    }
-
     public static void setupRestAssured() {
         RestAssured.config = RestAssuredConfig.newConfig()
                 .decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"))
                 .encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
-
-        if(!ignoreCustomKeystore()) {
-            RestAssured.keystore(Constants.KEYSTORE_PATH, Constants.KEYSTORE_PASSWORD);
-        }
     }
 
     public static void teardownRestAssured() {
@@ -91,13 +83,7 @@ public class TestUtils {
     }
 
     public static SenderRequest prepareSenderRequest() {
-        SenderRequest request = SenderRequest.request();
-
-        if(!ignoreCustomKeystore()) {
-            request.customTrustStore("setup/aerogear.keystore", "jks", "aerogear");
-        }
-
-        return request;
+        return SenderRequest.request();
     }
 
     private static boolean shouldRun(Class<?> category) {
