@@ -172,7 +172,7 @@ spacelift {
 
                 }
 
-                _installations += ['littleProxy', 'unifiedPushServerModel', ups, 'aerogearTestingTools']
+                _installations += ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', ups]
                 def _tests = container!='openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
@@ -313,10 +313,8 @@ spacelift {
             version { project.unifiedPushTestExtensionVersion }
             remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/f934c226a3eb94a6ee6247eb9e6e024ffc857e13.zip'
             home 'aerogear-testing-tools'
-            isInstalled {
-                // note this will actually never exist, as ups-* installations will delete directory
-                return testExtensionWar.exists()
-            }
+            // FIXME, there should be better condition - the problem is that we need rebuild if ups location is switched
+            isInstalled false
             fileName 'aerogear-testing-tools.zip'
             extractMapper { toDir(home).cutdirs() }
             postActions {
@@ -514,7 +512,6 @@ spacelift {
                         .execute().await()
 
                 // copy files to directory where files to be deployed are stored
-                project.ant.delete(dir: project.unifiedpush.binariesDir)
                 project.ant.mkdir(dir: project.unifiedpush.binariesDir)
 
                 Files.copy(
@@ -563,7 +560,6 @@ spacelift {
 
 
                 // copy files to directory where files to be deployed are stored
-                project.ant.delete(dir: project.unifiedpush.binariesDir)
                 project.ant.mkdir(dir: project.unifiedpush.binariesDir)
 
                 Files.copy(
