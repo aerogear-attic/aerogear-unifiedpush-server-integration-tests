@@ -71,11 +71,10 @@ ext {
 
     defaultUnifiedPushMavenRepository = 'https://repository.jboss.org/nexus/content/groups/staging'
 
-    defaultEap6Version = '6.3.0'
-    defaultEap6FileName = "jboss-eap-${defaultEap6Version}.zip"
+    defaultEap6Version = '6.3.3'
     defaultEap6RemoteUrl = ''
 
-    defaultProtocols = [ 'http' ]
+    defaultProtocols = [ 'https' ]
     defaultBrowser = 'firefox'
 
     // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
@@ -360,7 +359,7 @@ spacelift {
             home { 'wildfly-8.2.0.Final' }
             extractMapper { toDir(home).cutdirs() }
             isInstalled {
-                // override connfiguration
+                // FIXME this is abusing of isInstalled closure, this should be defined in profile when available
                 project.container.configuration.setContainerType(ContainerType.WILDFLY)
                 project.container.home = home
                 project.unifiedpush.type = 'wildfly'
@@ -388,15 +387,24 @@ spacelift {
         eap6Container {
             product 'eap'
             version { project.eap6Version }
-            fileName { project.eap6FileName }
             remoteUrl { project.eap6RemoteUrl }
             extractMapper { toDir(home).cutdirs() }
+            home { "jboss-eap-${version}" }
+            preconditions {
+                if(!project.eap6RemoteUrl) {
+                    throw new IllegalStateException("You must specify url to download EAP distribution via eap6RemoteUrl property")
+                }
+                return true
+            }
             isInstalled {
+
+                // FIXME this is abusing of isInstalled closure, this should be defined in profile when available
                 project.container.home = home
                 project.container.configuration.setContainerType(ContainerType.EAP)
                 project.unifiedpush.type = 'as7'
 
-                return home.exists()
+                // reinstall container every time
+                return false
             }
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
@@ -466,7 +474,7 @@ spacelift {
                         .install()
 
                 // install datasource
-                File scriptTemplate = new File(project.rootDir, "setup/mysql.cli")
+                File scriptTemplate = new File(project.rootDir, "setup/postgresql-${project.unifiedpush.type}.cli")
                 Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush)
                         .then(UpdateJBossConfig.class).jbossHome(project.container.home).shouldStartContainer().execute().await()
             }
