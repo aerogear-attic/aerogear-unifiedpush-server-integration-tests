@@ -332,6 +332,7 @@ spacelift {
                     .goals('clean', 'install')
                     .execute().await()
 
+                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
                 Files.copy(
                         new File(home, 'unifiedpush-test-extension/unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war'),
                         testExtensionWar)
@@ -512,8 +513,6 @@ spacelift {
                         .execute().await()
 
                 // copy files to directory where files to be deployed are stored
-                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
-
                 Files.copy(
                         new File(home, 'servers/auth-server/target/auth-server.war'),
                         new File(project.unifiedpush.binariesDir, 'auth-server.war'))
@@ -560,7 +559,6 @@ spacelift {
 
 
                 // copy files to directory where files to be deployed are stored
-                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
 
                 Files.copy(
                         resolver.resolve(authServerCanonicalCoordinate).withoutTransitivity().asSingleFile(),
@@ -607,9 +605,6 @@ spacelift {
             postActions {
                 
                 // copy files to directory where files to be deployed are stored
-                project.ant.delete(dir: project.unifiedpush.binariesDir)
-                project.ant.mkdir(dir: project.unifiedpush.binariesDir)
-
                 Files.copy(
                         new File(project.unifiedPushServerWar),
                         new File(project.unifiedpush.binariesDir, "ag-push.war"))
