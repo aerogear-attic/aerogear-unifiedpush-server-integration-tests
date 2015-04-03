@@ -439,7 +439,7 @@ spacelift {
                 }
                 return true
             }
-            isInstalled true
+            isInstalled false
             postActions {
                 // enable https
                 File scriptTemplate = new File(project.rootDir, "setup/enable_https-${project.unifiedpush.type}.cli")
