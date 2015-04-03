@@ -98,7 +98,7 @@ ext {
     // container related configuration
     // you should pass jbossHome iff you want to use externally prepared container
     container = [
-        home: project.hasProperty('jbossHome') ? project.jbossHome : null,
+        home: project.hasProperty('jbossHome') ? new File(project.jbossHome) : null,
         configuration: new JBossManagerConfiguration()
                         .setContainerType(ContainerType.EAP)
                         .setStartupTimeoutInSeconds(300),
@@ -430,6 +430,7 @@ spacelift {
                 if(!project.container.home) {
                     throw new IllegalStateException("You must specify 'jbossHome with path to home of your container")
                 }
+
                 if(!project.container.bindAddress) {
                     throw new IllegalStateException("You must specify 'jbossBindAddress' with ip address")
                 }
