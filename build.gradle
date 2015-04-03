@@ -608,10 +608,22 @@ spacelift {
                 if(!project.unifiedPushAuthServerWar) {
                     throw new IllegalStateException("You must specify path to auth-server.war via unifiedAuthServerWar property")
                 }
+                if(project.unifiedpush.runMigrator && !project.unifiedPushMigratorDist) {
+                    throw new IllegalStateException("You must specify path to migrator-dist.zip via unifiedPushMigratorDist property")
+                }
+                return true
             }
             isInstalled { false }
             postActions {
-                
+
+                // this will resolve migrate
+                final agpushMigratorJarCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-migrator:${project.unifiedPushModelVersion}"
+
+                ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
+                        .withRemoteRepo(MavenRemoteRepositories
+                        .createRemoteRepository('remote_ups', project.unifiedPushModelRepository, 'default'))
+                        .withMavenCentralRepo(false)
+
                 // copy files to directory where files to be deployed are stored
                 Files.copy(
                         new File(project.unifiedPushServerWar),
@@ -619,8 +631,26 @@ spacelift {
                 Files.copy(
                         new File(project.unifiedPushAuthServerWar),
                         new File(project.unifiedpush.binariesDir, 'auth-server.war'))
+
+                // prepare migrator, we need to download both binary dist and changeset in jar
+                if(project.unifiedpush.runMigrator) {
+                    Spacelift.task(new File(project.unifiedPushMigratorDist), UnzipTool.class)
+                        .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).cutdirs().execute().await()
+                    project.ant.chmod(dir: "${ new File(project.unifiedpush.binariesDir, 'migrator/bin/').canonicalPath}", perm: "a+x", includes: "*")
+
+                    Spacelift.task(resolver.resolve(agpushMigratorJarCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
+                        .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).execute().await()
+                }
             }
-            // FIXME missing migrator here
+            tools {
+                migrator {
+                    command {
+                        return new CommandBuilder("${project.unifiedpush.binariesDir}/migrator/bin/ups-migrator")
+                            .parameter("--logLevel=DEBUG")
+                            .parameter("--changeLogFile=${project.unifiedpush.binariesDir}/migrator/liquibase/master.xml")
+                    }
+                }
+            }            
         }
 
         /* installations related to Cordova Quickstarts testing */
