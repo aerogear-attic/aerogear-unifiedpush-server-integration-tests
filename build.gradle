@@ -371,7 +371,7 @@ spacelift {
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
 
-                // install datasource
+                // enable https
                 File scriptTemplate = new File(project.rootDir, "setup/enable_https-${project.unifiedpush.type}.cli")
                 Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(
                         [
@@ -409,7 +409,7 @@ spacelift {
             postActions {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/*.sh")
 
-                // install datasource
+                // enable https
                 File scriptTemplate = new File(project.rootDir, "setup/enable_https-${project.unifiedpush.type}.cli")
                 Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(
                         [
@@ -440,6 +440,18 @@ spacelift {
                 return true
             }
             isInstalled true
+            postActions {
+                // enable https
+                File scriptTemplate = new File(project.rootDir, "setup/enable_https-${project.unifiedpush.type}.cli")
+                Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(
+                        [
+                                alias           : keystore.alias,
+                                keyPassword     : keystore.keystorePass,
+                                keystorePassword: keystore.keystorePass,
+                                keystore        : keystore.keystore.canonicalPath,
+                                truststore      : keystore.truststore
+                        ]).then(UpdateJBossConfig.class).shouldStartContainer().jbossHome(project.container.home).execute().await()
+            }
         }
 
         // mysql installation in valid only if container was installed
