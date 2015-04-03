@@ -9,18 +9,9 @@ target/
 *.iml
 bin/
 *.properties
-aerogear-unifiedpush-server/
-/test-classes
-jboss-as-7.1.1.Final*
-wildfly-8.1.0.Final*
-.repository
-aerogear-testing-tools
-installations
 .gradle
 
 /spacelift
-settings.xml
-settings.xml.backup1
 
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
