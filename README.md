@@ -144,3 +144,8 @@ Each time you run the tests the cartridge gets recreated, unless you set this pr
 ### shootAndShareCordovaQuickstart
 
 ### adminUIOpenshift
+Runs Admin UI functional tests against OpenShift.
+
+You can use this optional property to with this profile:
+* `browser`
+    Browser to be used. Can be one of `chrome`, `firefox`, `internetExplorer`, `phantomjs`, `safari`. Firefox will be used if the property is not specified.
