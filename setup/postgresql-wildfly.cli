@@ -15,3 +15,11 @@ catch
     data-source add --name=UnifiedPushDS --driver-name=psqlup --jndi-name=java:jboss/datasources/UnifiedPushDS --connection-url=${db.jdbc_url} --user-name=${db.username} --password=${db.password} --use-ccm=false --max-pool-size=25 --blocking-timeout-wait-millis=5000 --enabled=true
 finally
 end-try
+
+try
+    /subsystem=datasources/data-source=UnifiedPushDS:remove
+    data-source add --name=KeycloakDS --driver-name=psqlup --jndi-name=java:jboss/datasources/KeycloakDS --connection-url=${db.jdbc_url} --user-name=${db.username} --password=${db.password} --use-ccm=false --max-pool-size=25 --blocking-timeout-wait-millis=5000 --enabled=true
+catch
+    data-source add --name=KeycloakDS --driver-name=psqlup --jndi-name=java:jboss/datasources/KeycloakDS --connection-url=${db.jdbc_url} --user-name=${db.username} --password=${db.password} --use-ccm=false --max-pool-size=25 --blocking-timeout-wait-millis=5000 --enabled=true
+finally
+end-try
