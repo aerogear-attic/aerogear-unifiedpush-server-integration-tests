@@ -16,8 +16,8 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import org.jboss.aerogear.unifiedpush.JavaSender;
-import org.jboss.aerogear.unifiedpush.SenderClient;
+import org.jboss.aerogear.unifiedpush.DefaultPushSender;
+import org.jboss.aerogear.unifiedpush.PushSender;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 
 import javax.ejb.Stateless;
@@ -35,15 +35,16 @@ public class JavaSenderTestEndpoint {
     @Produces(MediaType.TEXT_PLAIN)
     public String sendPushMessage(@FormParam("pushAppId") String appId, @FormParam("secret") String secret,
                                   @FormParam("serverUrl") String serverUrl, @FormParam("alert") String alert) {
-        JavaSender defaultJavaSender = new SenderClient.Builder(serverUrl).build();
-
-        UnifiedMessage unifiedMessage = new UnifiedMessage.Builder()
+        PushSender sender = DefaultPushSender.withRootServerURL(serverUrl)
                 .pushApplicationId(appId)
                 .masterSecret(secret)
+                .build();
+
+        UnifiedMessage unifiedMessage = UnifiedMessage.withMessage()
                 .alert(alert)
                 .build();
 
-        defaultJavaSender.send(unifiedMessage);
+        sender.send(unifiedMessage);
 
         return "Message sent!";
     }
