@@ -21,5 +21,6 @@ dependencies {
     compile 'com.jayway.restassured:rest-assured:2.4.0'
     compile 'com.jayway.awaitility:awaitility-groovy:1.6.3'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    compile 'org.jboss.aerogear.test:spacelift-jboss-manager:0.9.0'
     compile 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-12'
 }

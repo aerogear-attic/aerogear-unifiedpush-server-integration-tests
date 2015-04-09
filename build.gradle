@@ -193,7 +193,7 @@ spacelift {
         }
 
         adminUIOpenshift  {
-            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
+            enabledInstallations 'keystore', 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
             tests 'openshiftAdminUITests'
         }
     }
@@ -428,7 +428,7 @@ spacelift {
             version 'unused'
             preconditions {
                 if(!project.container.home) {
-                    throw new IllegalStateException("You must specify 'jbossHome with path to home of your container")
+                    throw new IllegalStateException("You must specify 'jbossHome' with path to home of your container")
                 }
 
                 if(!project.container.bindAddress) {
@@ -499,6 +499,9 @@ spacelift {
             openShiftRepository { File.createTempDir() }
             openShiftCartridges { [ project.openShiftCartridge ] }
             openShiftAppDirectory { project.openShiftAppDirectory }
+            openShiftGearSize { project.openShiftGearSize }
+            openShiftNamespace { project.openShiftNamespace }
+
             unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
             aerogearGcmMockCertificate { new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.crt') }
             aerogearGcmMockKey { new File(aerogearTestingTools.home, 'unifiedpush-test-extension/sslcert/gcm_mock.key') }
@@ -836,19 +839,19 @@ spacelift {
             execute {
                 def baseUri = "https://${project.openShiftAppNameAdminUI}-${project.openShiftNamespace}.rhcloud.com:443";
 
-                def mavenTask = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .profiles('recorder')
-                        .property('groups=category.AdminUI')
-                        .property('excludedGroups=')
-                        .property("containerUri=$baseUri")
-                        .property("browser=${project.browser}")
-                        .goals('clean', 'dependency:tree', 'test')
+                def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
+                        .profiles("recorder")
+                        .property("containerUri=${baseUri}")
+                        .property("javax.net.ssl.trustStore=${keystore.truststore.canonicalPath}")
+                        .property("javax.net.ssl.trustStorePassword=${keystore.truststorePass}")
+                        .ignoreTestFailures()
+                        .goals('clean', 'test')
 
-                project.externalMavenParameters.split().each {
-                    mavenTask.property(it)
+                for(prop in project.externalMavenParameters.split()){
+                        maven.property(prop)
                 }
 
-                mavenTask.execute().await()
+                maven.execute().await()
             }
         }
         localIntegrationTests {
@@ -889,8 +892,9 @@ spacelift {
                     javaOpts << "-Djava.net.preferIPv6Addresses=true"
                 }
 
-                // update javaOpts
-                jbossManagerConfiguration.setJavaOpts("${jbossManagerConfiguration.getJavaOpts()} ${javaOpts.join(' ')}")
+                // append javaOpts
+                jbossManagerConfiguration.setJavaOpts(jbossManagerConfiguration.getJavaOpts() as String[])
+                jbossManagerConfiguration.setJavaOpts(javaOpts as String[])
 
                 jbossManager = Spacelift.task(JBossStarter)
                         .configuration(jbossManagerConfiguration)
@@ -1124,7 +1128,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
-        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.7.0'
+        classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.9.0'
         classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-12'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'
