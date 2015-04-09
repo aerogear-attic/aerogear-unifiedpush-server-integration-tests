@@ -228,7 +228,7 @@ public class MessageSendTest {
         attributes.put("hello", "aerogear");
         attributes.put("aerogear", "rulez!");
 
-        statistics = selectiveSendByAliasesWithAttributes(installations, attributes);
+        statistics = selectiveSendByAliasesWithUserData(installations, attributes);
         assertThat(statistics.gcmMessage.getData().get("alert"), is(ALERT_MESSAGE));
         assertThat(statistics.gcmMessage.getData().get("hello"), is("aerogear"));
         assertThat(statistics.gcmMessage.getData().get("aerogear"), is("rulez!"));
@@ -263,7 +263,7 @@ public class MessageSendTest {
         attributes.put("hello", "aerogear");
         attributes.put("aerogear", "rulez!");
 
-        statistics = selectiveSendByAliasesWithAttributes(installations, attributes);
+        statistics = selectiveSendByAliasesWithUserData(installations, attributes);
         assertAlertPresent(statistics, ALERT_MESSAGE);
         assertCustomFieldsPresent(statistics, attributes);
     }
@@ -666,13 +666,13 @@ public class MessageSendTest {
         return selectiveSendByAliases(installations, blueprint);
     }
 
-    private SenderStatistics selectiveSendByAliasesWithAttributes(List<Installation> installations,
-                                                                  Map<String, String> attributes) {
+    private SenderStatistics selectiveSendByAliasesWithUserData(List<Installation> installations,
+                                                                Map<String, String> attributes) {
         SenderRequest.UnifiedMessageBlueprint blueprint = ups.with(prepareSenderRequest())
                 .message()
                 .alert(ALERT_MESSAGE);
         for (String key : attributes.keySet()) {
-            blueprint.attribute(key, attributes.get(key));
+            blueprint.userData(key, attributes.get(key));
         }
 
         return selectiveSendByAliases(installations, blueprint);
