@@ -307,15 +307,9 @@ spacelift {
         aerogearTestingTools {
 
             def testExtensionWar = new File(project.unifiedpush.binariesDir, 'unifiedpush-test-extension-server.war')
-
-            product 'aerogear'
-            version { project.unifiedPushTestExtensionVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-testing-tools/archive/f934c226a3eb94a6ee6247eb9e6e024ffc857e13.zip'
-            home 'aerogear-testing-tools'
+            home { new File(project.rootDir, 'tools') }
             // FIXME, there should be better condition - the problem is that we need rebuild if ups location is switched
             isInstalled false
-            fileName 'aerogear-testing-tools.zip'
-            extractMapper { toDir(home).cutdirs() }
             postActions {
                 // Install UPS REST API using specific UPS model
                 Spacelift.task(MavenExecutor)
