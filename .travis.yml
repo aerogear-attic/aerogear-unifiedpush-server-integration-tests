@@ -7,6 +7,6 @@ before_install:
     - mysql -e "GRANT SELECT,INSERT,UPDATE,ALTER,DELETE,CREATE,DROP ON unifiedpush.* TO 'unifiedpush'@'localhost';" -uroot
     - npm install -g grunt-cli bower@1.3.9
 install:
-    - ./gradlew --stacktrace assemble -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false
+    - true
 script:
     - ./gradlew --stacktrace test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false
