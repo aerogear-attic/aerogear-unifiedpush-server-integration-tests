@@ -19,7 +19,8 @@ package org.jboss.aerogear.test.api.sender;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.jboss.aerogear.test.api.AbstractSessionRequest;
-import org.jboss.aerogear.unifiedpush.SenderClient;
+import org.jboss.aerogear.unifiedpush.DefaultPushSender;
+import org.jboss.aerogear.unifiedpush.PushSender;
 import org.jboss.aerogear.unifiedpush.api.Category;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
@@ -58,15 +59,18 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         return this;
     }
 
-    public SenderRequest send(UnifiedMessage message) {
-        SenderClient.Builder senderClientBuilder = new SenderClient.Builder(getSession().getBaseUrl().toExternalForm());
+    public SenderRequest send(UnifiedMessage message, String pushApplicationId, String masterSecret) {
+        DefaultPushSender.Builder senderBuilder =
+                DefaultPushSender.withRootServerURL(getSession().getBaseUrl().toExternalForm())
+                        .pushApplicationId(pushApplicationId)
+                        .masterSecret(masterSecret);
 
-        if(customTrustStorePath != null) {
-            senderClientBuilder.customTrustStore(customTrustStorePath, customTrustStoreType, customTrustStorePassword);
+        if (customTrustStorePath != null) {
+            senderBuilder.customTrustStore(customTrustStorePath, customTrustStoreType, customTrustStorePassword);
         }
 
 
-        SenderClient senderClient = senderClientBuilder.build();
+        PushSender senderClient = senderBuilder.build();
 
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicInteger statusCode = new AtomicInteger(-1);
@@ -104,6 +108,8 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
     public class UnifiedMessageBlueprint {
 
         private final UnifiedMessage.Builder builder;
+        private String pushApplicationId;
+        private String masterSecret;
 
         public UnifiedMessageBlueprint() {
             builder = new UnifiedMessage.Builder();
@@ -115,12 +121,12 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         }
 
         public UnifiedMessageBlueprint pushApplicationId(String pushApplicationId) {
-            builder.pushApplicationId(pushApplicationId);
+            this.pushApplicationId = pushApplicationId;
             return this;
         }
 
         public UnifiedMessageBlueprint masterSecret(String masterSecret) {
-            builder.masterSecret(masterSecret);
+            this.masterSecret = masterSecret;
             return this;
         }
 
@@ -129,7 +135,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         }
 
         public UnifiedMessageBlueprint aliases(List<String> aliases) {
-            builder.aliases(aliases);
+            builder.criteria().aliases(aliases);
             return this;
         }
 
@@ -150,7 +156,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         }
 
         public UnifiedMessageBlueprint deviceTypes(List<String> deviceTypes) {
-            builder.deviceType(deviceTypes);
+            builder.criteria().deviceType(deviceTypes);
             return this;
         }
 
@@ -167,12 +173,12 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         }
 
         public UnifiedMessageBlueprint categories(String... categories) {
-            builder.categories(categories);
+            builder.criteria().categories(categories);
             return this;
         }
 
         public UnifiedMessageBlueprint categories(Set<String> categories) {
-            builder.categories(categories);
+            builder.criteria().categories(categories);
             return this;
         }
 
@@ -195,7 +201,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         }
 
         public UnifiedMessageBlueprint variantIDs(List<String> variants) {
-            builder.variants(variants);
+            builder.criteria().variants(variants);
             return this;
         }
 
@@ -211,43 +217,43 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
             return variantIDs(variantIDs);
         }
 
-        public UnifiedMessageBlueprint attribute(String key, String value) {
-            builder.attribute(key, value);
+        public UnifiedMessageBlueprint userData(String key, String value) {
+            builder.message().userData(key, value);
             return this;
         }
 
         public UnifiedMessageBlueprint alert(String message) {
-            builder.alert(message);
+            builder.message().alert(message);
             return this;
         }
 
         public UnifiedMessageBlueprint sound(String sound) {
-            builder.sound(sound);
+            builder.message().sound(sound);
             return this;
         }
 
         public UnifiedMessageBlueprint badge(String badge) {
-            builder.badge(badge);
+            builder.message().badge(badge);
             return this;
         }
 
         public UnifiedMessageBlueprint contentAvailable() {
-            builder.contentAvailable();
+            builder.message().contentAvailable();
             return this;
         }
 
         public UnifiedMessageBlueprint simplePush(String version) {
-            builder.simplePush(version);
+            builder.message().simplePush(version);
             return this;
         }
 
         public UnifiedMessageBlueprint timeToLive(int seconds) {
-            builder.timeToLive(seconds);
+            builder.config().timeToLive(seconds);
             return this;
         }
 
         public SenderRequest send() {
-            SenderRequest.this.send(builder.build());
+            SenderRequest.this.send(builder.build(), pushApplicationId, masterSecret);
             return SenderRequest.this;
         }
 

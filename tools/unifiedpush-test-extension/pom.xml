@@ -17,18 +17,18 @@
 
     <groupId>org.jboss.aerogear.test</groupId>
     <artifactId>unifiedpush-test-extension</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.1.0-alpha.1</version>
     <packaging>pom</packaging>
 
     <properties>
-        <keycloak.version>1.0.4.Final</keycloak.version>
         <jboss-as-maven-plugin.version>7.5.Final</jboss-as-maven-plugin.version>
         <hibernate.javax.persistence.version>1.0.1.Final</hibernate.javax.persistence.version>
         <hibernate.entitymanager.version>4.0.1.Final</hibernate.entitymanager.version>
-        <aerogear.version>1.0.3</aerogear.version>
-        <ups-rest-api.version>1.0.3</ups-rest-api.version>
+        <aerogear.version>1.1.0-alpha.1</aerogear.version>
+        <ups-rest-api.version>1.1.0-alpha.1</ups-rest-api.version>
         <littleproxy.version>1.1.0-beta1-SNAPSHOT</littleproxy.version>
-        <aerogear.unifiedpush-java-client.version>1.0.0</aerogear.unifiedpush-java-client.version>
+        <aerogear.unifiedpush-java-client.version>1.1.0-alpha.1</aerogear.unifiedpush-java-client.version>
+        <org.jboss.aerogear.bom.version>${project.parent.version}</org.jboss.aerogear.bom.version>
     </properties>
 
     <dependencyManagement>
@@ -37,6 +37,14 @@
                 <groupId>org.jboss.bom.eap</groupId>
                 <artifactId>jboss-javaee-6.0-with-resteasy</artifactId>
                 <version>6.2.0-redhat-1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--  AeroGear Dependencies BOM Imports  -->
+            <dependency>
+                <groupId>org.jboss.aerogear</groupId>
+                <artifactId>aerogear-bom</artifactId>
+                <version>${org.jboss.aerogear.bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -95,27 +103,22 @@
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-dependencies-server-min</artifactId>
                 <type>pom</type>
-                <version>${keycloak.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-connections-jpa</artifactId>
-                <version>${keycloak.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-model-jpa</artifactId>
-                <version>${keycloak.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-model-sessions-mem</artifactId>
-                <version>${keycloak.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-model-sessions-jpa</artifactId>
-                <version>${keycloak.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>

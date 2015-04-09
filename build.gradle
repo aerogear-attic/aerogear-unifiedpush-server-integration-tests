@@ -64,8 +64,8 @@ ext {
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.0.3'
-    defaultUnifiedPushTestExtensionVersion = '1.0.3-SNAPSHOT'
+    defaultUnifiedPushModelVersion = '1.1.0-alpha.1'
+    defaultUnifiedPushTestExtensionVersion = '1.1.0-alpha.1'
     defaultIpVersion = 'IPv4'
 
 
@@ -243,7 +243,7 @@ spacelift {
         unifiedPushServerModel {
             product 'aerogear'
             version { project.unifiedPushModelVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-alpha.1.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
@@ -516,9 +516,9 @@ spacelift {
 
         upsFromSource {
             product 'aerogear'
-            version '1.0.3'
+            version '1.1.0-alpha.1'
             isInstalled false
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-alpha.1.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
             postActions {
@@ -560,7 +560,7 @@ spacelift {
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.0.3'
+            version '1.1.0-alpha.1'
             isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
@@ -608,7 +608,7 @@ spacelift {
          */
         upsProvided {
             product 'aerogear'
-            version '1.0.3'
+            version '1.1.0-alpha.1'
             preconditions {
                 if(!project.unifiedPushServerWar) {
                     throw new IllegalStateException("You must specify path to ag-push.war via unifiedPushServerWar property")
