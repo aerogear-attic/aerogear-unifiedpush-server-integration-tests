@@ -238,7 +238,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         }
 
         public UnifiedMessageBlueprint contentAvailable() {
-            builder.message().contentAvailable();
+            builder.message().apns().contentAvailable();
             return this;
         }
 
