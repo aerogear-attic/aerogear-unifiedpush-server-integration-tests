@@ -169,7 +169,7 @@ spacelift {
 
                 }
 
-                _installations += ['littleProxy', 'unifiedPushServerModel', 'unifiedPushJavaClient', 'aerogearTestingTools', ups]
+                _installations += ['littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', ups]
                 def _tests = container!='openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
@@ -281,30 +281,6 @@ spacelift {
                         .goals('clean', 'install')
                         .properties( 'skipTests', 'maven.javadoc.skip=true')
                         .execute().await()
-
-                // install push model
-                Spacelift.task(MavenExecutor).pom('push/model/pom.xml')
-                        .workingDir(home.absolutePath)
-                        .goals('clean', 'install')
-                        .properties( 'skipTests', 'maven.javadoc.skip=true')
-                        .execute().await()
-            }
-        }
-
-        unifiedPushJavaClient {
-            product 'aerogear'
-            version '1.1.0-alpha.2-SNAPSHOT'
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-java-client/archive/master.zip'
-            home 'aerogear-unifiedpush-java-client'
-            fileName 'aerogear-unifiedpush-java-client.zip'
-            extractMapper { toDir(home).cutdirs() }
-            isInstalled { false }
-            postActions {
-                Spacelift.task(MavenExecutor).pom('pom.xml')
-                    .workingDir(home.absolutePath)
-                    .goals('clean', 'install')
-                    .properties('skipTests', 'maven.javadoc.skip=true')
-                    .execute().await()
             }
         }
 

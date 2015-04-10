@@ -31,7 +31,7 @@
 
 		<org.jboss.aerogear.bom.version>${project.parent.version}</org.jboss.aerogear.bom.version>
 
-		<aerogear.unifiedpush-java-client.version>1.1.0-alpha.2-SNAPSHOT</aerogear.unifiedpush-java-client.version>
+		<aerogear.unifiedpush-java-client.version>1.1.0-alpha.1</aerogear.unifiedpush-java-client.version>
 		<aerogear.unifiedpush-server-model.version>1.1.0-alpha.2-SNAPSHOT</aerogear.unifiedpush-server-model.version>
 
 	</properties>
