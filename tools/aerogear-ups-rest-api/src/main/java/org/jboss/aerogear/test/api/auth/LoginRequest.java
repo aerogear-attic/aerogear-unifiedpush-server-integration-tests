@@ -24,7 +24,7 @@ import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
 import org.keycloak.OAuth2Constants;
-import org.keycloak.ServiceUrlConstants;
+import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.util.JsonSerialization;
 import org.keycloak.util.KeycloakUriBuilder;

@@ -17,7 +17,6 @@
 package org.jboss.aerogear.test.api;
 
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
@@ -38,19 +37,6 @@ public class ModelAsserts {
         // TODO we can't do this check as none of variants has the equals method implemented
         // assertEquals(expected.getIOSVariants(), actual.getIOSVariants());
         // assertEquals(expected.getAndroidVariants(), actual.getAndroidVariants());
-        // assertEquals(expected.getSimplePushVariants(), actual.getSimplePushVariants());
-    }
-
-    public static void assertModelsEqual(ChromePackagedAppVariant expected, ChromePackagedAppVariant actual) {
-        assertEquals("Name is not equal!", expected.getName(), actual.getName());
-        assertEquals("Description is not equal!", expected.getDescription(), actual.getDescription());
-        assertEquals("VariantId is not equal!", expected.getVariantID(), actual.getVariantID());
-        assertEquals("Secret is not equal!", expected.getSecret(), actual.getSecret());
-        assertEquals("Developer is not equal!", expected.getDeveloper(), actual.getDeveloper());
-
-        // TODO we can't do this check as none of variants has the equals method implemented
-        // assertEquals(expected.getIOSVariants(), actual.getIOSVariants());
-        // assertEquals(expected.getChromePackagedAppVariants(), actual.getChromePackagedAppVariants());
         // assertEquals(expected.getSimplePushVariants(), actual.getSimplePushVariants());
     }
 

@@ -22,12 +22,12 @@
     <parent>
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-parent</artifactId>
-        <version>0.2.9</version>
+        <version>0.2.13</version>
         <relativePath/>
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
-    <version>1.1.0-alpha.1</version>
+    <version>1.1.0-alpha.2-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -36,14 +36,14 @@
         <maven.compiler.argument.source>${maven.compiler.source}</maven.compiler.argument.source>
 
         <jboss-javaee-6.0.version>3.0.2.Final</jboss-javaee-6.0.version>
-        <keycloak.version>1.0-beta-3</keycloak.version>
+        <keycloak.version>1.1.0.Final</keycloak.version>
         <notnoop.version>0.2.3</notnoop.version>
         <gcm-server.version>1.0.2</gcm-server.version>
-        <aerogear.unifiedpush-server-rest-api.version>1.1.0-alpha.1</aerogear.unifiedpush-server-rest-api.version>
-        <aerogear.unifiedpush-test-extension.version>1.1.0-alpha.1</aerogear.unifiedpush-test-extension.version>
+        <aerogear.unifiedpush-server-rest-api.version>1.1.0-alpha.2-SNAPSHOT</aerogear.unifiedpush-server-rest-api.version>
+        <aerogear.unifiedpush-test-extension.version>1.1.0-alpha.2-SNAPSHOT</aerogear.unifiedpush-test-extension.version>
 
         <!-- Testing -->
-        <org.jboss.aerogear.bom.version>0.2.7</org.jboss.aerogear.bom.version>
+        <org.jboss.aerogear.bom.version>0.2.13</org.jboss.aerogear.bom.version>
 
         <!-- Code coverage -->
         <org.jacoco.ant.version>0.6.3.201306030806</org.jacoco.ant.version>

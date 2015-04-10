@@ -17,7 +17,6 @@
 package org.jboss.aerogear.unifiedpush.test;
 
 import category.APNS;
-import category.ChromePackagedApp;
 import category.GCM;
 import category.NotIPv6Ready;
 import category.SimplePush;
@@ -36,16 +35,13 @@ import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.extension.SenderStatisticsRequest;
 import org.jboss.aerogear.test.api.installation.InstallationWorker;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
-import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
 import org.jboss.aerogear.test.api.sender.SenderRequest;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
-import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
@@ -79,7 +75,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.apnsTestsEnabled;
-import static org.jboss.aerogear.unifiedpush.utils.TestUtils.chromePackagedAppTestsEnabled;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.gcmTestsEnabled;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.prepareSenderRequest;
 import static org.jboss.aerogear.unifiedpush.utils.TestUtils.simplePushTestsEnabled;
@@ -134,16 +129,6 @@ public class MessageSendTest {
                         .generate(3).persist();
             }
 
-            if (chromePackagedAppTestsEnabled()) {
-                ChromePackagedAppVariant chromePackagedAppVariant =
-                        with(ChromePackagedAppVariantWorker.worker(), application)
-                                .generate().persist()
-                                .detachEntity();
-
-                with(ChromePackagedAppInstallationWorker.worker(), chromePackagedAppVariant)
-                        .generate(3).persist();
-
-            }
             return this;
         }
     };
@@ -200,10 +185,6 @@ public class MessageSendTest {
 
     private SimplePushVariant getSimplePushVariant() {
         return ups.with(SimplePushVariantWorker.worker(), getPushApplication()).findAll().detachEntity();
-    }
-
-    private ChromePackagedAppVariant getChromePackagedAppVariant() {
-        return ups.with(ChromePackagedAppVariantWorker.worker(), getPushApplication()).findAll().detachEntity();
     }
 
     @Category({ GCM.class, NotIPv6Ready.class })
@@ -302,15 +283,6 @@ public class MessageSendTest {
         }
     }
 
-    @Category(ChromePackagedApp.class)
-    @Test
-    public void chromePackagedAppSelectiveSendByAliases() {
-        List<Installation> installations = ups.with(ChromePackagedAppInstallationWorker.worker(),
-                getChromePackagedAppVariant()).findAll().detachEntities();
-        SenderStatistics statistics = selectiveSendByAliases(installations.subList(0, installations.size() - 1));
-        assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
-    }
-
     @Category(NotIPv6Ready.class)
     @Test
     public void selectiveSendByCommonAlias() {
@@ -332,15 +304,6 @@ public class MessageSendTest {
                     .generate().alias(alias).persist()
                     .detachEntity();
             commonAliasInstallations.add(iosInstallation);
-        }
-
-        Installation gcmForChromeInstallation = null;
-        if (chromePackagedAppTestsEnabled()) {
-            gcmForChromeInstallation = ups.with(ChromePackagedAppInstallationWorker.worker(),
-                    getChromePackagedAppVariant())
-                    .generate().alias(alias).persist()
-                    .detachEntity();
-            commonAliasInstallations.add(gcmForChromeInstallation);
         }
 
         List<Installation> simplePushInstallations = new ArrayList<Installation>();
@@ -394,19 +357,12 @@ public class MessageSendTest {
         if (apnsTestsEnabled()) {
             assertAlertPresent(statistics, ALERT_MESSAGE);
         }
-        if (chromePackagedAppTestsEnabled()) {
-            assertThat(statistics.gcmForChromeAlert, is(ALERT_MESSAGE));
-        }
 
         if (gcmTestsEnabled()) {
             ups.with(AndroidInstallationWorker.worker(), getAndroidVariant()).unregister(androidInstallation);
         }
         if (apnsTestsEnabled()) {
             ups.with(iOSInstallationWorker.worker(), getIOSVariant()).unregister(iosInstallation);
-        }
-        if (chromePackagedAppTestsEnabled()) {
-            ups.with(ChromePackagedAppInstallationWorker.worker(), getChromePackagedAppVariant()).unregister
-                    (gcmForChromeInstallation);
         }
         if (simplePushTestsEnabled()) {
             ups.with(SimplePushInstallationWorker.worker(), getSimplePushVariant()).unregister(simplePushInstallation);
@@ -457,7 +413,7 @@ public class MessageSendTest {
             variants.add(getIOSVariant());
         }
 
-        // FIXME how about GCM for chrome and SimplePush? they do not report client invalidity
+        // FIXME how about SimplePush? it does not report client invalidity
         ups.with(prepareSenderRequest())
                 .message()
                 .pushApplication(getPushApplication())

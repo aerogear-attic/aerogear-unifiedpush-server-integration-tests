@@ -1,20 +1,18 @@
 package org.jboss.aerogear.unifiedpush.test;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Logger;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math3.distribution.ParetoDistribution;
+import org.apache.commons.math3.stat.StatUtils;
+import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
+import org.jboss.aerogear.unifiedpush.api.Category;
+import org.jboss.aerogear.unifiedpush.api.Installation;
+import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
+import org.jboss.aerogear.unifiedpush.api.Variant;
+import org.jboss.aerogear.unifiedpush.api.VariantType;
+import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
@@ -31,33 +29,33 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math3.distribution.ParetoDistribution;
-import org.apache.commons.math3.stat.StatUtils;
-import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.api.Category;
-import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
-import org.jboss.aerogear.unifiedpush.api.Installation;
-import org.jboss.aerogear.unifiedpush.api.PushApplication;
-import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
-import org.jboss.aerogear.unifiedpush.api.Variant;
-import org.jboss.aerogear.unifiedpush.api.VariantType;
-import org.jboss.aerogear.unifiedpush.api.iOSVariant;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 @Stateless
 @Path("/datagenerator")
 public class DataGeneratorEndpoint {
-    
+
     private static final Logger LOGGER = Logger.getLogger(DataGeneratorEndpoint.class.getName());
 
     private static final Random RANDOM = new Random();
 
     @Resource(lookup = "java:jboss/datasources/UnifiedPushDS")
     private DataSource ds;
-    
+
     @Inject
     private Validator validator;
 
@@ -81,7 +79,7 @@ public class DataGeneratorEndpoint {
             generateCategoriesPerInstallations(ctx);
 
             ctx.getResponse().put("stopTime", new Date().toString());
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.severe(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
             ctx.getResponse().put("exception", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
         }
@@ -93,11 +91,11 @@ public class DataGeneratorEndpoint {
 
     private void validateConfig(DataGeneratorConfig config) {
         Set<ConstraintViolation<DataGeneratorConfig>> violations = validator.validate(config);
-        if( !violations.isEmpty() ) {
+        if (!violations.isEmpty()) {
             throw new ConstraintViolationException(new HashSet<ConstraintViolation<?>>(violations));
         }
     }
-    
+
     private void cleanupDatabase(DataGeneratorContext ctx) {
         if (!ctx.getConfig().isCleanupDatabase()) {
             return;
@@ -136,8 +134,9 @@ public class DataGeneratorEndpoint {
             ctx.getApplications().add(application);
         }
 
-        executeBatch("insert into PushApplication(id, name, description, pushApplicationID, masterSecret, developer) values(?, ?, ?, ?, ?, ?)", new PrepareInsertApplicationStmt(), ctx.getApplications());
-        
+        executeBatch("insert into PushApplication(id, name, description, pushApplicationID, masterSecret, developer) " +
+                "values(?, ?, ?, ?, ?, ?)", new PrepareInsertApplicationStmt(), ctx.getApplications());
+
         ctx.getResponse().put("applicationsCount", ctx.getApplications().size());
     }
 
@@ -178,17 +177,20 @@ public class DataGeneratorEndpoint {
             }
         }
 
-        executeBatch("insert into Variant(id, name, description, developer, secret, variantid, variants_id, variant_type, type) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertVariantStmt(), variants);
-        executeBatch("insert into AndroidVariant(id, projectnumber, googlekey) values(?, ?, ?)", new PrepareInsertAndroidVariantStmt(), variants);
-        executeBatch("insert into iOSVariant(id, certificate, passphrase, production) values(?, ?, ?, ?)", new PrepareInsertIosVariantStmt(), variants);
+        executeBatch("insert into Variant(id, name, description, developer, secret, variantid, variants_id, " +
+                "variant_type, type) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertVariantStmt(), variants);
+        executeBatch("insert into AndroidVariant(id, projectnumber, googlekey) values(?, ?, ?)", new
+                PrepareInsertAndroidVariantStmt(), variants);
+        executeBatch("insert into iOSVariant(id, certificate, passphrase, production) values(?, ?, ?, ?)", new
+                PrepareInsertIosVariantStmt(), variants);
         executeBatch("insert into SimplePushVariant(id) values(?)", new PrepareInsertSimplePushVariantStmt(), variants);
-        
+
         ctx.getResponse().put("variantsCount", variants.size());
     }
 
     private void generateInstallations(DataGeneratorContext ctx) {
         LOGGER.info("Generating installations");
-        
+
         Map<Variant, Integer> installationsCount = calculateInstallationDistribution(ctx);
         for (Map.Entry<Variant, Integer> installationCount : installationsCount.entrySet()) {
 
@@ -215,7 +217,8 @@ public class DataGeneratorEndpoint {
                         installation.setOsVersion("6.0");
                         break;
                     case SIMPLE_PUSH:
-                        installation.setDeviceToken(String.format("http://localhost:8081/endpoint/%s", installation.getId()));
+                        installation.setDeviceToken(String.format("http://localhost:8081/endpoint/%s", installation
+                                .getId()));
                         installation.setDeviceType("web");
                         installation.setOperatingSystem("MozillaOS");
                         installation.setOsVersion("1");
@@ -225,9 +228,11 @@ public class DataGeneratorEndpoint {
                 }
             }
         }
-        
-        executeBatch("insert into Installation(id, alias, deviceToken, deviceType, operatingSystem, osVersion, platform, variantid, enabled) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertInstallationStmt(), ctx.getInstallations());
-        
+
+        executeBatch("insert into Installation(id, alias, deviceToken, deviceType, operatingSystem, osVersion, " +
+                "platform, variantid, enabled) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertInstallationStmt
+                (), ctx.getInstallations());
+
         ctx.getResponse().put("installationsCount", ctx.getInstallations().size());
     }
 
@@ -244,12 +249,13 @@ public class DataGeneratorEndpoint {
             category.setName(UUID.randomUUID().toString());
             ctx.getCategories().add(category);
         }
-        
-        executeBatch("insert into Category(id, name) values(?, ?)", new PrepareInsertCategoryStmt(), ctx.getCategories());
-        
+
+        executeBatch("insert into Category(id, name) values(?, ?)", new PrepareInsertCategoryStmt(), ctx
+                .getCategories());
+
         ctx.getResponse().put("categoriesCount", ctx.getCategories().size());
     }
-    
+
     private void generateCategoriesPerInstallations(DataGeneratorContext ctx) {
         if (ctx.getCategories().isEmpty() || ctx.getConfig().getCategoriesPerInstallation() <= 0) {
             return;
@@ -260,21 +266,23 @@ public class DataGeneratorEndpoint {
         List<Category> categoriesShuffled = new ArrayList<Category>(ctx.getCategories());
         List<Pair<String, Long>> instalationCategoryPairs = new ArrayList<Pair<String, Long>>();
         for (Installation installation : ctx.getInstallations()) {
-            
+
             Collections.shuffle(categoriesShuffled);
             List<Category> categories = categoriesShuffled.subList(0, ctx.getConfig().getCategoriesPerInstallation());
             for (Category category : categories) {
                 instalationCategoryPairs.add(Pair.of(installation.getId(), category.getId()));
             }
-            
-            if( instalationCategoryPairs.size() > 10000 ) {
-                executeBatch("insert into Installation_Category(installation_id, categories_id) values(?, ?)", new PrepareInsertInstallationCategoryStmt(), instalationCategoryPairs);
+
+            if (instalationCategoryPairs.size() > 10000) {
+                executeBatch("insert into Installation_Category(installation_id, categories_id) values(?, ?)", new
+                        PrepareInsertInstallationCategoryStmt(), instalationCategoryPairs);
                 instalationCategoryPairs.clear();
             }
         }
-        
-        if( instalationCategoryPairs.size() > 0 ) {
-            executeBatch("insert into Installation_Category(installation_id, categories_id) values(?, ?)", new PrepareInsertInstallationCategoryStmt(), instalationCategoryPairs);
+
+        if (instalationCategoryPairs.size() > 0) {
+            executeBatch("insert into Installation_Category(installation_id, categories_id) values(?, ?)", new
+                    PrepareInsertInstallationCategoryStmt(), instalationCategoryPairs);
             instalationCategoryPairs.clear();
         }
     }
@@ -282,14 +290,14 @@ public class DataGeneratorEndpoint {
     private Map<Variant, Integer> calculateInstallationDistribution(DataGeneratorContext ctx) {
         Map<Variant, Integer> installationsCount;
         switch (ctx.getConfig().getInstallationDistribution()) {
-        case FLAT:
-            installationsCount = calculateFlatInstallationDistribution(ctx);
-            break;
-        case PARETO:
-            installationsCount = calculateParetoInstallationDistribution(ctx);
-            break;
-        default:
-            throw new RuntimeException();
+            case FLAT:
+                installationsCount = calculateFlatInstallationDistribution(ctx);
+                break;
+            case PARETO:
+                installationsCount = calculateParetoInstallationDistribution(ctx);
+                break;
+            default:
+                throw new RuntimeException();
         }
         return installationsCount;
     }
@@ -347,20 +355,17 @@ public class DataGeneratorEndpoint {
     private Variant createVariant(VariantType variantType) {
         Variant variant;
         switch (variantType) {
-        case ANDROID:
-            variant = new AndroidVariant();
-            break;
-        case IOS:
-            variant = new iOSVariant();
-            break;
-        case SIMPLE_PUSH:
-            variant = new SimplePushVariant();
-            break;
-        case CHROME_PACKAGED_APP:
-            variant = new ChromePackagedAppVariant();
-            break;
-        default:
-            throw new RuntimeException();
+            case ANDROID:
+                variant = new AndroidVariant();
+                break;
+            case IOS:
+                variant = new iOSVariant();
+                break;
+            case SIMPLE_PUSH:
+                variant = new SimplePushVariant();
+                break;
+            default:
+                throw new RuntimeException();
         }
         return variant;
     }
@@ -368,14 +373,14 @@ public class DataGeneratorEndpoint {
     private VariantType createVariantType(DataGeneratorContext ctx) {
         VariantType variantType;
         switch (ctx.getConfig().getVariantDistribution()) {
-        case EQUAL:
-            variantType = ctx.getConfig().getVariantType();
-            break;
-        case RANDOM:
-            variantType = VariantType.values()[RANDOM.nextInt(VariantType.values().length - 1)]; /* CHROME_PACKAGED_APP isn't supported yet */
-            break;
-        default:
-            throw new RuntimeException();
+            case EQUAL:
+                variantType = ctx.getConfig().getVariantType();
+                break;
+            case RANDOM:
+                variantType = VariantType.values()[RANDOM.nextInt(VariantType.values().length - 1)];
+                break;
+            default:
+                throw new RuntimeException();
         }
         return variantType;
     }
@@ -391,7 +396,7 @@ public class DataGeneratorEndpoint {
 
                 int batchSize = 1000;
                 int counter = 0;
-                
+
                 for (T entity : entities) {
                     ps.clearParameters();
                     prepareStatement.prepare(ps, entity);
@@ -408,28 +413,27 @@ public class DataGeneratorEndpoint {
                 }
 
             } catch (SQLException e) {
-                if( c != null ) {
+                if (c != null) {
                     c.rollback();
                 }
                 throw e;
             } finally {
-                if( ps != null ) {
+                if (ps != null) {
                     ps.close();
                 }
-                if( c != null ) {
+                if (c != null) {
                     c.close();
                 }
             }
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private interface PrepareStatement<T> {
-        
+
         public void prepare(PreparedStatement ps, T entity) throws SQLException;
-    
+
     }
 
     private static class PrepareInsertApplicationStmt implements PrepareStatement<PushApplication> {
@@ -444,9 +448,9 @@ public class DataGeneratorEndpoint {
             ps.setString(6, application.getDeveloper());
             ps.addBatch();
         }
-    
+
     }
-    
+
     private static class PrepareInsertVariantStmt implements PrepareStatement<Pair<String, Variant>> {
 
         @Override
@@ -466,7 +470,7 @@ public class DataGeneratorEndpoint {
         }
 
     }
-    
+
     private static class PrepareInsertAndroidVariantStmt implements PrepareStatement<Pair<String, Variant>> {
 
         @Override
@@ -481,7 +485,7 @@ public class DataGeneratorEndpoint {
         }
 
     }
-    
+
     private static class PrepareInsertIosVariantStmt implements PrepareStatement<Pair<String, Variant>> {
 
         @Override
@@ -497,7 +501,7 @@ public class DataGeneratorEndpoint {
         }
 
     }
-    
+
     private static class PrepareInsertSimplePushVariantStmt implements PrepareStatement<Pair<String, Variant>> {
 
         @Override
@@ -510,7 +514,7 @@ public class DataGeneratorEndpoint {
         }
 
     }
-    
+
     private static class PrepareInsertInstallationStmt implements PrepareStatement<Installation> {
 
         @Override
@@ -528,7 +532,7 @@ public class DataGeneratorEndpoint {
         }
 
     }
-    
+
     private static class PrepareInsertCategoryStmt implements PrepareStatement<Category> {
 
         @Override
@@ -539,7 +543,7 @@ public class DataGeneratorEndpoint {
         }
 
     }
-    
+
     private static class PrepareInsertInstallationCategoryStmt implements PrepareStatement<Pair<String, Long>> {
 
         @Override

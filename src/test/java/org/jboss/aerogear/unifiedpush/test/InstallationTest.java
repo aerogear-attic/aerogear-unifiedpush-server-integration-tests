@@ -16,7 +16,6 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
-import category.ChromePackagedApp;
 import category.SimplePush;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
@@ -31,16 +30,13 @@ import org.jboss.aerogear.test.api.installation.InstallationContext;
 import org.jboss.aerogear.test.api.installation.InstallationEditor;
 import org.jboss.aerogear.test.api.installation.InstallationWorker;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
-import org.jboss.aerogear.test.api.installation.chromepackagedapp.ChromePackagedAppInstallationWorker;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationBlueprint;
 import org.jboss.aerogear.test.api.installation.ios.iOSInstallationWorker;
 import org.jboss.aerogear.test.api.installation.simplepush.SimplePushInstallationWorker;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
-import org.jboss.aerogear.test.api.variant.chromepackagedapp.ChromePackagedAppVariantWorker;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantWorker;
 import org.jboss.aerogear.test.api.variant.simplepush.SimplePushVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
-import org.jboss.aerogear.unifiedpush.api.ChromePackagedAppVariant;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
@@ -211,29 +207,6 @@ public class InstallationTest {
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
         ups.with(SimplePushInstallationWorker.worker(), variant).generate().deviceToken(null).persist();
-    }
-
-    @Category(ChromePackagedApp.class)
-    @Test
-    public void testChromePackagedAppInstallations() {
-        ChromePackagedAppVariant variant = ups.with(ChromePackagedAppVariantWorker.worker(), getRegisteredApplication())
-                .generate().persist()
-                .detachEntity();
-
-        performInstallationCRUD(ChromePackagedAppInstallationWorker.worker(), variant);
-    }
-
-    @Category(ChromePackagedApp.class)
-    @Test
-    public void testChromePackagedAppInstallationsUTF8() {
-        ChromePackagedAppVariant variant = ups.with(
-                ChromePackagedAppVariantWorker.worker().contentType(ContentTypes.jsonUTF8()),
-                getRegisteredApplication())
-                .generate().persist()
-                .detachEntity();
-
-        performInstallationCRUD(
-                ChromePackagedAppInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
     }
 
     public <BLUEPRINT extends InstallationBlueprint<BLUEPRINT, EDITOR, PARENT, WORKER, CONTEXT>,

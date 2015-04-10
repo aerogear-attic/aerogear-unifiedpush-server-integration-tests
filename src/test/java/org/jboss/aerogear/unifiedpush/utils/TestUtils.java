@@ -18,7 +18,6 @@ package org.jboss.aerogear.unifiedpush.utils;
 
 import category.APNS;
 import category.AdminUI;
-import category.ChromePackagedApp;
 import category.GCM;
 import category.SimplePush;
 import com.jayway.restassured.RestAssured;
@@ -52,10 +51,6 @@ public class TestUtils {
 
     public static boolean simplePushTestsEnabled() {
         return shouldRun(SimplePush.class);
-    }
-
-    public static boolean chromePackagedAppTestsEnabled() {
-        return shouldRun(ChromePackagedApp.class);
     }
 
     public static boolean apnsTestsEnabled() {

@@ -9,7 +9,7 @@
         build. That way we wouldn't have to check if there are any changes to the entities or configuration with each
         version of keycloak. -->
     <persistence-unit name="keycloak-default" transaction-type="JTA">
-        <jta-data-source>java:jboss/datasources/UnifiedPushDS</jta-data-source>
+        <jta-data-source>java:jboss/datasources/KeycloakDS</jta-data-source>
 
         <class>org.keycloak.models.jpa.entities.ApplicationEntity</class>
         <class>org.keycloak.models.jpa.entities.CredentialEntity</class>
@@ -29,6 +29,7 @@
         <!-- JpaUserSessionProvider -->
         <class>org.keycloak.models.sessions.jpa.entities.ClientSessionEntity</class>
         <class>org.keycloak.models.sessions.jpa.entities.ClientSessionRoleEntity</class>
+        <class>org.keycloak.models.sessions.jpa.entities.ClientSessionNoteEntity</class>
         <class>org.keycloak.models.sessions.jpa.entities.UserSessionEntity</class>
         <class>org.keycloak.models.sessions.jpa.entities.UsernameLoginFailureEntity</class>
 
