@@ -248,6 +248,8 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
             isInstalled {
+                return false
+
                 // if there is additional Maven repository, add it there
                 if(project.unifiedPushModelRepository != null) {
                     Spacelift.task(SettingsXmlUpdater)
