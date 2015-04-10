@@ -248,8 +248,6 @@ spacelift {
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
             isInstalled {
-                return false
-
                 // if there is additional Maven repository, add it there
                 if(project.unifiedPushModelRepository != null) {
                     Spacelift.task(SettingsXmlUpdater)
@@ -280,6 +278,14 @@ spacelift {
                 // install model
                 Spacelift.task(MavenExecutor).pom('model/pom.xml')
                         .workingDir(home.absolutePath)
+                        .goals('clean', 'install')
+                        .properties( 'skipTests', 'maven.javadoc.skip=true')
+                        .execute().await()
+
+                // install push model
+                Spacelift.task(MavenExecutor).pom('push/pom.xml')
+                        .workingDir(home.absolutePath)
+                        .withoutSubprojects()
                         .goals('clean', 'install')
                         .properties( 'skipTests', 'maven.javadoc.skip=true')
                         .execute().await()
