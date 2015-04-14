@@ -896,19 +896,13 @@ spacelift {
 
                 // undeploy content
                 ['auth-server.war', "ag-push.war", 'unifiedpush-test-extension-server.war'].each { war ->
-                    // We need the try-catch because there doesn't seem to be a way to ignore the 1 output from jboss-cli
-                    try {
-                        println "Undeploying ${war}"
-                        Spacelift.task(JBossCLI)
-                                .environment("JBOSS_HOME", jbossHome.canonicalPath)
-                                .connect()
-                                .cliCommand("undeploy ${war}")
-                                .execute().await()
-
-                        println "${war} undeployed successfully"
-                    } catch (Exception e) {
-                        println "${war} undeploy failed"
-                    }
+                    println "Undeploying ${war}"
+                    Spacelift.task(JBossCLI)
+                        .environment("JBOSS_HOME", jbossHome.canonicalPath)
+                        .shouldExitWith(0,1)
+                        .connect()
+                        .cliCommand("undeploy ${war}")
+                        .execute().await()
                 }
 
                 // run migrator
