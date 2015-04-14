@@ -1015,7 +1015,6 @@ spacelift {
                         .property("keystorePass=${keystore.keystorePass}")
                         .property("truststore=${keystore.truststore.canonicalPath}")
                         .property("truststorePass=${keystore.truststorePass}")
-                        .property("containerUri=$baseUri")
                         .ignoreTestFailures()
                         .goals('clean', 'test')
 
