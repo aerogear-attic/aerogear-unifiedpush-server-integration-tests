@@ -77,9 +77,7 @@ ext {
     defaultProtocols = [ 'https' ]
     defaultBrowser = 'firefox'
 
-    // We need to exclude APNS and GCMforChrome until it is fixed in proxy.
-    // If there is problem, you can exclude category.GCM as well
-    defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp"
+    defaultExternalMavenParameters = ""
 
     // Hello World quickstart related
     defaultGoogleProjectNumber = ''
@@ -821,12 +819,18 @@ spacelift {
             execute {
                 def baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
 
-                Spacelift.task(MavenExecutor).pom("pom.xml")
+                def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
                         .property("http.ignore=true")
                         .property("containerUri=$baseUri")
                         .property("keystore.ignore=true")
                         .property('excludedGroups=category.AdminUI,category.Performance,category.ChromePackagedApp,category.SimplePush')
-                        .goals('clean', 'test').execute().await()
+                        .goals('clean', 'test')
+
+                for(prop in project.externalMavenParameters.split()){
+                    maven.property(prop)
+                }
+
+                maven.execute().await()
             }
         }
         openshiftAdminUITests {
@@ -838,6 +842,7 @@ spacelift {
                         .property("containerUri=${baseUri}")
                         .property("javax.net.ssl.trustStore=${keystore.truststore.canonicalPath}")
                         .property("javax.net.ssl.trustStorePassword=${keystore.truststorePass}")
+                        .property("excludedGroups=category.Performance,category.ChromePackagedApp,category.SimplePush")
                         .ignoreTestFailures()
                         .goals('clean', 'test')
 
@@ -1015,6 +1020,7 @@ spacelift {
                         .property("keystorePass=${keystore.keystorePass}")
                         .property("truststore=${keystore.truststore.canonicalPath}")
                         .property("truststorePass=${keystore.truststorePass}")
+                        .property("excludedGroups=category.AdminUI")
                         .ignoreTestFailures()
                         .goals('clean', 'test')
 
