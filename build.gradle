@@ -518,7 +518,7 @@ spacelift {
             product 'aerogear'
             version '1.0.3'
             isInstalled false
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.x.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.0.3.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
             postActions {
