@@ -39,24 +39,4 @@
         </configuration>
     </container>
 
-    <extension qualifier="graphene">
-        <!-- we set wait to 20 seconds, to pass on OpenShift -->
-        <property name="waitModelInterval">20</property>
-        <property name="waitAjaxInterval">10</property>
-        <property name="waitGuiInterval">5</property>
-    </extension>
-
-    <extension qualifier="reporter">
-      <property name="report">html</property>
-    </extension>
-
-    <extension qualifier="recorder">
-    <property name="startBeforeClass">true</property>
-    <!-- <property name="takeOnlyOnFail">false</property> -->
-</extension>
-
-    <extension qualifier="webdriver">
-        <property name="browser">${browser:firefox}</property>
-        <property name="dimensions">1200x900</property>
-    </extension>
 </arquillian>

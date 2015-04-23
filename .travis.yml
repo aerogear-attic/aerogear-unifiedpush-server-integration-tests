@@ -9,4 +9,4 @@ before_install:
 install:
     - true
 script:
-    - ./gradlew --stacktrace test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false
+    - ./gradlew --stacktrace :test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false

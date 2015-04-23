@@ -1,0 +1,126 @@
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.jboss.aerogear:aerogear-parent:0.2.13'
+            mavenBom 'org.jboss.aerogear:aerogear-test-bom:0.2.13'
+            mavenBom 'org.jboss.arquillian.graphene:graphene-webdriver:2.1.0.Alpha2'
+        }
+        dependencies {
+            // Http Client version has to be aligned across REST Assured, Selenium and Keycloak
+            dependency 'org.apache.httpcomponents:httpcore:4.4'
+            dependency 'org.apache.httpcomponents:httpclient:4.4'
+            dependency 'org.apache.httpcomponents:httpmime:4.4'
+        }
+    }
+
+    test {
+        useJUnit()
+
+        if (project.hasProperty('ignoreTestFailures')) {
+            ignoreFailures = project['ignoreTestFailures']
+        }
+
+        if (project.hasProperty('containerUri')) {
+            systemProperty 'containerUri', project['containerUri']
+        }
+
+        if (project.hasProperty('keystore')) {
+            systemProperty 'javax.net.ssl.keyStore', project['keystore']
+        }
+
+        if (project.hasProperty('keystorePass')) {
+            systemProperty 'javax.net.ssl.keyStorePassword', project['keystorePass']
+        }
+
+        if (project.hasProperty('truststore')) {
+            systemProperty 'javax.net.ssl.trustStore', project['truststore']
+        }
+
+        if (project.hasProperty('truststorePass')) {
+            systemProperty 'javax.net.ssl.trustStorePassword', project['truststorePass']
+        }
+    }
+
+}
+
+project('common') {
+    dependencies {
+        compile 'org.apache.httpcomponents:httpcore:4.4'
+        compile 'org.apache.httpcomponents:httpclient:4.4'
+        compile 'org.jboss.aerogear.test:unifiedpush-test-extension-client:1.1.0-alpha.2-SNAPSHOT'
+        compile 'org.jboss.arquillian.junit:arquillian-junit-container'
+        compile 'junit:junit'
+        compile 'org.hamcrest:hamcrest-core'
+        compile 'org.jboss.aerogear.test:aerogear-ups-rest-api'
+        compile 'org.jboss.aerogear.test.arquillian:arquillian-rule'
+        compile 'org.jboss.aerogear.test.arquillian:arquillian-non-deploying-container-checks-api:0.3.0'
+        compile 'org.jboss.aerogear.test.arquillian:arquillian-non-deploying-container:0.3.0'
+    }
+}
+
+project('admin-ui') {
+
+    dependencies {
+        testCompile project(':tests:common')
+
+        testCompile 'org.apache.httpcomponents:httpcore:4.4'
+        testCompile 'org.apache.httpcomponents:httpclient:4.4'
+
+        testCompile 'org.jboss.arquillian.extension:arquillian-angularjs-graphene'
+        testCompile 'org.mockito:mockito-core'
+        testCompile 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-depchain'
+        testCompile 'org.jboss.arquillian.protocol:arquillian-protocol-servlet'
+        testCompile 'org.jboss.aerogear.test:aerogear-ups-rest-api'
+
+        testCompile 'org.json:json:20140107'
+        testCompile 'org.arquillian.spacelift:arquillian-spacelift'
+        testCompile 'org.jboss.aerogear.test:unifiedpush-test-extension-client:1.1.0-alpha.2-SNAPSHOT'
+        testCompile 'org.jboss.shrinkwrap.descriptors:shrinkwrap-descriptors-impl-jboss:2.0.0-alpha-6'
+        testCompile 'org.jboss.arquillian.graphene:graphene-webdriver'
+    }
+
+    test {
+        /*println "Classpath before: ${classpath*.absolutePath}"
+        classpath = classpath.filter {
+            return !it.absolutePath.contains('httpclient-4.2') && !it.absolutePath.contains('httpcore-4.2')
+        }
+        println "Classpath after: ${classpath*.absolutePath}"*/
+    }
+}
+
+project('integration') {
+    dependencies {
+        testCompile project(':tests:common')
+        testCompile 'org.jboss.logging:jboss-logging:3.2.1.Final'
+        testCompile 'io.undertow:undertow-core:1.0.1.Final'
+        testCompile 'org.json:json:20140107'
+    }
+}
+
+project('performance') {
+    dependencies {
+        testCompile project(':tests:common')
+    }
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'io.spring.gradle:dependency-management-plugin:0.5.0.RELEASE'
+    }
+}

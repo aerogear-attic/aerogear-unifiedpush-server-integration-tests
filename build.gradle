@@ -2,15 +2,13 @@ import com.google.common.io.Files
 import com.jayway.awaitility.Awaitility
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.response.Response
-import org.arquillian.spacelift.Spacelift;
+import org.arquillian.spacelift.Spacelift
 import org.arquillian.spacelift.gradle.*
 import org.arquillian.spacelift.gradle.android.*
 import org.arquillian.spacelift.gradle.arquillian.*
 import org.arquillian.spacelift.gradle.certs.*
 import org.arquillian.spacelift.gradle.container.*
-import org.arquillian.spacelift.gradle.container.db.*
 import org.arquillian.spacelift.gradle.container.db.module.*
-import org.arquillian.spacelift.gradle.git.*
 import org.arquillian.spacelift.gradle.gradle.*
 import org.arquillian.spacelift.gradle.maven.*
 import org.arquillian.spacelift.gradle.openshift.*
@@ -19,14 +17,8 @@ import org.arquillian.spacelift.gradle.text.ProcessTemplate
 import org.arquillian.spacelift.gradle.utils.*
 import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.process.CommandBuilder
-import org.arquillian.spacelift.process.ProcessInteractionBuilder
-import org.arquillian.spacelift.process.ProcessResult
 import org.arquillian.spacelift.task.InvalidTaskException
 import org.arquillian.spacelift.task.archive.*
-import org.arquillian.spacelift.task.os.CommandTool
-import org.arquillian.spacelift.task.net.*
-import org.arquillian.spacelift.task.io.*
-import org.arquillian.spacelift.task.io.WriteToFileTool
 import org.jboss.aerogear.unifiedpush.api.*
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
 import org.jboss.aerogear.test.container.manager.configuration.ContainerType
@@ -41,17 +33,13 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories
 import groovy.json.JsonOutput
 
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.FileSystems
-import java.util.Collections
-import java.util.EnumSet
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
-apply plugin: 'spacelift'
+apply plugin: 'org.arquillian.spacelift'
 
 ext {
-    
+
     defaultOpenShiftAppName = 'upsintegrationtests'
     defaultOpenShiftAppNameAdminUI = 'upsadminui'
     defaultOpenShiftAppNameQuickstarts = 'quickstarts'
@@ -135,6 +123,13 @@ spacelift {
         keytool {
             command 'keytool'
         }
+        gradlew {
+            command ([
+                    linux: ['./gradlew', '--stacktrace'],
+                    mac: ['./gradlew', '--stacktrace'],
+                    windows: ['gradlew.bat', '--stacktrace']
+            ])
+        }
     }
 
     profiles {
@@ -201,7 +196,7 @@ spacelift {
             product 'maven'
             version '3.2.5'
             remoteUrl "http://www.eu.apache.org/dist/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.zip"
-            home 'maven'            
+            home 'maven'
             extractMapper { toDir(home).cutdirs() }
             tools {
                 mvn {
@@ -216,7 +211,7 @@ spacelift {
                 project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/mvn")
             }
         }
-        
+
         gradle112(from:GradleInstallation) {
             version { "1.12" }
             alias { "gradle112" }
@@ -543,13 +538,13 @@ spacelift {
         }
 
         unifiedPushServerAdminUI(inherits:unifiedPushServerOpenshiftWithoutProxy) {
-            openShiftAppName { project.openShiftAppNameAdminUI } 
+            openShiftAppName { project.openShiftAppNameAdminUI }
         }
 
         upsFromSource {
             product 'aerogear'
             version '1.1.0-alpha.1'
-            isInstalled false
+            isInstalled true
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/master.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
@@ -690,7 +685,7 @@ spacelift {
                             .parameter("--changeLogFile=${project.unifiedpush.binariesDir}/migrator/liquibase/master.xml")
                     }
                 }
-            }            
+            }
         }
 
         /* installations related to Cordova Quickstarts testing */
@@ -698,7 +693,7 @@ spacelift {
             product 'androidSdk'
             version '23'
             updateImages { false }
-            createAvds { false } 
+            createAvds { false }
             androidTargets ([[name:'android-19']])
         }
 
@@ -782,7 +777,7 @@ spacelift {
             remoteUrl "https://github.com/aerogear/aerogear-cordova-cookbook/archive/master.zip"
             isInstalled { false }
             extractMapper { toDir(home).cutdirs() }
-            postActions {                
+            postActions {
                 // I almost always forget these ...
                 if (!project.shootAndShareGoogleClientId || project.shootAndShareGoogleClientId.length() == 0) {
                     throw new IllegalStateException("Be sure you have specified shootAndShareGoogleClientId!")
@@ -885,187 +880,33 @@ spacelift {
                 maven.execute().await()
             }
         }
-        localIntegrationTests {
 
-            def jbossManager = null
-
-            dataProvider {
-                project.protocols as ArrayList
-            }
-            beforeSuite {
-                final def baseUri = "http://${project.container.localDomain}:8080/unifiedpush-test-extension-server"
-                final def jbossManagerConfiguration = project.container.configuration
-                final def jbossHome = project.container.home
-                jbossManagerConfiguration.setJBossHome(jbossHome.canonicalPath)
-
-
-                def javaOpts = [
-                        "-Dhttp.proxyHost=${project.container.bindAddress}",
-                        "-Dhttp.proxyPort=16000",
-                        "-Dhttps.proxyHost=${project.container.bindAddress}",
-                        "-Dhttps.proxyPort=16000",
-                        "-Djboss.bind.address=${project.container.bindAddress}",
-                        "-Djavax.net.ssl.trustStore=${keystore.truststore.canonicalPath}",
-                        "-Djavax.net.ssl.trustStorePassword=${keystore.truststorePass}",
-                        "-Dcustom.aerogear.apns.push.host=${project.container.bindAddress}",
-                        "-Dcustom.aerogear.apns.push.port=16002",
-                        "-Dcustom.aerogear.apns.feedback.host=${project.container.bindAddress}",
-                        "-Dcustom.aerogear.apns.feedback.port=16003",
-                        "-Dcustom.aerogear.apns.keystore.path=${project.unifiedpush.apnsCert.canonicalPath}",
-                        "-Dcustom.aerogear.apns.keystore.password=${keystore.keystorePass}",
-                        "-Dcustom.aerogear.apns.keystore.type=JKS",
-                        "-Dgcm.mock.certificate.path=${project.unifiedpush.gcmCert.canonicalPath}",
-                        "-Dgcm.mock.certificate.password=${project.unifiedpush.gcmKey.canonicalPath}",
-                        "-Dgcm.mock.server.port=16010" ]
-
-                if(project.ipVersion == "IPv6"){
-                    javaOpts << "-Djava.net.preferIPv4Stack=false"
-                    javaOpts << "-Djava.net.preferIPv6Addresses=true"
-                }
-
-                // append javaOpts
-                jbossManagerConfiguration.setJavaOpts(jbossManagerConfiguration.getJavaOpts() as String[])
-                jbossManagerConfiguration.setJavaOpts(javaOpts as String[])
-
-                jbossManager = Spacelift.task(JBossStarter)
-                        .configuration(jbossManagerConfiguration)
-                        .execute().await()
-
-                // undeploy content
-                ['auth-server.war', "ag-push.war", 'unifiedpush-test-extension-server.war'].each { war ->
-                    println "Undeploying ${war}"
-                    Spacelift.task(JBossCLI)
-                        .environment("JBOSS_HOME", jbossHome.canonicalPath)
-                        .shouldExitWith(0,1)
-                        .connect()
-                        .cliCommand("undeploy ${war}")
-                        .execute().await()
-                }
-
-                // run migrator
-                if(project.unifiedpush.runMigrator) {
-                    try {
-                        Spacelift.task('migrator')
-                                .parameter("--url=${project.unifiedpush.db.jdbc_url}")
-                                .parameter("--username=${project.unifiedpush.db.username}")
-                                .parameter("--password=${project.unifiedpush.db.password}")
-                                .parameter("--driver=${project.unifiedpush.db.driver}")
-                                .parameter("update")
-                                .execute().await()
-                    }
-                    catch(InvalidTaskException e) {
-                        throw new RuntimeException("Migrator tool was not registered but set to run via project.unifiedPush.runMigrator flag." +
-                            "Make sure that UPS installation provides migrator tool.", e)
-                    }
-                }
+        localIntegrationTests(from: LocalTestExecution) {
+            database { project.unifiedpush.db }
+            runMigrator { project.unifiedpush.runMigrator }
+            unifiedPushBinariesDir { project.unifiedpush.binariesDir }
+            jbossHome { project.container.home }
+            jbossManagerConfiguration { project.container.configuration }
+            ipVersion { project.ipVersion }
+            localDomain { project.container.localDomain }
+            bindAddress { project.container.bindAddress }
+            truststore { project.spacelift.keystore.truststore }
+            truststorePassword { project.spacelift.keystore.truststorePass }
+            keystore { project.spacelift.keystore.keystore }
+            keystorePassword { project.spacelift.keystore.keystorePass }
+            apnsKeystore { project.unifiedpush.apnsCert }
+            apnsKeystorePassword { project.spacelift.keystore.keystorePass }
+            gcmCertificate { project.unifiedpush.gcmCert }
+            gcmCertificateKey { project.unifiedpush.gcmKey }
 
 
-                ['auth-server.war', "ag-push.war", 'unifiedpush-test-extension-server.war'].each { war ->
-                    println "Deploying ${war}"
+            testTask { ':tests:integration:test' }
+            externalGradleParameters { project.externalMavenParameters }
+            protocols { project.protocols }
+        }
 
-                    Spacelift.task(JBossCLI)
-                            .environment("JBOSS_HOME", jbossHome.canonicalPath)
-                            .connect()
-                            .cliCommand("deploy ${new File(project.unifiedpush.binariesDir, war).canonicalPath}")
-                            .execute().await()
-                }
-
-                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-                println "Expected deployment url: $baseUri"
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/status')
-
-                        return response.statusCode == 200
-                    }
-                })
-                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
-
-                println 'Waiting for Keycloak to be initialized and ready'
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(10, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/keycloak/realms')
-
-                        response.then().log().all(true)
-
-                        List<String> result = (List<String>) response.as(List.class)
-
-                        return result.contains("aerogear")
-                    }
-                })
-
-                println 'Reconfiguring KeyCloak.'
-                RestAssured.given()
-                        .baseUri(baseUri)
-                        .get('/keycloak')
-                        .then()
-                        .log().all(true)
-                        .statusCode(200)
-
-                println 'Restarting container.'
-                Spacelift.task(jbossManager, JBossStopper).execute().await()
-
-                jbossManager = Spacelift.task(JBossStarter)
-                        .configuration(jbossManagerConfiguration)
-                        .execute().await()
-
-                println 'Waiting for unifiedpush-test-extension-server to be deployed. (max 5 minutes)'
-                println "Expected deployment url: $baseUri"
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).pollInterval(5, TimeUnit.SECONDS).until(new Callable<Boolean>() {
-                    @Override
-                    Boolean call() throws Exception {
-                        Response response = RestAssured.given()
-                                .baseUri(baseUri)
-                                .get('/status')
-
-                        return response.statusCode == 200
-                    }
-                })
-                println 'The unifiedpush-test-extension-server.war was successfully deployed.'
-
-                println 'Activating GCM and APNS proxy'
-
-                RestAssured.given()
-                        .baseUri(baseUri)
-                        .get('/proxy/activate')
-                        .then().statusCode(200)
-                println 'Proxy activated'
-            }
-            execute { protocol ->
-                def port = protocol == 'https' ? 8443 : 8080
-                def baseUri = "${protocol}://${project.container.localDomain}:$port"
-
-                println "Using external maven parameters: ${project.externalMavenParameters}"
-                println "Using base uri: $baseUri"
-
-                def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .property("containerUri=${baseUri}")
-                        // we need to propage keystore/truststore setup so test can confirm
-                        // authenticity of locally runing server
-                        .property("keystore=${keystore.keystore.canonicalPath}")
-                        .property("keystorePass=${keystore.keystorePass}")
-                        .property("truststore=${keystore.truststore.canonicalPath}")
-                        .property("truststorePass=${keystore.truststorePass}")
-                        .property("excludedGroups=category.AdminUI")
-                        .ignoreTestFailures()
-                        .debug()
-                        .goals('clean', 'test')
-
-                for(prop in project.externalMavenParameters.split()){
-                        maven.property(prop)
-                }
-
-                maven.execute().await()
-            }
-            afterSuite {
-                Spacelift.task(jbossManager, JBossStopper).execute().await()
-            }
+        localAdminUITests(from: localIntegrationTests) {
+            testTask { ':tests:admin-ui:test'}
         }
 
         /* Quickstarts related tests */
@@ -1155,7 +996,7 @@ buildscript {
     dependencies {
         classpath 'org.jboss.aerogear.test:aerogear-ups-rest-api:1.0.2'
         classpath 'org.jboss.aerogear.test:spacelift-jboss-manager:0.9.0'
-        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-13'
+        classpath 'org.arquillian.spacelift.gradle:arquillian-spacelift-gradle:1.0.0-alpha-15'
         classpath 'com.jayway.restassured:rest-assured:2.4.0'
         classpath 'com.jayway.awaitility:awaitility-groovy:1.6.3'
         classpath 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'

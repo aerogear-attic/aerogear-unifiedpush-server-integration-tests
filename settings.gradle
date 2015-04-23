@@ -1,0 +1,5 @@
+include ':tests'
+include ':tests:common'
+include ':tests:admin-ui'
+include ':tests:integration'
+include ':tests:performance'
