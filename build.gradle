@@ -86,6 +86,7 @@ ext {
     container = [
         home: project.hasProperty('jbossHome') ? new File(project.jbossHome) : null,
         configuration: new JBossManagerConfiguration()
+                        .setStandaloneConfig('standalone-full.xml')
                         .setContainerType(ContainerType.EAP)
                         .setStartupTimeoutInSeconds(300),
         bindAddress: project.hasProperty('jbossBindAddress') ? project.jbossBindAddress : '127.0.0.1',
@@ -489,7 +490,7 @@ spacelift {
                 // install datasource
                 File scriptTemplate = new File(project.rootDir, "setup/mysql-${project.unifiedpush.type}.cli")
                 Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush)
-                        .then(UpdateJBossConfig.class).jbossHome(project.container.home).shouldStartContainer().execute().await()
+                        .then(UpdateJBossConfig.class).jbossConfiguration(project.container.configuration).jbossHome(project.container.home).shouldStartContainer().execute().await()
             }
         }
 
@@ -508,7 +509,7 @@ spacelift {
                 // install datasource
                 File scriptTemplate = new File(project.rootDir, "setup/postgresql-${project.unifiedpush.type}.cli")
                 Spacelift.task(scriptTemplate, ProcessTemplate.class).bindings(project.unifiedpush)
-                        .then(UpdateJBossConfig.class).jbossHome(project.container.home).shouldStartContainer().execute().await()
+                        .then(UpdateJBossConfig.class).jbossConfiguration(project.container.configuration).jbossHome(project.container.home).shouldStartContainer().execute().await()
             }
         }
 
