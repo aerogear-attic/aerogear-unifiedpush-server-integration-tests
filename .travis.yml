@@ -3,8 +3,10 @@ jdk:
     - oraclejdk7
 before_install:
     - mysql -e 'create database unifiedpush default character set = "UTF8" default collate = "utf8_general_ci";' -uroot
+    - mysql -e 'create database keycloak default character set = "UTF8" default collate = "utf8_general_ci";' -uroot
     - mysql -e "create user 'unifiedpush'@'localhost' identified by 'unifiedpush';" -uroot
     - mysql -e "GRANT SELECT,INSERT,UPDATE,ALTER,DELETE,CREATE,DROP ON unifiedpush.* TO 'unifiedpush'@'localhost';" -uroot
+    - mysql -e "GRANT SELECT,INSERT,UPDATE,ALTER,DELETE,CREATE,DROP ON keycloak.* TO 'unifiedpush'@'localhost';" -uroot
     - npm install -g grunt-cli bower@1.3.9
 install:
     - true
