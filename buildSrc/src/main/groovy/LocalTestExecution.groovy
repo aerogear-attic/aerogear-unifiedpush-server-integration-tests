@@ -78,6 +78,8 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
 
     DeferredValue<Integer> httpProxyPort = DeferredValue.of(Integer.class).from(16000)
 
+    DeferredValue<String> cleanTask = DeferredValue.of(String.class)
+
     DeferredValue<String> testTask = DeferredValue.of(String.class)
 
     DeferredValue<String> externalGradleParameters = DeferredValue.of(String.class)
@@ -292,6 +294,7 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
 
         // run tests
         def integrationTests = Spacelift.task('gradlew')
+                .parameter(cleanTask.resolve())
                 .parameter(testTask.resolve())
                 .parameter("-PcontainerUri=$baseUri")
         // we need to propage keystore/truststore setup so test can confirm

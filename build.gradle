@@ -62,7 +62,7 @@ ext {
     defaultEap6Version = '6.3.3'
     defaultEap6RemoteUrl = ''
 
-    defaultProtocols = [ 'https' ]
+    defaultProtocols = [ 'http' ]
     defaultBrowser = 'firefox'
 
     defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance"
@@ -899,14 +899,14 @@ spacelift {
             apnsKeystorePassword { project.spacelift.keystore.keystorePass }
             gcmCertificate { project.unifiedpush.gcmCert }
             gcmCertificateKey { project.unifiedpush.gcmKey }
-
-
+            cleanTask { ':tests:integration:clean' }
             testTask { ':tests:integration:test' }
             externalGradleParameters { project.externalMavenParameters }
             protocols { project.protocols }
         }
 
         localAdminUITests(from: localIntegrationTests) {
+            cleanTask { ':tests:admin-ui:clean' }
             testTask { ':tests:admin-ui:test'}
         }
 
