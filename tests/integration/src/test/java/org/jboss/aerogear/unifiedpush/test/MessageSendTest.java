@@ -151,7 +151,15 @@ public class MessageSendTest {
 
     @BeforeClass
     public static void setup() {
-        TestUtils.setupRestAssured();
+
+
+        String s = "Properties:\n";
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+            s += "\t" + entry.getKey() +": " + entry.getValue()+ "\n";
+        }
+        System.out.println(s);
+
+         TestUtils.setupRestAssured();
     }
 
     @AfterClass

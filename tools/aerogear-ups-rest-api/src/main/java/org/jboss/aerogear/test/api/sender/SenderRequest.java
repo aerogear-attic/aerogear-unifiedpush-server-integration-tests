@@ -96,7 +96,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
             e.printStackTrace();
         }
 
-        UnexpectedResponseException.verifyStatusCode(statusCode.get(), HttpStatus.SC_OK);
+        UnexpectedResponseException.verifyStatusCode(statusCode.get(), HttpStatus.SC_ACCEPTED);
 
         return this;
     }
