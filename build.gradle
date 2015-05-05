@@ -165,7 +165,7 @@ spacelift {
 
                 }
 
-                _installations += ['littleProxy', 'unifiedPushServerModel', 'unifiedPushJavaClient', 'aerogearTestingTools', ups]
+                _installations += ['unifiedPushServerModel', 'unifiedPushJavaClient', 'aerogearTestingTools', ups]
                 def _tests = container!='openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
@@ -177,7 +177,7 @@ spacelift {
         }
 
         helloWorldCordovaQuickstart {
-            enabledInstallations 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'androidSdk', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
+            enabledInstallations 'maven', 'unifiedPushServerModel', 'aerogearTestingTools', 'androidSdk', 'unifiedPushServerQuickstarts', 'helloWorldCordovaQuickstart'
             tests 'helloWorldCordovaQuickstart'
         }
 
@@ -187,7 +187,7 @@ spacelift {
         }
 
         adminUIOpenshift  {
-            enabledInstallations 'keystore', 'maven', 'littleProxy', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
+            enabledInstallations 'keystore', 'maven', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
             tests 'openshiftAdminUITests'
         }
     }
@@ -309,24 +309,6 @@ spacelift {
                     .goals('clean', 'install')
                     .properties('skipTests', 'maven.javadoc.skip=true')
                     .execute().await()
-            }
-        }
-
-        littleProxy {
-            product 'aerogear'
-            version '1.1.0-beta-1-SNAPSHOT'
-            remoteUrl 'https://github.com/adamfisk/LittleProxy/archive/696e3a87a64e9ede019e68312e0c8f9674d1b2a8.zip'
-            home 'littleproxy'
-            isInstalled {
-                return new File(project.spacelift.workspace, ".repository/org/littleshoot/littleproxy/${version}").exists()
-            }
-            fileName 'littleproxy.zip'
-            extractMapper { toDir(home).cutdirs() }
-            postActions {
-                Spacelift.task(MavenExecutor)
-                        .pom("${littleProxy.home.absolutePath}/pom.xml")
-                        .goals('clean', 'install')
-                        .execute().await()
             }
         }
 
@@ -588,7 +570,7 @@ spacelift {
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.1.0-alpha.1'
+            version '1.1.0-alpha.2'
             isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
@@ -599,7 +581,7 @@ spacelift {
                 ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
                         .withRemoteRepo(MavenRemoteRepositories
                         .createRemoteRepository('remote_ups', project.unifiedPushMavenRepository, 'default'))
-                        .withMavenCentralRepo(false)
+                        .withMavenCentralRepo(true)
 
 
                 // copy files to directory where files to be deployed are stored
@@ -611,21 +593,25 @@ spacelift {
                         resolver.resolve(agpushCanonicalCoordinate).withoutTransitivity().asSingleFile(),
                         new File(project.unifiedpush.binariesDir, 'ag-push.war'))
 
-                // prepare migrator, we need to download both binary dist and changeset in jar
-                Spacelift.task(resolver.resolve(agpushMigratorCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
-                    .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).cutdirs().execute().await()
-                project.ant.chmod(dir: "${ new File(project.unifiedpush.binariesDir, 'migrator/bin/').canonicalPath}", perm: "a+x", includes: "*")
+                if(project.unifiedpush.runMigrator) {
+                    // prepare migrator, we need to download both binary dist and changeset in jar
+                    Spacelift.task(resolver.resolve(agpushMigratorCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
+                            .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).cutdirs().execute().await()
+                    project.ant.chmod(dir: "${new File(project.unifiedpush.binariesDir, 'migrator/bin/').canonicalPath}", perm: "a+x", includes: "*")
 
-                Spacelift.task(resolver.resolve(agpushMigratorJarCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
-                    .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).execute().await()
+                    Spacelift.task(resolver.resolve(agpushMigratorJarCoordinate).withoutTransitivity().asSingleFile(), UnzipTool.class)
+                            .toDir(new File(project.unifiedpush.binariesDir, 'migrator')).execute().await()
+                }
 
             }
             tools {
-                migrator {
-                    command {
-                        return new CommandBuilder("${project.unifiedpush.binariesDir}/migrator/bin/ups-migrator")
-                            .parameter("--logLevel=DEBUG")
-                            .parameter("--changeLogFile=${project.unifiedpush.binariesDir}/migrator/liquibase/master.xml")
+                if(project.unifiedpush.runMigrator) {
+                    migrator {
+                        command {
+                            return new CommandBuilder("${project.unifiedpush.binariesDir}/migrator/bin/ups-migrator")
+                                    .parameter("--logLevel=DEBUG")
+                                    .parameter("--changeLogFile=${project.unifiedpush.binariesDir}/migrator/liquibase/master.xml")
+                        }
                     }
                 }
             }

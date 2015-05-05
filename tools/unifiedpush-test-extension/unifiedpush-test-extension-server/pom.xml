@@ -46,8 +46,8 @@
 
         <!-- proxy dependencies -->
         <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>littleproxy</artifactId>
+            <groupId>com.github.TadeasKriz</groupId>
+            <artifactId>LittleProxy</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>

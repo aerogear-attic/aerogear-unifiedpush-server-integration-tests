@@ -703,7 +703,8 @@ public class MessageSendTest {
         JSONObject jsonPayload = new JSONObject(statistics.apnsPayload);
         JSONObject aps = jsonPayload.optJSONObject("aps");
         assertThat(aps, is(notNullValue()));
-        assertThat(aps.optString("alert"), is(alertMessage));
+        assertThat(aps.optJSONObject("alert"), is(Matchers.notNullValue()));
+        assertThat(aps.optJSONObject("alert").optString("body"), is(alertMessage));
     }
 
     private void assertCustomFieldsPresent(SenderStatistics statistics, Map<String, String> attributes) {
