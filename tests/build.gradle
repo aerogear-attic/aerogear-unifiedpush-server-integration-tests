@@ -3,7 +3,7 @@ repositories {
     mavenLocal()
 }
 
-def unifiedPushServerVersion = '1.1.0-alpha.2-SNAPSHOT'
+def unifiedPushServerVersion = '1.1.0-alpha.2'
 def arquillianVersion = '1.1.6.Final'
 
 subprojects {
