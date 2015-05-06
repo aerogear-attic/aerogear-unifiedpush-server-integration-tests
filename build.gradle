@@ -52,8 +52,8 @@ ext {
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.1.0-alpha.2-SNAPSHOT'
-    defaultUnifiedPushTestExtensionVersion = '1.1.0-alpha.2-SNAPSHOT'
+    defaultUnifiedPushModelVersion = '1.1.0-alpha.2'
+    defaultUnifiedPushTestExtensionVersion = '1.1.0-alpha.2'
     defaultIpVersion = 'IPv4'
 
 
@@ -239,7 +239,7 @@ spacelift {
         unifiedPushServerModel {
             product 'aerogear'
             version { project.unifiedPushModelVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/master.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-alpha.2.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
@@ -297,12 +297,12 @@ spacelift {
 
         unifiedPushJavaClient {
             product 'aerogear'
-            version '1.1.0-alpha.2-SNAPSHOT'
+            version '1.1.0-alpha.2'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-java-client/archive/master.zip'
             home 'aerogear-unifiedpush-java-client'
             fileName 'aerogear-unifiedpush-java-client.zip'
             extractMapper { toDir(home).cutdirs() }
-            isInstalled { false }
+            isInstalled { true }
             postActions {
                 Spacelift.task(MavenExecutor).pom('pom.xml')
                     .workingDir(home.absolutePath)

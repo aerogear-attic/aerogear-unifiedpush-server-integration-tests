@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>aerogear-unifiedpush-server-integration-tests</artifactId>
-    <version>1.1.0-alpha.2-SNAPSHOT</version>
+    <version>1.1.0-alpha.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -39,8 +39,8 @@
         <keycloak.version>1.1.0.Final</keycloak.version>
         <notnoop.version>0.2.3</notnoop.version>
         <gcm-server.version>1.0.2</gcm-server.version>
-        <aerogear.unifiedpush-server-rest-api.version>1.1.0-alpha.2-SNAPSHOT</aerogear.unifiedpush-server-rest-api.version>
-        <aerogear.unifiedpush-test-extension.version>1.1.0-alpha.2-SNAPSHOT</aerogear.unifiedpush-test-extension.version>
+        <aerogear.unifiedpush-server-rest-api.version>1.1.0-alpha.2</aerogear.unifiedpush-server-rest-api.version>
+        <aerogear.unifiedpush-test-extension.version>1.1.0-alpha.2</aerogear.unifiedpush-test-extension.version>
 
         <!-- Testing -->
         <org.jboss.aerogear.bom.version>0.2.13</org.jboss.aerogear.bom.version>
