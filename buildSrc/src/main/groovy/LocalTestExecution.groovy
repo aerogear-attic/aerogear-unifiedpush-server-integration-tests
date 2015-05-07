@@ -84,8 +84,6 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
 
     DeferredValue<List<String>> protocols = DeferredValue.of(List.class).from(['http'])
 
-    DeferredValue<File> mavenLocalRepository = DeferredValue.of(File.class)
-
     LocalTestExecution(String testName, Object parent) {
         super(testName, parent)
 
@@ -296,7 +294,6 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
         def integrationTests = Spacelift.task('gradlew')
                 .parameter(cleanTask.resolve())
                 .parameter(testTask.resolve())
-                .parameter("-Dmaven.repo.local=${mavenLocalRepository.resolve().absolutePath}")
                 .parameter("-PcontainerUri=$baseUri")
         // we need to propage keystore/truststore setup so test can confirm
         // authenticity of locally runing server

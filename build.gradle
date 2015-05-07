@@ -888,7 +888,6 @@ spacelift {
             cleanTask { ':tests:integration:clean' }
             testTask { ':tests:integration:test' }
             externalGradleParameters { project.externalMavenParameters }
-            mavenLocalRepository { new File(project.spacelift.workspace, '.repository') }
             protocols { project.protocols }
         }
 

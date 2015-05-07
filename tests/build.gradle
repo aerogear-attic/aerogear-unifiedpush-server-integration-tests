@@ -16,6 +16,11 @@ subprojects {
     }
 
     repositories {
+        // add repository from Spacelift
+        maven {
+            name "spacelift"
+            url "../../spacelift/workspace/.repository"
+        }
         mavenLocal()
         mavenCentral()
     }
