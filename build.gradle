@@ -973,7 +973,6 @@ spacelift {
 buildscript {
     repositories {
         mavenCentral()
-        mavenLocal()
         // you need this only if you plan to use SNAPSHOT version of this plugin
         maven {
             name 'jboss-staging-repository-group'
@@ -992,7 +991,6 @@ buildscript {
 
 // these elements are needed only if you are willing to use _testreport_ task
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 

@@ -2,7 +2,6 @@ apply plugin: 'groovy'
 
 repositories {
     mavenCentral()
-    mavenLocal()
     // adding staging repository, might be handy to use staged versions version
     maven {
         name 'jboss-staging-repository-group'
