@@ -11,6 +11,7 @@ bin/
 *.properties
 .gradle
 
+!/spacelift/build.gradle
 /spacelift
 /reports
 
