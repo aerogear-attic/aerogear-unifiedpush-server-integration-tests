@@ -4,14 +4,7 @@ import io.airlift.airline.Cli;
 import io.airlift.airline.Cli.CliBuilder;
 import io.airlift.airline.Help;
 
-import org.arquillian.spacelift.execution.Tasks;
-import org.arquillian.spacelift.execution.impl.DefaultExecutionServiceFactory;
-
 public class UpteCli {
-
-    static {
-        Tasks.setDefaultExecutionServiceFactory(new DefaultExecutionServiceFactory());
-    }
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {

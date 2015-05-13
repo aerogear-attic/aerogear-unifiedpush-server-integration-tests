@@ -7,6 +7,8 @@ import org.arquillian.spacelift.gradle.DefaultTest
 import org.arquillian.spacelift.gradle.DeferredValue
 import org.arquillian.spacelift.gradle.Test
 import org.arquillian.spacelift.task.InvalidTaskException
+import org.gradle.StartParameter
+import org.gradle.api.tasks.GradleBuild
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
 import org.jboss.aerogear.test.container.spacelift.JBossCLI
 import org.jboss.aerogear.test.container.spacelift.JBossStarter
@@ -76,9 +78,7 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
 
     DeferredValue<Integer> httpProxyPort = DeferredValue.of(Integer.class).from(16000)
 
-    DeferredValue<String> cleanTask = DeferredValue.of(String.class)
-
-    DeferredValue<String> testTask = DeferredValue.of(String.class)
+    DeferredValue<String> testModule = DeferredValue.of(String.class)
 
     DeferredValue<String> externalGradleParameters = DeferredValue.of(String.class)
 
@@ -124,7 +124,7 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
         gcmCertificate = other.@gcmCertificate.copy()
         gcmCertificateKey = other.@gcmCertificateKey.copy()
         httpProxyPort = other.@httpProxyPort.copy()
-        testTask = other.@testTask.copy()
+        testModule = other.@testModule.copy()
         externalGradleParameters = other.@externalGradleParameters.copy()
         protocols = other.@protocols.copy()
     }
@@ -290,6 +290,30 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
         println "Using external maven parameters: ${externalGradleParameters.resolve()}"
         println "Using base uri: $baseUri"
 
+        /*def testProject = project.project(testModule.resolve())
+
+        testProject.ext.containerUri = baseUri
+        testProject.ext.keystore = keystore.resolve().canonicalPath
+        testProject.ext.keystorePass = keystorePassword.resolve()
+        testProject.ext.truststore = truststore.resolve().canonicalPath
+        testProject.ext.truststorePass = truststorePassword.resolve()
+        testProject.ext.ignoreTestFailures=true*/
+
+        project.tasks.create("runTestsForTestModule", GradleBuild) {
+            tasks = ["${testModule.resolve()}:clean".toString(), "${testModule.resolve()}:test".toString()]
+            buildFile = '../build.gradle'
+            startParameter.setProjectProperties([
+                    containerUri: baseUri.toString(),
+                    keystore: keystore.resolve().canonicalPath,
+                    keystorePass: keystorePassword.resolve(),
+                    truststore: truststore.resolve().canonicalPath,
+                    truststorePass: truststorePassword.resolve(),
+                    ignoreTestFailures: 'true'
+            ])
+            startParameter.systemPropertiesArgs.put('spacelift.disable', 'true')
+        }.execute()
+
+/*
         // run tests
         def integrationTests = Spacelift.task('gradlew')
                 .parameter(cleanTask.resolve())
@@ -302,12 +326,13 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
                 .parameter("-Ptruststore=${truststore.resolve().canonicalPath}")
                 .parameter("-PtruststorePass=${truststorePassword.resolve()}")
                 .parameter("-PignoreTestFailures=true")
+*/
 
-        externalGradleParameters.resolve().split().each {
-            integrationTests.parameter("-P$it")
-        }
+        //externalGradleParameters.resolve().split().each {
+          //  integrationTests.parameter("-P$it")
+        //}
 
-        integrationTests.execute().await()
+        //integrationTests.execute().await()
     }
 
     void shutdownContainer() {

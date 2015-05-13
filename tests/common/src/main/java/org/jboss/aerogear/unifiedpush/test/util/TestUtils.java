@@ -23,9 +23,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
-import org.jboss.aerogear.test.FileUtils;
 import org.jboss.aerogear.test.api.sender.SenderRequest;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

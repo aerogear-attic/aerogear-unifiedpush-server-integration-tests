@@ -3,3 +3,14 @@ include ':tests:common'
 include ':tests:admin-ui'
 include ':tests:integration'
 include ':tests:performance'
+include ':tools'
+include ':tools:aerogear-ups-rest-api'
+include ':tools:test-extension'
+include ':tools:test-extension:common'
+include ':tools:test-extension:client'
+include ':tools:test-extension:server'
+
+// Needed to disable spacelift submodule when building the rest-api for the buildscript
+if(!Boolean.getBoolean("spacelift.disable")) {
+    include ':spacelift'
+}

@@ -3,11 +3,11 @@ package org.jboss.aerogear.test.cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 
-import org.arquillian.spacelift.execution.Tasks;
+import org.arquillian.spacelift.Spacelift;
 import org.arquillian.spacelift.process.ProcessInteractionBuilder;
-import org.arquillian.spacelift.process.impl.CommandTool;
 
 import com.jayway.restassured.RestAssured;
+import org.arquillian.spacelift.task.os.CommandTool;
 
 @Command(name = "app-create", description = "Create OpenShift Cartridge. Requires rhc tools installed.")
 public class AppCreateCommand extends AbstractCommand {
@@ -56,7 +56,7 @@ public class AppCreateCommand extends AbstractCommand {
 
     private void delete() {
         if (force) {
-            Tasks.prepare(CommandTool.class)
+            Spacelift.task(CommandTool.class)
                 .programName("rhc")
                 .parameters("app", "delete", "-n", namespace, "--confirm", appName)
                 .shouldExitWith(0, 101)
@@ -66,7 +66,7 @@ public class AppCreateCommand extends AbstractCommand {
     }
 
     private void create() {
-        CommandTool ct = Tasks.prepare(CommandTool.class)
+        CommandTool ct = Spacelift.task(CommandTool.class)
             .programName("rhc")
             .parameters("app", "create", appName, cartridge, "--no-git", "-n", namespace);
 
@@ -85,7 +85,7 @@ public class AppCreateCommand extends AbstractCommand {
     }
 
     private void copyExtension() {
-        CommandTool ct = Tasks.prepare(CommandTool.class)
+        CommandTool ct = Spacelift.task(CommandTool.class)
             .programName("rhc")
             .parameters("scp", appName, "-n", namespace, "upload")
             .parameters("--local-path", "../../unifiedpush-test-extension-server/target/unifiedpush-test-extension-server.war");
@@ -100,7 +100,7 @@ public class AppCreateCommand extends AbstractCommand {
     }
 
     private void start() {
-        Tasks.prepare(CommandTool.class)
+        Spacelift.task(CommandTool.class)
             .programName("rhc")
             .parameters("app", "start", appName, "-n", namespace)
             .interaction(new ProcessInteractionBuilder().outputPrefix("").when(".*").printToOut())
@@ -108,7 +108,7 @@ public class AppCreateCommand extends AbstractCommand {
     }
 
     private void stop() {
-        Tasks.prepare(CommandTool.class)
+        Spacelift.task(CommandTool.class)
             .programName("rhc")
             .parameters("app", "stop", appName, "-n", namespace)
             .interaction(new ProcessInteractionBuilder().outputPrefix("").when(".*").printToOut())
@@ -116,7 +116,7 @@ public class AppCreateCommand extends AbstractCommand {
     }
     
     private void restart() {
-        Tasks.prepare(CommandTool.class)
+        Spacelift.task(CommandTool.class)
             .programName("rhc")
             .parameters("app", "restart", appName, "-n", namespace)
             .interaction(new ProcessInteractionBuilder().outputPrefix("").when(".*").printToOut())

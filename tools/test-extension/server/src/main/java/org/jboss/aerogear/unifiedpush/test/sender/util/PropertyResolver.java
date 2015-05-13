@@ -116,7 +116,7 @@ public class PropertyResolver<T> {
         if (required && defaultValue == null) {
             throw new IllegalStateException(MessageFormat.format(
                     "Could not resolve a required property of type {0} from possible property names " +
-                    "{1}!", new String[] { propertyClass.getName(), joinStringArray(", ", possibleProperties) }));
+                    "{1}!", propertyClass.getName(), joinStringArray(", ", possibleProperties)));
         } else {
             LOGGER.log(Level.INFO, "Could not resolve property of type {0} from possible property names {1}. " +
                     "Returning default value {2}.", new Object[] { propertyClass.getName(), joinStringArray(", ",
