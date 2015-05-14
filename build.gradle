@@ -10,6 +10,7 @@ buildscript {
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:0.5.0.RELEASE"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
     }
 }
 
@@ -209,6 +210,8 @@ project('tools') {
         }
 
         project('client') {
+            apply plugin: 'application'
+
             dependencies {
                 compile project(':tools:test-extension:common')
                 compile project(':tools:aerogear-ups-rest-api')
@@ -216,7 +219,8 @@ project('tools') {
                 compile 'org.arquillian.spacelift:arquillian-spacelift:1.0.0.Alpha7'
                 compile 'commons-io:commons-io:2.4'
             }
-            // TODO create upte!
+
+            mainClassName = 'org.jboss.aerogear.test.cli.UpteCli'
         }
 
         project('server') {

@@ -11,4 +11,4 @@ before_install:
 install:
     - true
 script:
-    - ./gradlew --stacktrace :spacelift:test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false --info
+    - ./gradlew --stacktrace :spacelift:test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false
