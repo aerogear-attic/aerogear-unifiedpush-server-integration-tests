@@ -438,6 +438,15 @@ public class MessageSendTest {
         SenderStatistics statistics = ups.with(SenderStatisticsRequest.request())
                 .awaitGetAndClear(validInstallations.size() + invalidInstallations.size(), Duration.FIVE_SECONDS);
 
+        // We send the message again to make sure invalid APNS tokens were removed from UPS
+        ups.with(prepareSenderRequest())
+                .message()
+                .pushApplication(getPushApplication())
+                .variants(variants)
+                .alert(ALERT_MESSAGE)
+                .send();
+        ups.with(SenderStatisticsRequest.request()).clear();
+
         for (Installation validInstallation : validInstallations) {
             assertThat(statistics.deviceTokens, hasItem(validInstallation.getDeviceToken()));
         }
