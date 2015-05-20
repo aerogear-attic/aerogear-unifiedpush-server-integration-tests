@@ -16,14 +16,11 @@
  */
 package org.jboss.aerogear.unifiedpush.test;
 
+import org.arquillian.extension.governor.skipper.api.TestSpec;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
-import org.jboss.aerogear.test.api.application.PushApplicationContext;
-import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
-import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.test.util.Deployments;
-import org.jboss.aerogear.unifiedpush.test.util.ModelAsserts;
 import org.jboss.aerogear.unifiedpush.test.util.TestUtils;
 import org.jboss.aerogear.unifiedpush.test.util.UnifiedPushServer;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -33,12 +30,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test that run deployment of auth server and UPS in reverse order
@@ -85,50 +76,12 @@ public class ReverseDeploymentOrderTest {
     }
 
     @Test
-    public void testCRUD() {
-        performCRUD(PushApplicationWorker.worker());
-    }
-
-    private void performCRUD(PushApplicationWorker worker) {
-        // CREATE
-        List<PushApplication> persistedApplications = ups.with(worker)
-                .generate().name("AwesomeAppěščřžýáíéňľ").persist()
-                .generate().name("AwesomeAppவான்வழிe").persist()
-                .detachEntities();
-
-        assertThat(persistedApplications, is(notNullValue()));
-        assertThat(persistedApplications.size(), is(2));
-
-        PushApplication persistedApplication = persistedApplications.get(0);
-        PushApplication persistedApplication1 = persistedApplications.get(1);
-
-        // READ
-        PushApplicationContext context = ups.with(worker).findAll();
-        List<PushApplication> readApplications = context.detachEntities();
-        assertThat(readApplications, is(notNullValue()));
-        assertThat(readApplications.size(), is(2));
-
-        ModelAsserts.assertModelsEqual(persistedApplication,
-                context.detachEntity(persistedApplication.getPushApplicationID()));
-        ModelAsserts.assertModelsEqual(persistedApplication1,
-                context.detachEntity(persistedApplication1.getPushApplicationID()));
-
-        // UPDATE
-        ups.with(worker)
-                .edit(persistedApplication.getPushApplicationID()).name("newname").description("newdescription")
-                .merge();
-        PushApplication readApplication = ups.with(worker)
-                .find(persistedApplication.getPushApplicationID())
-                .detachEntity();
-        assertThat(readApplication.getName(), is("newname"));
-        assertThat(readApplication.getDescription(), is("newdescription"));
-
-        // DELETE
-        readApplications = ups.with(worker)
-                .removeById(persistedApplication.getPushApplicationID())
-                .removeById(persistedApplication1.getPushApplicationID())
-                .findAll()
-                .detachEntities();
-        assertThat(readApplications.size(), is(0));
+    @TestSpec(
+            author = "Stefan Miklosovic",
+            feature = "order of deployments should not matter",
+            steps = "deploy auth server and ups server, undeploy them, deploy ups server and auth server after it",
+            test = "tests that deployment is idempotent"
+    )
+    public void testReverseOrderOfDeployments() {
     }
 }
