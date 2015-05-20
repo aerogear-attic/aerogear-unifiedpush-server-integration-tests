@@ -47,6 +47,10 @@ subprojects {
             name "spacelift"
             url "spacelift/workspace/.repository"
         }
+        maven {
+            name 'jboss-staging-repository-group'
+            url 'https://repository.jboss.org/nexus/content/groups/staging'
+        }
     }
 }
 
@@ -120,8 +124,9 @@ project('tests') {
             compile 'org.jboss.aerogear.test.arquillian:arquillian-non-deploying-container-checks-api:0.4.0'
             compile 'org.jboss.aerogear.test.arquillian:arquillian-non-deploying-container:0.4.0'
             compile 'org.arquillian.spacelift:arquillian-spacelift:1.0.0.Alpha7'
+            compile 'org.arquillian.extension:arquillian-governor-jira:1.0.0.Alpha2'
+            compile 'org.arquillian.extension:arquillian-recorder-reporter-impl:1.0.0.Final'
         }
-
     }
 
     project('admin-ui') {

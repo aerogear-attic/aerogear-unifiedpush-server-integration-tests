@@ -18,11 +18,11 @@ package org.jboss.aerogear.unifiedpush.test;
 
 import category.SimplePush;
 import org.apache.http.HttpStatus;
+import org.arquillian.extension.governor.jira.api.Jira;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.UnexpectedResponseException;
-import org.jboss.aerogear.unifiedpush.test.util.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
@@ -42,11 +42,11 @@ import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
 import org.jboss.aerogear.unifiedpush.api.Variant;
 import org.jboss.aerogear.unifiedpush.api.iOSVariant;
-import org.jboss.aerogear.unifiedpush.test.util.Deployments;
-import org.jboss.aerogear.unifiedpush.test.util.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.test.util.CheckingExpectedException;
-import org.jboss.aerogear.unifiedpush.test.util.Constants;
+import org.jboss.aerogear.unifiedpush.test.util.Deployments;
+import org.jboss.aerogear.unifiedpush.test.util.ModelAsserts;
 import org.jboss.aerogear.unifiedpush.test.util.TestUtils;
+import org.jboss.aerogear.unifiedpush.test.util.UnifiedPushServer;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -164,6 +164,7 @@ public class InstallationTest {
     }
 
     @Test
+    @Jira("AGPUSH-1298")
     public void testiOSInstallationWithInvalidToken_uppercase() {
         iOSVariant variant = ups.with(
                 iOSVariantWorker.worker()
@@ -172,7 +173,7 @@ public class InstallationTest {
                         .contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
                 .generate().persist()
                 .detachEntity();
-        
+
         iOSInstallationBlueprint blueprint = ups.with(iOSInstallationWorker.worker(), variant).generate();
 
         exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
