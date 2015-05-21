@@ -22,7 +22,7 @@ def versions = [
         aerogearParent: '0.2.13',
         unifiedPushServer: '1.1.0-alpha.2',
         unifiedPushJavaClient: '1.1.0-alpha.2',
-        arquillian: '1.1.6.Final',
+        arquillian: '1.1.8.Final',
         keycloak: '1.1.0.Final',
         httpClient: '4.4',
         spacelift: '1.0.0.Alpha7'
@@ -36,6 +36,8 @@ subprojects {
             mavenBom "org.jboss.aerogear:aerogear-parent:${versions.aerogearParent}"
             mavenBom "org.jboss.aerogear:aerogear-bom:${versions.aerogearParent}"
             mavenBom "org.jboss.aerogear:aerogear-test-bom:${versions.aerogearParent}"
+            mavenBom 'org.jboss.arquillian.graphene:graphene-webdriver:2.1.0.Alpha2'
+            mavenBom "org.jboss.arquillian:arquillian-bom:${versions.arquillian}"
         }
     }
 
@@ -50,6 +52,10 @@ subprojects {
         maven {
             name 'jboss-staging-repository-group'
             url 'https://repository.jboss.org/nexus/content/groups/staging'
+        }
+        maven {
+            name 'Atlassian public releases'
+            url 'https://m2proxy.atlassian.com/repository/public'
         }
     }
 }
@@ -66,9 +72,6 @@ project('tests') {
         }
 
         dependencyManagement {
-            imports {
-                mavenBom 'org.jboss.arquillian.graphene:graphene-webdriver:2.1.0.Alpha2'
-            }
             dependencies {
                 // Http Client version has to be aligned across REST Assured, Selenium and Keycloak
                 dependency "org.apache.httpcomponents:httpcore:${versions.httpClient}"
@@ -113,9 +116,9 @@ project('tests') {
         dependencies {
             compile "org.apache.httpcomponents:httpcore:${versions.httpClient}"
             compile "org.apache.httpcomponents:httpclient:${versions.httpClient}"
-            compile "org.jboss.arquillian.core:arquillian-core-spi:${versions.arquillian}"
-            compile "org.jboss.arquillian.core:arquillian-core-impl-base:${versions.arquillian}"
-            compile "org.jboss.arquillian.junit:arquillian-junit-container:${versions.arquillian}"
+            compile 'org.jboss.arquillian.core:arquillian-core-spi'
+            compile 'org.jboss.arquillian.core:arquillian-core-impl-base'
+            compile 'org.jboss.arquillian.junit:arquillian-junit-container'
             compile "org.jboss.aerogear:unifiedpush-java-client:${versions.unifiedPushServer}"
             compile project(":tools:test-extension:client")
             compile 'junit:junit:4.11'
@@ -141,7 +144,7 @@ project('tests') {
             testCompile 'org.jboss.arquillian.extension:arquillian-angularjs-graphene:1.2.0.Beta1'
             testCompile 'org.mockito:mockito-core:2.0.7-beta'
             testCompile 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-depchain:2.2.0-beta-2'
-            testCompile 'org.jboss.arquillian.protocol:arquillian-protocol-servlet:1.1.8.Final'
+            testCompile 'org.jboss.arquillian.protocol:arquillian-protocol-servlet'
             testCompile project(':tools:aerogear-ups-rest-api')
 
             testCompile 'org.json:json:20140107'
