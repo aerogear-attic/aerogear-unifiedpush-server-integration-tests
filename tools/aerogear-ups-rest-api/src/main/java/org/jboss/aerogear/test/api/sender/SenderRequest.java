@@ -25,6 +25,8 @@ import org.jboss.aerogear.unifiedpush.api.Category;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.Variant;
+import org.jboss.aerogear.unifiedpush.exception.PushSenderException;
+import org.jboss.aerogear.unifiedpush.exception.PushSenderHttpException;
 import org.jboss.aerogear.unifiedpush.message.MessageResponseCallback;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
 
@@ -73,30 +75,24 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         PushSender senderClient = senderBuilder.build();
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicInteger statusCode = new AtomicInteger(-1);
 
         MessageResponseCallback callback = new MessageResponseCallback() {
             @Override
-            public void onComplete(int status) {
-                statusCode.set(status);
+            public void onComplete() {
                 latch.countDown();
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                throw new RuntimeException(throwable);
             }
         };
 
-        senderClient.send(message, callback);
-
         try {
+            // The send is synchronous for now but I left the latch.await there in case the send becomes async again.
+            senderClient.send(message, callback);
             latch.await(5000, TimeUnit.MILLISECONDS);
+        } catch(PushSenderHttpException exception) {
+            // In case we get the exception, we will assert it
+            UnexpectedResponseException.verifyStatusCode(exception.getStatusCode(), HttpStatus.SC_ACCEPTED);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        UnexpectedResponseException.verifyStatusCode(statusCode.get(), HttpStatus.SC_ACCEPTED);
 
         return this;
     }

@@ -19,6 +19,7 @@ package org.jboss.aerogear.unifiedpush.test;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.dao.PageResult;
 import org.jboss.aerogear.unifiedpush.dao.PushApplicationDao;
+import org.jboss.aerogear.unifiedpush.dto.Count;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -45,7 +46,7 @@ public class CleanupEndpoint {
          * 2^31 push applications and if so, we should fix this endpoint to allow long count. */
         int count = (int) pushApplicationDao.getNumberOfPushApplicationsForDeveloper();
 
-        PageResult<PushApplication> pushApplicationPageResult = pushApplicationDao.findAll(0, count);
+        PageResult<PushApplication, Count> pushApplicationPageResult = pushApplicationDao.findAll(0, count);
 
         for (PushApplication pushApplication : pushApplicationPageResult.getResultList()) {
             pushApplicationDao.delete(pushApplication);
