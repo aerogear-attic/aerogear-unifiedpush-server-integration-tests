@@ -108,6 +108,11 @@ project('tests') {
             if (project.hasProperty('truststorePass')) {
                 systemProperty 'javax.net.ssl.trustStorePassword', project['truststorePass']
             }
+
+            // workaround https://github.com/arquillian/arquillian-governor/issues/2
+            beforeSuite {
+                project.ant.mkdir(dir: project.file('target'))
+            }
         }
 
     }

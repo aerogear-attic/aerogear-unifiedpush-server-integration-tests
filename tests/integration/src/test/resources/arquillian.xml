@@ -39,4 +39,9 @@
         </configuration>
     </container>
 
+    <!-- this is where report should be stored -->
+    <extension qualifier="governor-skipper">
+        <property name="plainAdoc">remaining-tests.adoc</property>
+    </extension>
+
 </arquillian>
