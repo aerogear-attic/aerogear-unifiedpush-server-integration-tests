@@ -119,14 +119,11 @@ Runs the integration tests against WildFly 8 instance. It is recommended to use 
 
 You need to provide the WAR files that will be deployed using properties:
 
-* `unifiedPushServerWar`  
-    Path to the WAR file of UnifiedPush Server for WildFly 8.
-    
-* `unifiedPushAuthServerWar`  
-    Path to the WAR filr of UnifiedPush Auth Server.
-    
-* `runMigrator` and `unifiedPushMigratorDist`  
-    If you set the former property to `true`, you need to provide path to the migrator distribution file using the latter.
+name | description
+-----|-------------
+`unifiedPushServerWar` | Path to the WAR file of UnifiedPush Server for WildFly 8.
+`unifiedPushAuthServerWar` | Path to the WAR filr of UnifiedPush Auth Server.
+`runMigrator` and `unifiedPushMigratorDist` | If you set the former property to `true`, you need to provide path to the migrator distribution file using the latter.
 
 #### wildfly8UpsFromSource
 
@@ -144,14 +141,11 @@ Runs the integration tests against EAP6 instance. You need to provide the downlo
 
 You need to provide the WAR files that will be deployed using properties:
 
-* `unifiedPushServerWar`  
-    Path to the WAR file of UnifiedPush Server for JBoss AS7.
-    
-* `unifiedPushAuthServerWar`  
-    Path to the WAR filr of UnifiedPush Auth Server.
-    
-* `runMigrator` and `unifiedPushMigratorDist`  
-    If you set the former property to `true`, you need to provide path to the migrator distribution file using the latter.
+name | description
+-----|------------
+`unifiedPushServerWar` | Path to the WAR file of UnifiedPush Server for JBoss AS7.
+`unifiedPushAuthServerWar` | Path to the WAR filr of UnifiedPush Auth Server.
+`runMigrator` and `unifiedPushMigratorDist` | If you set the former property to `true`, you need to provide path to the migrator distribution file using the latter.
 
 #### eap6UpsFromSource
 
@@ -169,14 +163,11 @@ Runs the integration tests against external application server instance. This me
 
 You need to provide the WAR files that will be deployed using properties:
 
-* `unifiedPushServerWar`  
-    Path to the WAR file of UnifiedPush Server for the application server you want to run on. 
-    
-* `unifiedPushAuthServerWar`  
-    Path to the WAR filr of UnifiedPush Auth Server.
-    
-* `runMigrator` and `unifiedPushMigratorDist`  
-    If you set the former property to `true`, you need to provide path to the migrator distribution file using the latter.
+name | description
+-----|------------
+`unifiedPushServerWar` | Path to the WAR file of UnifiedPush Server for the application server you want to run on.
+`unifiedPushAuthServerWar` | Path to the WAR filr of UnifiedPush Auth Server.
+`runMigrator` and `unifiedPushMigratorDist` | If you set the former property to `true`, you need to provide path to the migrator distribution file using the latter.
 
 
 #### anyUpsFromSource
@@ -193,50 +184,33 @@ Runs the integration tests against an OpenShift gear.
 
 #### Required properties:
 
-##### openShiftUsername
-Your login name for OpenShift. Used to create the gear under your account.
-
-##### openShiftPassword
-Your password for OpenShift. Used to create the gear under your account.
+name | description
+-----|------------
+`openShiftUsername` | Your login name for OpenShift. Used to create the gear under your account.
+`openShiftPassword` | Your password for OpenShift. Used to create the gear under your account.
 
 #### Optional properties:
 
-##### openShiftNamespace
-*default*: `mobileqa`  
-This is the OpenShift namespace in which the gear will be created.
-
-##### openShiftAppName
-*default*: `upsintegrationtests`  
-The name which will be used for the created gear.
-
-##### openShiftGearSize
-*default*: `medium`  
-Size of the gear created. If you use wildfly-based UPS cartridge, you will need medium-sized gear or larger.
-
-##### openShiftCartridge
-*default*: `-- add community cartridge url --`  
-Url to the cartridge which will be used to create the gear. If you change this, be sure to have `openShiftAppDirectory` set right.
-
-##### openShiftAppDirectory
-*default*: `aerogear-push`  
-This should be the name of the cartridge. It is needed for the tests to know where to deploy test extension archive.
-
-##### openShiftRecreate
-*default*: `'true'`  
-Each time you run the tests the cartridge gets recreated, unless you set this property to `'false'`.
+name | default value | description
+-----|---------------|---------------
+`openShiftNamespace` | `mobileqa` | This is the OpenShift namespace in which the gear will be created.
+`openShiftAppName`   | `upsintegrationtests` | The name which will be used for the created gear.
+`openShiftGearSize`  | `medium` | Size of the gear created. If you use wildfly-based UPS cartridge, you will need medium-sized gear or larger.
+`openShiftCartridge` | `-- add community cartridge url --` | Url to the cartridge which will be used to create the gear. If you change this, be sure to have `openShiftAppDirectory` set right.
+`openShiftAppDirectory` | `aerogear-push` | This should be the name of the cartridge. It is needed for the tests to know where to deploy test extension archive.
+`openShiftRecreate` | `'true'` | Each time you run the tests the cartridge gets recreated, unless you set this property to `'false'`.
 
 
 ### helloWorldCordovaQuickstart
 
 #### Required properties
 
-##### googleProjectNumber
-
-##### googleKey
-
-##### quickstartPushApplicationId
-
-##### quickstartPushApplicationMasterSecret
+name | description
+-----|-------------
+`googleProjectNumber` |
+`googleKey` |
+`quickstartPushApplicationId` |
+`quickstartPushApplicationMasterSecret` |
 
 ### shootAndShareCordovaQuickstart
 
@@ -244,5 +218,7 @@ Each time you run the tests the cartridge gets recreated, unless you set this pr
 Runs Admin UI functional tests against OpenShift.
 
 You can use this optional property to with this profile:
-* `browser`
-    Browser to be used. Can be one of `chrome`, `firefox`, `internetExplorer`, `phantomjs`, `safari`. Firefox will be used if the property is not specified.
+
+name | default value | description
+-----|---------------|-------------
+`browser` | `firefox` | Browser to be used. Can be one of `chrome`, `firefox`, `internetExplorer`, `phantomjs`, `safari`.
