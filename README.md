@@ -10,6 +10,12 @@ We switched to gradle for running our test suite. To run the test suite now, you
 
 Just replace the `{selected profile}` with a profile you want to run. You can find the list of profiles below. You can also override one of many properties by adding `-P{property name}={property value}` at the end of the command (without the curly brackets).
 
+The easiest way to get the tests running is the following command:
+
+`./gradlew --stacktrace :spacelift:test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false`
+
+The only requirement is that you have a running mysql instance with a `unifiedpush` and `keycloak` databases. The exact way to setup the database is described in the UnifiedPush Server help.
+
 To learn more go to [https://github.com/arquillian/arquillian-spacelift-gradle-plugin](https://github.com/arquillian/arquillian-spacelift-gradle-plugin).
 
 ## Structure
@@ -90,6 +96,18 @@ Run this from the root of the repository to fire up a WildFly container. If you 
 `./gradlew :tests:integration:test -PcontainerUri=http://localhost:8080`
 
 Running this command will run all the integration tests against a container running at `localhost` on port `8080`. It is also possible to run just one test class by adding `--tests org.jboss.aerogear.unifiedpush.test.MessageSendTest` or very similarly even a single test method `--tests org.jboss.aerogear.unifiedpush.test.MessageSendTest.selectiveSendWithInvalidTokens`.
+
+## How to test new release
+
+When a new release is staged, you need to open `build.gradle` and `spacelift/build.gradle` and update all the versions (this includes `aerogear-parent`, `keycloak` etc.) to the versions of the release. 
+
+Then it should be as easy as running the command:
+
+`./gradlew --stacktrace :spacelift:test -Pwildfly8UpsFromMavenRepository -Pdatasource=mysql -PrunMigrator=false`
+
+This should run the integration tests which tests basically most of the internals through REST APIs. Then you should verify that the message delivery really does work. To do that you need to setup an application and create variants for the platforms you want to test. It is recommended to use the hellopush quickstart from https://github.com/jboss-mobile/unified-push-helloworld to test this as it is the easiest way. Once you deploy the hellopush apps onto the devices, just send a message from the UnifiedPush Server UI and verify that it did arrive on the device.
+
+It is also recommended to do a thorough testing for each major and minor version (the versioning is `major.minor.point`), preferably when the first beta is staged. This testing is manual and consists of going through the UI and trying to click every button, switch every switch and so on. 
 
 ## Profiles
 
