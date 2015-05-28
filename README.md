@@ -135,7 +135,7 @@ The tested UnifiedPush Server will be downloaded from Maven repository.
 
 ### EAP 6 profiles
 
-Runs the integration tests against EAP6 instance. You need to provide the download URL for the EAP.
+Runs the integration tests against EAP6 instance. You need to provide the download URL for the EAP by changing the property `eap6RemoteUrl` to an url where it can be downloaded. You should also set property `eap6Version` to the correct version of EAP you want to use.
 
 #### eap6UpsProvided
 
