@@ -18,7 +18,6 @@ package org.jboss.aerogear.unifiedpush.test;
 
 import category.SimplePush;
 import org.apache.http.HttpStatus;
-import org.arquillian.extension.governor.jira.api.Jira;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
 import org.jboss.aerogear.test.ContentTypes;
@@ -164,8 +163,7 @@ public class InstallationTest {
     }
 
     @Test
-    @Jira("AGPUSH-1298")
-    public void testiOSInstallationWithInvalidToken_uppercase() {
+    public void testiOSInstallationWithUpperCaseToken() {
         iOSVariant variant = ups.with(
                 iOSVariantWorker.worker()
                         .defaultCertificate(TestUtils.getDefaultApnsCertificate())
@@ -176,8 +174,11 @@ public class InstallationTest {
 
         iOSInstallationBlueprint blueprint = ups.with(iOSInstallationWorker.worker(), variant).generate();
 
-        exception.expectUnexpectedResponseException(HttpStatus.SC_BAD_REQUEST);
         blueprint.deviceToken(blueprint.getDeviceToken().toUpperCase()).persist();
+
+        List<Installation> installations = ups.with(iOSInstallationWorker.worker(), variant).findAll().detachEntities();
+        assertThat(installations.size(), is(1));
+        assertThat(installations.get(0).getDeviceToken(), is(blueprint.getDeviceToken().toLowerCase()));
     }
 
     @Category(SimplePush.class)
