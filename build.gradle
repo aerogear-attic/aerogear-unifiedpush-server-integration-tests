@@ -108,13 +108,7 @@ project('tests') {
             if (project.hasProperty('truststorePass')) {
                 systemProperty 'javax.net.ssl.trustStorePassword', project['truststorePass']
             }
-
-            // workaround https://github.com/arquillian/arquillian-governor/issues/2
-            beforeSuite {
-                project.ant.mkdir(dir: project.file('target'))
-            }
         }
-
     }
 
     project('common') {
@@ -134,7 +128,7 @@ project('tests') {
             compile 'org.arquillian.spacelift:arquillian-spacelift:1.0.0.Alpha7'
             compile 'org.arquillian.extension:arquillian-governor-jira:1.0.0.Alpha2'
             compile 'org.arquillian.extension:arquillian-governor-skipper:1.0.0.Alpha2'
-            compile 'org.arquillian.extension:arquillian-recorder-reporter-impl:1.0.0.Final'
+            compile 'org.arquillian.extension:arquillian-recorder-reporter-impl:1.1.0.Alpha1'
         }
     }
 
