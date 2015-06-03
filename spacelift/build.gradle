@@ -12,6 +12,7 @@ import org.arquillian.spacelift.gradle.container.db.module.PostgreSQLDatabaseMod
 import org.arquillian.spacelift.gradle.cordova.CordovaExecutor
 import org.arquillian.spacelift.gradle.gradle.GradleInstallation
 import org.arquillian.spacelift.gradle.maven.MavenExecutor
+import org.arquillian.spacelift.gradle.maven.MavenInstallation
 import org.arquillian.spacelift.gradle.maven.SettingsXmlUpdater
 import org.arquillian.spacelift.gradle.openshift.UPSOpenShiftInstallation
 import org.arquillian.spacelift.gradle.quickstart.ShootAndShareQuickstartHelper
@@ -188,24 +189,8 @@ spacelift {
     }
 
     installations {
-        maven {
-            product 'maven'
-            version '3.2.5'
-            remoteUrl "http://www.eu.apache.org/dist/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.zip"
-            home 'maven'
-            extractMapper { toDir(home).cutdirs() }
-            tools {
-                mvn {
-                    command {
-                        def quietParameters = System.getenv("TRAVIS") != null ? ["-B", "-q"] : []
-                        def mavenPath = "${maven.home}/bin/mvn" + (EnvironmentUtils.runsOnWindows() ? ".bat" : "")
-                        return new CommandBuilder(mavenPath).parameters(quietParameters)
-                    }
-                }
-            }
-            postActions {
-                project.ant.chmod(dir: "${home}/bin", perm: "a+x", includes: "**/mvn")
-            }
+        maven(from: MavenInstallation) {
+            version { "3.2.5" }
         }
 
         gradle112(from: GradleInstallation) {
