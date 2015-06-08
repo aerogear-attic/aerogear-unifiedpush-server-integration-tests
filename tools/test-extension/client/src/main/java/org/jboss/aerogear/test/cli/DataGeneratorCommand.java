@@ -8,8 +8,7 @@ import java.io.FileInputStream;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
-import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.Headers;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.unifiedpush.api.VariantType;
 import org.jboss.aerogear.unifiedpush.test.DataGeneratorConfig;
 import org.jboss.aerogear.unifiedpush.test.DataGeneratorConfig.InstallationDistribution;
@@ -104,8 +103,8 @@ public class DataGeneratorCommand extends AbstractCommand {
         Response response = RestAssured.given().
                 baseUri(getUnifiedpushTestExtensionUri()).
                 body(getDataGeneratorConfig()).
-                header(Headers.acceptJson()).
-                contentType(ContentTypes.json()).
+                header(Utilities.Headers.acceptJson()).
+                contentType(Utilities.ContentTypes.json()).
                 post("/datagenerator");
         
         log.info(response.prettyPrint());        

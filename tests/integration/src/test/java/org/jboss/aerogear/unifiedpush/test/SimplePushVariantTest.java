@@ -20,8 +20,8 @@ import category.SimplePush;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
-import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.unifiedpush.test.util.ModelAsserts;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
@@ -57,8 +57,8 @@ import static org.junit.Assert.assertThat;
 @Category(SimplePush.class)
 public class SimplePushVariantTest {
 
-    private static final String TOO_LONG_NAME = Helper.randomStringOfLength(256);
-    private static final String TOO_LONG_DESCRIPTION = Helper.randomStringOfLength(256);
+    private static final String TOO_LONG_NAME = Utilities.Strings.randomStringOfLength(256);
+    private static final String TOO_LONG_DESCRIPTION = Utilities.Strings.randomStringOfLength(256);
 
     @ArquillianRule
     public static UnifiedPushServer ups = new UnifiedPushServer() {

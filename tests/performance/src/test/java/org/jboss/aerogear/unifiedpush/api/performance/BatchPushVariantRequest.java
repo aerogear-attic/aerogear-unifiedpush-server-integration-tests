@@ -19,9 +19,8 @@ package org.jboss.aerogear.unifiedpush.api.performance;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.test.api.AbstractSessionRequest;
 
 import com.jayway.restassured.response.Response;
@@ -51,8 +50,8 @@ public class BatchPushVariantRequest extends AbstractSessionRequest<BatchPushVar
         massiveVariants.setApplicationId(applicationId);
 
         Response response = getSession().givenAuthorized()
-            .contentType(ContentTypes.json())
-            .header(Headers.acceptJson())
+            .contentType(Utilities.ContentTypes.json())
+            .header(Utilities.Headers.acceptJson())
             .body(massiveVariants)
             .post("/rest/mass/variants");
 
@@ -79,7 +78,7 @@ public class BatchPushVariantRequest extends AbstractSessionRequest<BatchPushVar
     public long countOfAllVariants(String applicationId) {
 
         Response response = getSession().givenAuthorized()
-            .header(Headers.acceptJson())
+            .header(Utilities.Headers.acceptJson())
             .get("/rest/mass/variants/{applicationId}", applicationId);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);

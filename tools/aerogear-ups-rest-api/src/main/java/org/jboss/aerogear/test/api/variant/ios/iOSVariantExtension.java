@@ -16,7 +16,7 @@
  */
 package org.jboss.aerogear.test.api.variant.ios;
 
-import org.jboss.aerogear.test.FileUtils;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public abstract class iOSVariantExtension<EXTENSION extends iOSVariantExtension<
     }
 
     public EXTENSION certificate(File certificate) {
-        return certificate(FileUtils.toByteArray(certificate));
+        return certificate(Utilities.FileUtils.toByteArray(certificate));
     }
 
     public EXTENSION certificate(byte[] certificate) {

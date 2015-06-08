@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.aerogear.test.Helper;
 import org.jboss.aerogear.test.Session;
+import org.jboss.aerogear.test.Utilities;
 
 public abstract class AbstractUPSContext<
         ENTITY,
@@ -229,7 +229,7 @@ public abstract class AbstractUPSContext<
     }
 
     protected String randomStringOfLength(int length) {
-        return Helper.randomStringOfLength(length);
+        return Utilities.Strings.randomStringOfLength(length);
     }
 
     // FIXME think of a better name
