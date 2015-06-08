@@ -8,11 +8,11 @@ public class UpteCli {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
-        CliBuilder<Runnable> builder = Cli.<Runnable> builder("upte")
+        CliBuilder<Runnable> builder = Cli.<Runnable>builder("upte")
                 .withDefaultCommand(Help.class)
-                .withCommands(Help.class, 
-                        AppCreateCommand.class, 
-                        DataGeneratorCommand.class, 
+                .withCommands(Help.class,
+                        AppCreateCommand.class,
+                        DataGeneratorCommand.class,
                         CleanupCommand.class);
 
         builder.build().parse(args).run();
