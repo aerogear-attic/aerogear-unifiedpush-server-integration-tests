@@ -24,6 +24,7 @@ import javax.enterprise.inject.Produces;
 import java.util.Set;
 
 public class ServiceSetProducer {
+
     @Produces
     public Set<Service> dummyServices() {
         return ImmutableSet.of();

@@ -51,7 +51,7 @@ public class UnexpectedResponseException extends RuntimeException {
 
     public static void verifyResponse(Response response, int expectedStatus) throws UnexpectedResponseException,
             NullPointerException {
-        Validate.notNull(expectedStatus);
+        Utilities.Validate.notNull(expectedStatus);
         if (response.statusCode() != expectedStatus) {
             throw new UnexpectedResponseException(response, expectedStatus);
         }

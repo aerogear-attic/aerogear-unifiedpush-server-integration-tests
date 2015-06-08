@@ -23,9 +23,8 @@ import com.jayway.awaitility.core.ConditionTimeoutException;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.unifiedpush.test.SenderStatistics;
 
 import java.util.Map;
@@ -40,8 +39,8 @@ public class SenderStatisticsRequest extends AbstractTestExtensionRequest<Sender
     public SenderStatistics get() {
 
         Response response = getSession().givenAuthorized()
-                .contentType(ContentTypes.json())
-                .header(Headers.acceptJson())
+                .contentType(Utilities.ContentTypes.json())
+                .header(Utilities.Headers.acceptJson())
                 .get("/senderStats");
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -87,8 +86,8 @@ public class SenderStatisticsRequest extends AbstractTestExtensionRequest<Sender
 
     public void clear() {
         Response response = getSession().givenAuthorized()
-                .contentType(ContentTypes.json())
-                .header(Headers.acceptJson())
+                .contentType(Utilities.ContentTypes.json())
+                .header(Utilities.Headers.acceptJson())
                 .delete("/senderStats");
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);

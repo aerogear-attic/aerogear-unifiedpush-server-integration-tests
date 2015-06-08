@@ -30,7 +30,7 @@ import java.util.List;
 public class KeycloakConfigurationEndpoint {
 
     @Inject
-    KeycloakConfigurator configurator;
+    private KeycloakConfigurator configurator;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

@@ -17,7 +17,6 @@ import org.arquillian.spacelift.gradle.maven.SettingsXmlUpdater
 import org.arquillian.spacelift.gradle.openshift.UPSOpenShiftInstallation
 import org.arquillian.spacelift.gradle.quickstart.ShootAndShareQuickstartHelper
 import org.arquillian.spacelift.gradle.text.ProcessTemplate
-import org.arquillian.spacelift.gradle.utils.EnvironmentUtils
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.task.archive.UnzipTool
 import org.jboss.aerogear.test.Session
@@ -48,8 +47,8 @@ ext {
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.1.0-beta.1-SNAPSHOT'
-    defaultUnifiedPushTestExtensionVersion = '1.1.0-beta.1-SNAPSHOT'
+    defaultUnifiedPushModelVersion = '1.1.0-beta.2-SNAPSHOT'
+    defaultUnifiedPushTestExtensionVersion = '1.1.0-beta.2-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
 
@@ -219,7 +218,8 @@ spacelift {
         unifiedPushServerModel {
             product 'aerogear'
             version { project.unifiedPushModelVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-alpha.2.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/master.zip'
+            //remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.1.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
@@ -243,7 +243,7 @@ spacelift {
                 }
             }
             postActions {
-                // install parent as prerequite to installing model
+                // install parent as prerequisite to installing model
                 Spacelift.task(MavenExecutor).pom('pom.xml')
                         .workingDir(home.absolutePath)
                         .withoutSubprojects()
@@ -258,7 +258,7 @@ spacelift {
                         .properties('skipTests', 'maven.javadoc.skip=true')
                         .execute().await()
 
-                // install push model
+                // install push
                 Spacelift.task(MavenExecutor).pom('push/pom.xml')
                         .workingDir(home.absolutePath)
                         .withoutSubprojects()
@@ -277,7 +277,7 @@ spacelift {
 
         unifiedPushJavaClient {
             product 'aerogear'
-            version '1.1.0-alpha.2'
+            version '1.1.0-beta.2-SNAPSHOT'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-java-client/archive/master.zip'
             home 'aerogear-unifiedpush-java-client'
             fileName 'aerogear-unifiedpush-java-client.zip'
@@ -504,7 +504,7 @@ spacelift {
 
         upsFromSource {
             product 'aerogear'
-            version '1.1.0-beta.1-SNAPSHOT'
+            version '1.1.0-beta.2-SNAPSHOT'
             isInstalled false
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/master.zip'
             home 'aerogear-unifiedpush-server'
@@ -549,7 +549,7 @@ spacelift {
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.1.0-beta.1'
+            version '1.1.0-beta.2'
             isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
@@ -600,7 +600,7 @@ spacelift {
          */
         upsProvided {
             product 'aerogear'
-            version '1.1.0-alpha.1'
+            version '1.1.0-beta.2'
             preconditions {
                 if (!project.unifiedPushServerWar) {
                     throw new IllegalStateException("You must specify path to ag-push.war via unifiedPushServerWar property")

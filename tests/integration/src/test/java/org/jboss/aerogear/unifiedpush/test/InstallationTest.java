@@ -20,8 +20,8 @@ import category.SimplePush;
 import org.apache.http.HttpStatus;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
-import org.jboss.aerogear.test.ContentTypes;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.installation.InstallationBlueprint;
@@ -130,11 +130,11 @@ public class InstallationTest {
     @Test
     public void testAndroidInstallationsUTF8() {
         AndroidVariant variant = ups.with(
-                AndroidVariantWorker.worker().contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
+                AndroidVariantWorker.worker().contentType(Utilities.ContentTypes.jsonUTF8()), getRegisteredApplication())
                 .generate().persist()
                 .detachEntity();
 
-        performInstallationCRUD(AndroidInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
+        performInstallationCRUD(AndroidInstallationWorker.worker().contentType(Utilities.ContentTypes.jsonUTF8()), variant);
     }
 
     @Test
@@ -155,11 +155,11 @@ public class InstallationTest {
                 iOSVariantWorker.worker()
                         .defaultCertificate(TestUtils.getDefaultApnsCertificate())
                         .defaultPassphrase(TestUtils.getDefaultApnsCertificatePassword())
-                        .contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
+                        .contentType(Utilities.ContentTypes.jsonUTF8()), getRegisteredApplication())
                 .generate().persist()
                 .detachEntity();
 
-        performInstallationCRUD(iOSInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
+        performInstallationCRUD(iOSInstallationWorker.worker().contentType(Utilities.ContentTypes.jsonUTF8()), variant);
     }
 
     @Test
@@ -168,7 +168,7 @@ public class InstallationTest {
                 iOSVariantWorker.worker()
                         .defaultCertificate(TestUtils.getDefaultApnsCertificate())
                         .defaultPassphrase(TestUtils.getDefaultApnsCertificatePassword())
-                        .contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
+                        .contentType(Utilities.ContentTypes.jsonUTF8()), getRegisteredApplication())
                 .generate().persist()
                 .detachEntity();
 
@@ -195,11 +195,11 @@ public class InstallationTest {
     @Test
     public void testSimplePushInstallationsUTF8() {
         SimplePushVariant variant = ups.with(
-                SimplePushVariantWorker.worker().contentType(ContentTypes.jsonUTF8()), getRegisteredApplication())
+                SimplePushVariantWorker.worker().contentType(Utilities.ContentTypes.jsonUTF8()), getRegisteredApplication())
                 .generate().persist()
                 .detachEntity();
 
-        performInstallationCRUD(SimplePushInstallationWorker.worker().contentType(ContentTypes.jsonUTF8()), variant);
+        performInstallationCRUD(SimplePushInstallationWorker.worker().contentType(Utilities.ContentTypes.jsonUTF8()), variant);
     }
 
     @Category(SimplePush.class)

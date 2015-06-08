@@ -16,7 +16,7 @@
  */
 package org.jboss.aerogear.test.api;
 
-import org.jboss.aerogear.test.ContentTypes;
+import org.jboss.aerogear.test.Utilities;
 
 import java.util.Collection;
 
@@ -32,7 +32,7 @@ public abstract class AbstractUPSWorker<
 
         implements UPSWorker<ENTITY, ENTITY_ID, BLUEPRINT, EDITOR, PARENT, CONTEXT, WORKER> {
 
-    private String contentType = ContentTypes.json();
+    private String contentType = Utilities.ContentTypes.json();
 
     public String getContentType() {
         return contentType;

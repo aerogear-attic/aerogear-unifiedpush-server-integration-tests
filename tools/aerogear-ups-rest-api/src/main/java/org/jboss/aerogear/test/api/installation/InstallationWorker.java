@@ -3,8 +3,8 @@ package org.jboss.aerogear.test.api.installation;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.unifiedpush.api.Category;
 import org.jboss.aerogear.unifiedpush.api.Installation;
@@ -80,7 +80,7 @@ public abstract class InstallationWorker<
             Response response = context.getSession().given()
                     .contentType(getContentType())
                     .auth().basic(context.getParent().getVariantID(), context.getParent().getSecret())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(blueprint))
                     .post("/rest/registry/device");
 
@@ -107,7 +107,7 @@ public abstract class InstallationWorker<
     public List<EDITOR> readAll(CONTEXT context) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations", context.getParent().getVariantID());
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -132,7 +132,7 @@ public abstract class InstallationWorker<
     public EDITOR read(CONTEXT context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations/{installationID}",
                         context.getParent().getVariantID(), id);
 
@@ -146,7 +146,7 @@ public abstract class InstallationWorker<
         for (Installation entity : entities) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(entity))
                     .put("/rest/applications/{variantID}/installations/{installationID}",
                             context.getParent().getVariantID(), context.getEntityID(entity));
@@ -161,7 +161,7 @@ public abstract class InstallationWorker<
     public void deleteById(CONTEXT context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{variantID}/installations/{installationID}",
                         context.getParent().getVariantID(), id);
 

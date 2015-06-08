@@ -19,11 +19,11 @@ task wrapper(type: Wrapper) {
 }
 
 def versions = [
-        aerogearParent: '0.2.13',
-        unifiedPushServer: '1.1.0-beta.1',
+        aerogearParent: '0.2.15',
+        unifiedPushServer: '1.1.0-beta.2',
         unifiedPushJavaClient: '1.1.0-beta.1',
         arquillian: '1.1.8.Final',
-        keycloak: '1.1.0.Final',
+        keycloak: '1.2.0.Final',
         httpClient: '4.4',
         spacelift: '1.0.0.Alpha7'
 ]
@@ -118,7 +118,7 @@ project('tests') {
             compile 'org.jboss.arquillian.core:arquillian-core-spi'
             compile 'org.jboss.arquillian.core:arquillian-core-impl-base'
             compile 'org.jboss.arquillian.junit:arquillian-junit-container'
-            compile "org.jboss.aerogear:unifiedpush-java-client:${versions.unifiedPushServer}"
+            compile "org.jboss.aerogear:unifiedpush-java-client:${versions.unifiedPushJavaClient}"
             compile project(":tools:test-extension:client")
             compile 'junit:junit:4.11'
             compile project(':tools:aerogear-ups-rest-api')
@@ -195,8 +195,17 @@ project('tools') {
     }
 
     project('aerogear-ups-rest-api') {
+
+        repositories {
+            mavenCentral()
+            maven {
+                url 'https://jitpack.io'
+            }
+        }
+
         dependencies {
             compile "org.jboss.aerogear.unifiedpush:unifiedpush-model-api:${versions.unifiedPushServer}"
+            compile "org.jboss.aerogear.unifiedpush:unifiedpush-push-model:${versions.unifiedPushServer}"
             compile "org.jboss.aerogear:unifiedpush-java-client:${versions.unifiedPushJavaClient}"
             compile "org.keycloak:keycloak-core:${versions.keycloak}"
             compile 'com.jayway.restassured:rest-assured'
@@ -256,6 +265,7 @@ project('tools') {
             dependencies {
                 compile project(':tools:test-extension:common')
                 compile "org.jboss.aerogear.unifiedpush:unifiedpush-model-jpa:${versions.unifiedPushServer}"
+                compile "org.jboss.aerogear.unifiedpush:unifiedpush-push-model:${versions.unifiedPushServer}"
                 compile "org.jboss.aerogear:unifiedpush-java-client:${versions.unifiedPushJavaClient}"
                 provided 'javax.validation:validation-api:1.0.0.GA'
                 compile 'org.apache.commons:commons-math3:3.3'
@@ -269,8 +279,9 @@ project('tools') {
                 compile 'org.keycloak:keycloak-model-jpa'
                 compile 'org.keycloak:keycloak-model-sessions-mem'
                 compile 'org.keycloak:keycloak-model-sessions-jpa'
+                compile 'org.keycloak:keycloak-events-jpa'
                 provided 'org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final'
-                provided 'org.hibernate:hibernate-entitymanager:4.0.1.Final'
+                provided 'org.hibernate:hibernate-entitymanager:4.2.15.Final'
                 compile 'io.netty:netty-all:4.0.23.Final'
                 compile 'com.ganyo:gcm-server:1.0.2'
                 compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'

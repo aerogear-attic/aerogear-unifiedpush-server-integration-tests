@@ -35,6 +35,7 @@ public class JavaSenderTestEndpoint {
     @Produces(MediaType.TEXT_PLAIN)
     public String sendPushMessage(@FormParam("pushAppId") String appId, @FormParam("secret") String secret,
                                   @FormParam("serverUrl") String serverUrl, @FormParam("alert") String alert) {
+
         PushSender sender = DefaultPushSender.withRootServerURL(serverUrl)
                 .pushApplicationId(appId)
                 .masterSecret(secret)

@@ -25,7 +25,6 @@ import javax.ws.rs.core.Response;
 @Path("/")
 public class UtilityEndpoint {
 
-
     /**
      * Status endpoint is basically just a fast way to detect if the archive has been deployed, so it can be checked
      * from outside just by polling this endpoint and waiting until 200 is returned.
