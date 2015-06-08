@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.AccessTokenResponse;
@@ -49,12 +49,12 @@ public class LoginRequest extends AbstractAuthRequest<LoginRequest> {
     public Session login() {
 
         URI authServerEndpointUri = KeycloakUriBuilder.fromUri(getAuthServerUrl().toExternalForm())
-                .path(ServiceUrlConstants.TOKEN_SERVICE_DIRECT_GRANT_PATH).build("aerogear");
+                .path(ServiceUrlConstants.TOKEN_PATH).build("aerogear");
 
         Session session = Session.newSession(authServerEndpointUri.toString());
         // FIXME dont use Session here! Fire up our own RestAssured
         Response response = session.given()
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .formParam("username", username)
                 .formParam("password", password)
                 .formParam(OAuth2Constants.CLIENT_ID, "integration-tests")

@@ -3,9 +3,9 @@ package org.jboss.aerogear.test.api.variant.simplepush;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.SimplePushVariant;
@@ -59,7 +59,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
         for (SimplePushVariantBlueprint blueprint : blueprints) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(blueprint))
                     .post("/rest/applications/{pushApplicationID}/simplePush",
                             context.getParent().getPushApplicationID());
@@ -75,7 +75,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
     public List<SimplePushVariantEditor> readAll(SimplePushVariantContext context) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/simplePush", context.getParent().getPushApplicationID());
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -100,7 +100,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
     public SimplePushVariantEditor read(SimplePushVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
@@ -114,7 +114,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
         for (SimplePushVariant entity : entities) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(entity))
                     .put("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
                             context.getParent().getPushApplicationID(), context.getEntityID(entity));
@@ -129,7 +129,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
     public void deleteById(SimplePushVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
@@ -140,7 +140,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
     public void resetSecret(SimplePushVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .body("[]")
                 .put("/rest/applications/{pushApplicationID}/simplePush/{variantID}/reset",
                         context.getParent().getPushApplicationID(), id);

@@ -1,6 +1,6 @@
 package org.jboss.aerogear.unifiedpush.admin.ui.utils;
 
-import org.jboss.aerogear.test.FileUtils;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.auth.LoginRequest;
 import org.jboss.aerogear.test.api.variant.ios.iOSVariantBlueprint;
@@ -60,7 +60,7 @@ public class IOSVariantCreator {
         iOSVariantBlueprint blueprint = context.create();
         blueprint.setName(name);
         blueprint.setDescription(desc);
-        blueprint.setCertificate(FileUtils.toByteArray(new File(appleCertPath)));
+        blueprint.setCertificate(Utilities.FileUtils.toByteArray(new File(appleCertPath)));
         blueprint.setPassphrase(passphrase);
         blueprint.setProduction(isProd);
         blueprint.persist();

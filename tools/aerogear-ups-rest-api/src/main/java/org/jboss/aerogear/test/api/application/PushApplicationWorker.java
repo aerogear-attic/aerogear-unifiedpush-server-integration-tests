@@ -3,10 +3,7 @@ package org.jboss.aerogear.test.api.application;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.Headers;
-import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.*;
 import org.jboss.aerogear.test.api.AbstractUPSWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.json.simple.JSONObject;
@@ -18,7 +15,7 @@ import java.util.Map;
 
 public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, String, PushApplicationBlueprint, PushApplicationEditor, Void, PushApplicationContext, PushApplicationWorker> {
 
-    private String contentType = ContentTypes.json();
+    private String contentType = Utilities.ContentTypes.json();
 
     private PushApplicationWorker() {
 
@@ -55,7 +52,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
         for (PushApplication pushApplication : pushApplications) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(contentType)
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(pushApplication))
                     .post("/rest/applications");
 
@@ -70,8 +67,8 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     public List<PushApplicationEditor> readAll(PushApplicationContext context) {
 
         Response response = context.getSession().givenAuthorized()
-                .contentType(ContentTypes.json())
-                .header(Headers.acceptJson())
+                .contentType(Utilities.ContentTypes.json())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications");
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -98,7 +95,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     public PushApplicationEditor read(PushApplicationContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(contentType)
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}", id);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -111,7 +108,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
         for (PushApplication pushApplication : pushApplications) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(contentType)
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(pushApplication))
                     .put("/rest/applications/{pushApplicationID}", context.getEntityID(pushApplication));
 
@@ -125,7 +122,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     public void deleteById(PushApplicationContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(contentType)
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}", id);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_NO_CONTENT);
@@ -134,7 +131,7 @@ public class PushApplicationWorker extends AbstractUPSWorker<PushApplication, St
     public void resetMasterSecret(PushApplicationContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(contentType)
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .body("[]")
                 .put("/rest/applications/{pushApplicationID}/reset", id);
 

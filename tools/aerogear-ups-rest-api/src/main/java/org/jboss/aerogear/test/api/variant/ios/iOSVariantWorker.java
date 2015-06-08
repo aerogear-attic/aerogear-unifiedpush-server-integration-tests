@@ -3,11 +3,7 @@ package org.jboss.aerogear.test.api.variant.ios;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.FileUtils;
-import org.jboss.aerogear.test.Headers;
-import org.jboss.aerogear.test.Session;
-import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.*;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.iOSVariant;
@@ -66,9 +62,9 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
         List<iOSVariantEditor> editors = new ArrayList<iOSVariantEditor>();
         for (iOSVariantBlueprint blueprint : blueprints) {
             Response response = context.getSession().givenAuthorized()
-                    .contentType(ContentTypes.multipartFormData())
-                    .header(Headers.acceptJson())
-                    .multiPart("certificate", "certificate.p12", blueprint.getCertificate(), ContentTypes.octetStream())
+                    .contentType(Utilities.ContentTypes.multipartFormData())
+                    .header(Utilities.Headers.acceptJson())
+                    .multiPart("certificate", "certificate.p12", blueprint.getCertificate(), Utilities.ContentTypes.octetStream())
                     .multiPart("production", String.valueOf(blueprint.isProduction()))
                     .multiPart("passphrase", blueprint.getPassphrase())
                     .multiPart("name", blueprint.getName())
@@ -86,7 +82,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     public List<iOSVariantEditor> readAll(iOSVariantContext context) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/ios", context.getParent().getPushApplicationID());
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -111,7 +107,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     public iOSVariantEditor read(iOSVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/ios/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
@@ -124,9 +120,9 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     public void update(iOSVariantContext context, Collection<? extends iOSVariant> entities) {
         for (iOSVariant entity : entities) {
             Response response = context.getSession().givenAuthorized()
-                    .contentType(ContentTypes.multipartFormData())
-                    .header(Headers.acceptJson())
-                    .multiPart("certificate", "certificate.p12", entity.getCertificate(), ContentTypes.octetStream())
+                    .contentType(Utilities.ContentTypes.multipartFormData())
+                    .header(Utilities.Headers.acceptJson())
+                    .multiPart("certificate", "certificate.p12", entity.getCertificate(), Utilities.ContentTypes.octetStream())
                     .multiPart("production", String.valueOf(entity.isProduction()))
                     .multiPart("passphrase", entity.getPassphrase())
                     .multiPart("name", entity.getName())
@@ -144,7 +140,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
         for (iOSVariant entity : entities) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(entity))
                     .patch("/rest/applications/{pushApplicationID}/ios/{variantID}",
                             context.getParent().getPushApplicationID(), context.getEntityID(entity));
@@ -157,7 +153,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     public void deleteById(iOSVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/ios/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
@@ -168,7 +164,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     public void resetSecret(iOSVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .body("[]")
                 .put("/rest/applications/{pushApplicationID}/ios/{variantID}/reset",
                         context.getParent().getPushApplicationID(), id);
@@ -185,7 +181,7 @@ public class iOSVariantWorker extends VariantWorker<iOSVariant, String, iOSVaria
     }
 
     public iOSVariantWorker defaultCertificate(File defaultCertificate) {
-        return defaultCertificate(FileUtils.toByteArray(defaultCertificate));
+        return defaultCertificate(Utilities.FileUtils.toByteArray(defaultCertificate));
     }
 
     public iOSVariantWorker defaultCertificate(byte[] defaultCertificate) {

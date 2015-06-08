@@ -20,10 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.ContentTypes;
-import org.jboss.aerogear.test.Headers;
-import org.jboss.aerogear.test.Helper;
-import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.*;
 import org.jboss.aerogear.test.api.AbstractSessionRequest;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 
@@ -55,15 +52,15 @@ public class BatchPushInstallationRequest extends AbstractSessionRequest<BatchPu
 
         for (int i = 0; i < count; i++) {
             Installation inst = new Installation();
-            inst.setDeviceToken(Helper.randomStringOfLength(100));
+            inst.setDeviceToken(Utilities.Strings.randomStringOfLength(100));
             installations.add(inst);
         }
 
         massiveInstallation.setInstallations(installations);
 
         Response response = getSession().givenAuthorized()
-            .contentType(ContentTypes.json())
-            .header(Headers.acceptJson())
+            .contentType(Utilities.ContentTypes.json())
+            .header(Utilities.Headers.acceptJson())
             .body(massiveInstallation)
             .post("/rest/mass/installations");
 
@@ -73,7 +70,7 @@ public class BatchPushInstallationRequest extends AbstractSessionRequest<BatchPu
     public long countAllInstallations(String variantId) {
 
         Response response = getSession().givenAuthorized()
-            .header(Headers.acceptJson())
+            .header(Utilities.Headers.acceptJson())
             .get("/rest/mass/installations/{variantId}", variantId);
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);

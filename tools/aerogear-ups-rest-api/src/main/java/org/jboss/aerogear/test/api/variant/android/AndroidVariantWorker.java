@@ -3,9 +3,9 @@ package org.jboss.aerogear.test.api.variant.android;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
-import org.jboss.aerogear.test.Headers;
 import org.jboss.aerogear.test.Session;
 import org.jboss.aerogear.test.UnexpectedResponseException;
+import org.jboss.aerogear.test.Utilities;
 import org.jboss.aerogear.test.api.variant.VariantWorker;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
@@ -62,7 +62,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
         for (AndroidVariantBlueprint blueprint : blueprints) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(blueprint))
                     .post("/rest/applications/{pushApplicationID}/android", context.getParent().getPushApplicationID());
 
@@ -77,7 +77,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
     public List<AndroidVariantEditor> readAll(AndroidVariantContext context) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/android", context.getParent().getPushApplicationID());
 
         UnexpectedResponseException.verifyResponse(response, HttpStatus.SC_OK);
@@ -102,7 +102,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
     public AndroidVariantEditor read(AndroidVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/android/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
@@ -116,7 +116,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
         for (AndroidVariant entity : entities) {
             Response response = context.getSession().givenAuthorized()
                     .contentType(getContentType())
-                    .header(Headers.acceptJson())
+                    .header(Utilities.Headers.acceptJson())
                     .body(marshall(entity))
                     .put("/rest/applications/{pushApplicationID}/android/{variantID}",
                             context.getParent().getPushApplicationID(), context.getEntityID(entity));
@@ -131,7 +131,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
     public void deleteById(AndroidVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/android/{variantID}",
                         context.getParent().getPushApplicationID(), id);
 
@@ -142,7 +142,7 @@ public class AndroidVariantWorker extends VariantWorker<AndroidVariant, String, 
     public void resetSecret(AndroidVariantContext context, String id) {
         Response response = context.getSession().givenAuthorized()
                 .contentType(getContentType())
-                .header(Headers.acceptJson())
+                .header(Utilities.Headers.acceptJson())
                 .body("[]")
                 .put("/rest/applications/{pushApplicationID}/android/{variantID}/reset",
                         context.getParent().getPushApplicationID(), id);
