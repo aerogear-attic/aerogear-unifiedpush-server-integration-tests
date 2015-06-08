@@ -57,7 +57,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
             SimplePushVariantBlueprint> blueprints) {
         List<SimplePushVariantEditor> editors = new ArrayList<SimplePushVariantEditor>();
         for (SimplePushVariantBlueprint blueprint : blueprints) {
-            Response response = context.getSession().givenAuthorized()
+            Response response = context.getSession().given().authorized()
                     .contentType(getContentType())
                     .header(Utilities.Headers.acceptJson())
                     .body(marshall(blueprint))
@@ -73,7 +73,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
 
     @Override
     public List<SimplePushVariantEditor> readAll(SimplePushVariantContext context) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/simplePush", context.getParent().getPushApplicationID());
@@ -98,7 +98,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
 
     @Override
     public SimplePushVariantEditor read(SimplePushVariantContext context, String id) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
@@ -112,7 +112,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
     @Override
     public void update(SimplePushVariantContext context, Collection<? extends SimplePushVariant> entities) {
         for (SimplePushVariant entity : entities) {
-            Response response = context.getSession().givenAuthorized()
+            Response response = context.getSession().given().authorized()
                     .contentType(getContentType())
                     .header(Utilities.Headers.acceptJson())
                     .body(marshall(entity))
@@ -127,7 +127,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
 
     @Override
     public void deleteById(SimplePushVariantContext context, String id) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{pushApplicationID}/simplePush/{variantID}",
@@ -138,7 +138,7 @@ public class SimplePushVariantWorker extends VariantWorker<SimplePushVariant, St
 
     @Override
     public void resetSecret(SimplePushVariantContext context, String id) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .body("[]")

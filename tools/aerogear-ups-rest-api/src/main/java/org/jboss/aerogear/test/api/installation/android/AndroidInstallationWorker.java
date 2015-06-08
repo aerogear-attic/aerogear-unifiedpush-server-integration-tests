@@ -8,7 +8,6 @@ public class AndroidInstallationWorker extends InstallationWorker<AndroidInstall
         AndroidInstallationEditor, AndroidVariant, AndroidInstallationContext, AndroidInstallationWorker> {
 
     private AndroidInstallationWorker() {
-
     }
 
     @Override

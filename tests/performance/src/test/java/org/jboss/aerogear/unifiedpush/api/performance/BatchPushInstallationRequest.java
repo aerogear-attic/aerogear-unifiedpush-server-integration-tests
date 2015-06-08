@@ -58,7 +58,7 @@ public class BatchPushInstallationRequest extends AbstractSessionRequest<BatchPu
 
         massiveInstallation.setInstallations(installations);
 
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .contentType(Utilities.ContentTypes.json())
             .header(Utilities.Headers.acceptJson())
             .body(massiveInstallation)
@@ -69,7 +69,7 @@ public class BatchPushInstallationRequest extends AbstractSessionRequest<BatchPu
 
     public long countAllInstallations(String variantId) {
 
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .header(Utilities.Headers.acceptJson())
             .get("/rest/mass/installations/{variantId}", variantId);
 

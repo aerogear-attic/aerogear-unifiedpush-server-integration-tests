@@ -49,7 +49,7 @@ public class BatchPushVariantRequest extends AbstractSessionRequest<BatchPushVar
         massiveVariants.setNumberOfVariants(numberOfVariants);
         massiveVariants.setApplicationId(applicationId);
 
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .contentType(Utilities.ContentTypes.json())
             .header(Utilities.Headers.acceptJson())
             .body(massiveVariants)
@@ -77,7 +77,7 @@ public class BatchPushVariantRequest extends AbstractSessionRequest<BatchPushVar
      */
     public long countOfAllVariants(String applicationId) {
 
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .header(Utilities.Headers.acceptJson())
             .get("/rest/mass/variants/{applicationId}", applicationId);
 

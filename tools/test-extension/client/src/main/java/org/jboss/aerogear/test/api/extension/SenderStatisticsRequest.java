@@ -38,7 +38,7 @@ public class SenderStatisticsRequest extends AbstractTestExtensionRequest<Sender
 
     public SenderStatistics get() {
 
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
                 .contentType(Utilities.ContentTypes.json())
                 .header(Utilities.Headers.acceptJson())
                 .get("/senderStats");
@@ -85,7 +85,7 @@ public class SenderStatisticsRequest extends AbstractTestExtensionRequest<Sender
     }
 
     public void clear() {
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
                 .contentType(Utilities.ContentTypes.json())
                 .header(Utilities.Headers.acceptJson())
                 .delete("/senderStats");

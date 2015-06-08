@@ -48,12 +48,13 @@ public class LoginRequest extends AbstractAuthRequest<LoginRequest> {
 
     public Session login() {
 
-        URI authServerEndpointUri = KeycloakUriBuilder.fromUri(getAuthServerUrl().toExternalForm())
+        URI authServerEndpointUri = KeycloakUriBuilder
+                .fromUri(getAuthServerUrl().toExternalForm())
                 .path(ServiceUrlConstants.TOKEN_PATH).build("aerogear");
 
         Session session = Session.newSession(authServerEndpointUri.toString());
         // FIXME dont use Session here! Fire up our own RestAssured
-        Response response = session.given()
+        Response response = session.given().get()
                 .header(Utilities.Headers.acceptJson())
                 .formParam("username", username)
                 .formParam("password", password)
@@ -62,8 +63,7 @@ public class LoginRequest extends AbstractAuthRequest<LoginRequest> {
 
         if(response.statusCode() == HttpStatus.SC_OK) {
             try {
-                AccessTokenResponse tokenResponse =
-                        JsonSerialization.readValue(response.asString(), AccessTokenResponse.class);
+                AccessTokenResponse tokenResponse = JsonSerialization.readValue(response.asString(), AccessTokenResponse.class);
 
                 return new Session(getUnifiedPushServerUrl(), tokenResponse);
                 // FIXME handle the possible io exception!

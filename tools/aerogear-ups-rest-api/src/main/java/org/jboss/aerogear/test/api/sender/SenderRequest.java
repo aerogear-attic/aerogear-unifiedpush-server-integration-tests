@@ -37,9 +37,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
+
+    private static final long LATCH_AWAIT = 5000; // in milliseconds
 
     private String customTrustStorePath = null;
     private String customTrustStoreType = null;
@@ -48,11 +49,6 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
     public UnifiedMessageBlueprint message() {
         return new UnifiedMessageBlueprint();
     }
-
-    /* FIXME what should we generate?
-    public UnifiedMessageBlueprint generate() {
-        return message();
-    }*/
 
     public SenderRequest customTrustStore(String trustStorePath, String trustStoreType, String trustStorePassword) {
         customTrustStorePath = trustStorePath;
@@ -86,7 +82,7 @@ public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
         try {
             // The send is synchronous for now but I left the latch.await there in case the send becomes async again.
             senderClient.send(message, callback);
-            latch.await(5000, TimeUnit.MILLISECONDS);
+            latch.await(LATCH_AWAIT, TimeUnit.MILLISECONDS);
         } catch(PushSenderHttpException exception) {
             // In case we get the exception, we will assert it
             UnexpectedResponseException.verifyStatusCode(exception.getStatusCode(), HttpStatus.SC_ACCEPTED);

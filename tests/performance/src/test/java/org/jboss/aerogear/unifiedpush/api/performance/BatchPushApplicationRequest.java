@@ -46,7 +46,7 @@ public class BatchPushApplicationRequest extends AbstractSessionRequest<BatchPus
         MassPushApplication massiveApps = new MassPushApplication();
         massiveApps.setCount(count);
 
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .contentType(Utilities.ContentTypes.json())
             .header(Utilities.Headers.acceptJson())
             .body(massiveApps)
@@ -67,7 +67,7 @@ public class BatchPushApplicationRequest extends AbstractSessionRequest<BatchPus
     }
 
     public BatchPushApplicationRequest deleteAll() {
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .contentType(Utilities.ContentTypes.json())
             .header(Utilities.Headers.acceptJson())
             .delete("/rest/mass/applications");
@@ -78,7 +78,7 @@ public class BatchPushApplicationRequest extends AbstractSessionRequest<BatchPus
     }
 
     public Long countOfAllApplications() {
-        Response response = getSession().givenAuthorized()
+        Response response = getSession().given().authorized()
             .header(Utilities.Headers.acceptJson())
             .get("/rest/mass/applications");
 

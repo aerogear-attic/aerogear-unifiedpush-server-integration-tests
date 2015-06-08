@@ -77,7 +77,7 @@ public abstract class InstallationWorker<
     public List<EDITOR> create(CONTEXT context, Collection<? extends BLUEPRINT> blueprints) {
         List<EDITOR> editors = new ArrayList<EDITOR>();
         for (InstallationBlueprint blueprint : blueprints) {
-            Response response = context.getSession().given()
+            Response response = context.getSession().given().get()
                     .contentType(getContentType())
                     .auth().basic(context.getParent().getVariantID(), context.getParent().getSecret())
                     .header(Utilities.Headers.acceptJson())
@@ -93,7 +93,7 @@ public abstract class InstallationWorker<
 
     public void unregister(CONTEXT context, Collection<? extends Installation> entities) {
         for (Installation entity : entities) {
-            Response response = context.getSession().given().log().all()
+            Response response = context.getSession().given().get().log().all()
                     .contentType(getContentType())
                     .auth().basic(context.getParent().getVariantID(), context.getParent().getSecret())
                     .urlEncodingEnabled(false)
@@ -105,7 +105,7 @@ public abstract class InstallationWorker<
 
     @Override
     public List<EDITOR> readAll(CONTEXT context) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations", context.getParent().getVariantID());
@@ -130,7 +130,7 @@ public abstract class InstallationWorker<
 
     @Override
     public EDITOR read(CONTEXT context, String id) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .get("/rest/applications/{variantID}/installations/{installationID}",
@@ -144,7 +144,7 @@ public abstract class InstallationWorker<
     @Override
     public void update(CONTEXT context, Collection<? extends Installation> entities) {
         for (Installation entity : entities) {
-            Response response = context.getSession().givenAuthorized()
+            Response response = context.getSession().given().authorized()
                     .contentType(getContentType())
                     .header(Utilities.Headers.acceptJson())
                     .body(marshall(entity))
@@ -159,7 +159,7 @@ public abstract class InstallationWorker<
 
     @Override
     public void deleteById(CONTEXT context, String id) {
-        Response response = context.getSession().givenAuthorized()
+        Response response = context.getSession().given().authorized()
                 .contentType(getContentType())
                 .header(Utilities.Headers.acceptJson())
                 .delete("/rest/applications/{variantID}/installations/{installationID}",
