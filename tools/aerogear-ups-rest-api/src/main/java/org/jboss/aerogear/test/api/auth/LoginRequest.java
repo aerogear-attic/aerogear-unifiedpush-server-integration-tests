@@ -55,6 +55,7 @@ public class LoginRequest extends AbstractAuthRequest<LoginRequest> {
         // FIXME dont use Session here! Fire up our own RestAssured
         Response response = session.given()
                 .header(Utilities.Headers.acceptJson())
+                .formParam("grant_type", "password")
                 .formParam("username", username)
                 .formParam("password", password)
                 .formParam(OAuth2Constants.CLIENT_ID, "integration-tests")

@@ -103,7 +103,8 @@ public class KeycloakConfigurator {
             if (clientEntityTypedQuery.getResultList().isEmpty()) {
                 ClientEntity clientEntity = new ClientEntity();
                 clientEntity.setId(KeycloakModelUtils.generateId());
-                clientEntity.setName("integration-tests");
+                clientEntity.setClientId("integration-tests");
+                clientEntity.setFullScopeAllowed(true);
                 clientEntity.setEnabled(true);
                 clientEntity.setPublicClient(true);
                 clientEntity.setDirectGrantsOnly(true);
