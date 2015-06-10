@@ -55,24 +55,24 @@ public class LoginRequest extends AbstractAuthRequest<LoginRequest> {
         // FIXME dont use Session here! Fire up our own RestAssured
         Response response = session.given()
                 .header(Utilities.Headers.acceptJson())
-                .formParam("grant_type", "password")
+                .formParam(OAuth2Constants.GRANT_TYPE, "password")
                 .formParam("username", username)
                 .formParam("password", password)
-                .formParam(OAuth2Constants.CLIENT_ID, "integration-tests")
+                .formParam(OAuth2Constants.CLIENT_ID, "unified-push-server-js")
                 .post();
+
+        System.out.println("response code: " + response.statusCode());
+        System.out.println("response body: " + response.getBody().prettyPrint());
 
         if(response.statusCode() == HttpStatus.SC_OK) {
             try {
-                AccessTokenResponse tokenResponse =
-                        JsonSerialization.readValue(response.asString(), AccessTokenResponse.class);
-
+                AccessTokenResponse tokenResponse = JsonSerialization.readValue(response.asString(), AccessTokenResponse.class);
                 return new Session(getUnifiedPushServerUrl(), tokenResponse);
                 // FIXME handle the possible io exception!
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-
         } else {
             throw new UnexpectedResponseException(response, HttpStatus.SC_OK);
         }

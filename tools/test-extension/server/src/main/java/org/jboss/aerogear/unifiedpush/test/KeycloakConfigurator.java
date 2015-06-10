@@ -17,7 +17,6 @@
 package org.jboss.aerogear.unifiedpush.test;
 
 import org.keycloak.models.jpa.entities.*;
-import org.keycloak.models.utils.KeycloakModelUtils;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -43,8 +42,6 @@ public class KeycloakConfigurator {
      * `aerogear` realm/
      */
     public KeycloakConfigurationResult configureForIntegrationTests() {
-
-        LOGGER.info("In KeyCloakConfigurator");
 
         KeycloakConfigurationResult result = new KeycloakConfigurationResult();
 
@@ -92,33 +89,6 @@ public class KeycloakConfigurator {
                 }
                 user.getRequiredActions().clear();
             }
-
-            TypedQuery<ClientEntity> clientEntityTypedQuery = entityManager
-                    .createQuery("select o from ClientEntity o where o.name=:name and o.realm = :realm", ClientEntity.class);
-
-            clientEntityTypedQuery.setParameter("name", "integration-tests");
-            clientEntityTypedQuery.setParameter("realm", realm);
-
-            // TODO should we instead remove all the oauthClients and create a new one?
-            if (clientEntityTypedQuery.getResultList().isEmpty()) {
-                ClientEntity clientEntity = new ClientEntity();
-                clientEntity.setId(KeycloakModelUtils.generateId());
-                clientEntity.setClientId("integration-tests");
-                clientEntity.setFullScopeAllowed(true);
-                clientEntity.setEnabled(true);
-                clientEntity.setPublicClient(true);
-                clientEntity.setDirectGrantsOnly(true);
-                clientEntity.setRealm(realm);
-                entityManager.persist(clientEntity);
-
-                for (RoleEntity roleEntity : realm.getRoles()) {
-                    result.getRoles().add(roleEntity.getName());
-                    ScopeMappingEntity scopeMapping = new ScopeMappingEntity();
-                    scopeMapping.setClient(clientEntity);
-                    scopeMapping.setRole(roleEntity);
-                    entityManager.persist(scopeMapping);
-                }
-            }
         }
 
         return result;
@@ -126,10 +96,13 @@ public class KeycloakConfigurator {
 
     public List<String> getRealms() {
         List<String> result = new ArrayList<String>();
+
         TypedQuery<RealmEntity> realmQuery = entityManager.createNamedQuery("getAllRealms", RealmEntity.class);
+
         for (RealmEntity realm : realmQuery.getResultList()) {
             result.add(realm.getName());
         }
+
         return result;
     }
 }
