@@ -28,6 +28,7 @@ import org.jboss.arquillian.container.test.api.TargetsContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,6 +36,7 @@ import org.junit.runner.RunWith;
  * Test that run deployment of auth server and UPS in reverse order
  */
 @RunWith(ArquillianRules.class)
+@Ignore
 public class ReverseDeploymentOrderTest {
 
     @ArquillianRule

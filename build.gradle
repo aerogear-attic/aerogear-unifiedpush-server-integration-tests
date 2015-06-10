@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
         jcenter()
         // you need this only if you plan to use SNAPSHOT version of this plugin
@@ -154,6 +155,18 @@ project('tests') {
     }
 
     project('integration') {
+
+        repositories {
+            mavenLocal()
+            mavenCentral()
+            jcenter()
+            // you need this only if you plan to use SNAPSHOT version of this plugin
+            maven {
+                name 'jboss-staging-repository-group'
+                url 'https://repository.jboss.org/nexus/content/groups/staging'
+            }
+        }
+
         dependencies {
             testCompile project(':tests:common')
             testCompile 'org.jboss.logging:jboss-logging:3.2.1.Final'

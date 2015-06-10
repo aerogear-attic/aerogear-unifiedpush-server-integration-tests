@@ -25,7 +25,6 @@ import org.jboss.aerogear.unifiedpush.api.Category;
 import org.jboss.aerogear.unifiedpush.api.Installation;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
 import org.jboss.aerogear.unifiedpush.api.Variant;
-import org.jboss.aerogear.unifiedpush.exception.PushSenderException;
 import org.jboss.aerogear.unifiedpush.exception.PushSenderHttpException;
 import org.jboss.aerogear.unifiedpush.message.MessageResponseCallback;
 import org.jboss.aerogear.unifiedpush.message.UnifiedMessage;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SenderRequest extends AbstractSessionRequest<SenderRequest> {
 

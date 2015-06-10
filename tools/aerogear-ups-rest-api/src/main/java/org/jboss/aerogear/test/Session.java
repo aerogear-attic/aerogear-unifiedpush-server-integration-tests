@@ -1,6 +1,5 @@
 package org.jboss.aerogear.test;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +36,7 @@ public class Session {
     }
 
     public Session(String baseUrl, AccessTokenResponse accessTokenResponse) {
-        this(UrlUtils.from(baseUrl), accessTokenResponse);
+        this(Utilities.Urls.from(baseUrl), accessTokenResponse);
     }
 
     // FIXME chaining with given() would be better
@@ -93,13 +92,4 @@ public class Session {
         return this;
     }
 
-    private static final class UrlUtils {
-        static final URL from(String url) throws IllegalArgumentException {
-            try {
-                return new URL(url);
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Unable to convert " + url + "to URL object");
-            }
-        }
-    }
 }
