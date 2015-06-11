@@ -218,8 +218,7 @@ spacelift {
         unifiedPushServerModel {
             product 'aerogear'
             version { project.unifiedPushModelVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/master.zip'
-            //remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.1.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.2.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
@@ -504,9 +503,9 @@ spacelift {
 
         upsFromSource {
             product 'aerogear'
-            version '1.1.0-beta.2-SNAPSHOT'
+            version '1.1.0-beta.2'
             isInstalled false
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/master.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.2.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
             postActions {
