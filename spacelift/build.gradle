@@ -47,7 +47,7 @@ ext {
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.1.0-beta.2-SNAPSHOT'
+    defaultUnifiedPushModelVersion = '1.1.0-beta.2'
     defaultUnifiedPushTestExtensionVersion = '1.1.0-beta.2-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
