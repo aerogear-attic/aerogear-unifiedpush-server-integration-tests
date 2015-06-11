@@ -167,7 +167,7 @@ class MavenInstallation extends BaseContainerizableObject<MavenInstallation> imp
         MavenTool() {
             super()
             List command = nativeCommand.resolve()
-            def quietParameters = System.getenv("TRAVIS") != null ? [ "B", "-q" ] : []
+            def quietParameters = System.getenv("TRAVIS") != null ? [ "-B", "-q" ] : []
             this.commandBuilder = new CommandBuilder(command as CharSequence[]).parameters(quietParameters)
             this.interaction = GradleSpaceliftDelegate.ECHO_OUTPUT
 
