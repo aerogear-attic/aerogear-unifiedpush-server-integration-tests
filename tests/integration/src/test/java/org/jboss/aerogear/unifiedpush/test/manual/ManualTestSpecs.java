@@ -87,4 +87,14 @@ public class ManualTestSpecs {
             assertion = "call to /sys/info/health REST endpoint returns appropriate status codes "
     )
     public void healthEndpointTest() {}
+
+    @Test
+    @TestSpec(
+    	    steps = "1. Register device to UPS" +
+    	            "2. Stop Mobile App or put in background" +
+    	            "3. Sends Push Notification to device" +
+    	            "4. Open Mobile App by tapping Push Notification",
+    	    assertion = "Metrics should show that the mobile application has been opened one time"
+    )
+    public void appOpenedDueToPushNotificationCounter() {}        
 }
