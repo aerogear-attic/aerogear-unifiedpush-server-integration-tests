@@ -32,6 +32,15 @@ Library made for easy access to UnifiedPush Server REST API. The code is located
 
 This module contains three submodules: `:common`, `:client` and `:server`. The `:server` module is a WAR which you can deploy along with the UnifiedPush Server and it will provide you with some REST endpoints used to automate UPS testing suite. The `:client` module can be used to access the REST endpoints of the `:server` using a Java API. And the `:common` is basically just code shared between the `:client` and `:server`.
 
+##### Standalone Client execution
+
+You can get a standalone application for client by running following code:
+
+`./gradlew --stacktrace :tools:test-extension:client:assemble`
+
+Then, you will find a distribution to be executed in _tools/test-extension/client/build/distributions_ folder. Extract any of the archives
+and look for _bin_ folder for the script to be executed on your platform.
+
 ##### Server endpoints
 
 * `GET /status`: Simply returns HTTP OK (200) response. It can be used to detect when the `:server` WAR file has been deployed into the container.
