@@ -58,6 +58,10 @@ subprojects {
             name 'Atlassian public releases'
             url 'https://m2proxy.atlassian.com/repository/public'
         }
+        maven {
+            name 'jitpack'
+            url 'https://jitpack.io'
+        }
     }
 }
 
@@ -130,6 +134,7 @@ project('tests') {
             compile 'org.arquillian.extension:arquillian-governor-jira:1.0.0.Alpha2'
             compile 'org.arquillian.extension:arquillian-governor-skipper:1.0.0.Alpha2'
             compile 'org.arquillian.extension:arquillian-recorder-reporter-impl:1.1.0.Alpha1'
+            compile project(":tools:proxy:model")
         }
     }
 
@@ -193,6 +198,37 @@ project('tools') {
             module {
                 scopes.PROVIDED.plus += [configurations.provided]
             }
+        }
+    }
+
+    project('proxy') {
+        project('model') {
+            dependencies {
+                compile 'com.google.code.gson:gson:2.3.1'
+            }
+        }
+
+        project('impl') {
+            apply plugin: 'application'
+
+            repositories {
+                mavenCentral()
+                maven {
+                    url 'https://jitpack.io'
+                }
+            }
+
+            dependencies {
+                compile project(':tools:proxy:model')
+                compile 'io.netty:netty-all:4.0.23.Final'
+                compile 'com.ganyo:gcm-server:1.0.2'
+                compile 'com.google.code.gson:gson:2.3.1'
+                compile 'io.airlift:airline:0.7'
+                compile 'com.github.smiklosovic:LittleProxy:1.1.0-beta-1-SNAPSHOT3'
+                compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'
+            }
+
+            mainClassName = 'org.jboss.aerogear.proxy.ProxyCLI'
         }
     }
 

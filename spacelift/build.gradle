@@ -19,6 +19,7 @@ import org.arquillian.spacelift.gradle.quickstart.ShootAndShareQuickstartHelper
 import org.arquillian.spacelift.gradle.text.ProcessTemplate
 import org.arquillian.spacelift.process.CommandBuilder
 import org.arquillian.spacelift.task.archive.UnzipTool
+import org.arquillian.spacelift.task.archive.UntarTool
 import org.jboss.aerogear.test.Session
 import org.jboss.aerogear.test.api.application.PushApplicationWorker
 import org.jboss.aerogear.test.api.auth.LoginRequest
@@ -160,7 +161,7 @@ spacelift {
 
                 }
 
-                _installations += ['unifiedPushServerModel', 'unifiedPushJavaClient', 'aerogearTestingTools', ups]
+                _installations += ['proxy', 'unifiedPushServerModel', 'unifiedPushJavaClient', 'aerogearTestingTools', ups]
                 def _tests = container != 'openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
@@ -211,6 +212,41 @@ spacelift {
                 // as a side effect, this call will also remove any existing project.unifiedpush.apnsCert file
                 project.ant.delete(dir: "${home.canonicalPath}")
                 return false
+            }
+        }
+
+        // apns & gcm proxy
+        proxy {
+            product 'proxy'
+            version 'unused'
+            isInstalled {
+                new File(project.rootDir, "tools/proxy/impl/build/distributions/impl/bin/impl").exists()
+            }
+            postActions {
+                project.tasks.create('compileProxy', GradleBuild) {
+                    buildFile = '../build.gradle'
+                    tasks = [
+                            ':tools:proxy:impl:assemble'
+                    ]
+                    startParameter.systemPropertiesArgs.put('spacelift.disable', 'true')
+                }.execute()
+
+                File proxyZip = new File(project.rootDir, "tools/proxy/impl/build/distributions/impl.zip")
+
+                println "unzipping"
+
+                Spacelift.task(proxyZip, UnzipTool)
+                        .toDir(proxyZip.parentFile)
+                        .execute().await()
+
+                println "after unzipping"
+            }
+            tools {
+                proxy {
+                    command {
+                        new CommandBuilder(new File(project.rootDir, "tools/proxy/impl/build/distributions/impl/bin/impl").absolutePath)
+                    }
+                }
             }
         }
 
