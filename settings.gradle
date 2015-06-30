@@ -9,6 +9,9 @@ include ':tools:test-extension'
 include ':tools:test-extension:common'
 include ':tools:test-extension:client'
 include ':tools:test-extension:server'
+include ':tools:proxy'
+include ':tools:proxy:model'
+include ':tools:proxy:impl'
 
 // Needed to disable spacelift submodule when building the rest-api for the buildscript
 if(!Boolean.getBoolean("spacelift.disable")) {
