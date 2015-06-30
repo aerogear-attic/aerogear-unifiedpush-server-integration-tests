@@ -1,13 +1,13 @@
+import org.arquillian.spacelift.execution.Execution
+
 import com.jayway.awaitility.Awaitility
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.response.Response
 import org.arquillian.spacelift.Spacelift
 import org.arquillian.spacelift.gradle.BaseContainerizableObject
-import org.arquillian.spacelift.gradle.DefaultTest
 import org.arquillian.spacelift.gradle.DeferredValue
 import org.arquillian.spacelift.gradle.Test
 import org.arquillian.spacelift.task.InvalidTaskException
-import org.gradle.StartParameter
 import org.gradle.api.tasks.GradleBuild
 import org.jboss.aerogear.test.container.manager.JBossManagerConfiguration
 import org.jboss.aerogear.test.container.spacelift.JBossCLI
@@ -19,7 +19,6 @@ import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> implements Test {
-
 
     /** From DefaultTest */
     DeferredValue<Void> execute = DeferredValue.of(Void.class)
@@ -81,6 +80,12 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
     DeferredValue<String> testModule = DeferredValue.of(String.class)
 
     DeferredValue<List<String>> protocols = DeferredValue.of(List.class).from(['http'])
+
+    // holders of APNS and GCM proxy executions
+
+    Execution gcmProxyExecution
+
+    Execution apnsProxyExecution
 
     LocalTestExecution(String testName, Object parent) {
         super(testName, parent)
@@ -144,13 +149,14 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
                 "-Dcustom.aerogear.apns.push.host=${bindAddress.resolve()}",
                 "-Dcustom.aerogear.apns.push.port=${apnsPushPort.resolve()}",
                 "-Dcustom.aerogear.apns.feedback.host=${bindAddress.resolve()}",
-                "-Dcustom.aerogear.apns.feedback.port=${apnsFeedbackPort.resolve()}",
-                "-Dcustom.aerogear.apns.keystore.path=${apnsKeystore.resolve().canonicalPath}",
-                "-Dcustom.aerogear.apns.keystore.password=${apnsKeystorePassword.resolve()}",
-                "-Dcustom.aerogear.apns.keystore.type=${apnsKeystoreType.resolve()}",
-                "-Dgcm.mock.certificate.path=${gcmCertificate.resolve().canonicalPath}",
-                "-Dgcm.mock.certificate.password=${gcmCertificateKey.resolve().canonicalPath}",
-                "-Dgcm.mock.server.port=${gcmPushPort.resolve()}"]
+                "-Dcustom.aerogear.apns.feedback.port=${apnsFeedbackPort.resolve()}"
+//                "-Dcustom.aerogear.apns.keystore.path=${apnsKeystore.resolve().canonicalPath}",
+//                "-Dcustom.aerogear.apns.keystore.password=${apnsKeystorePassword.resolve()}",
+//                "-Dcustom.aerogear.apns.keystore.type=${apnsKeystoreType.resolve()}",
+//                "-Dgcm.mock.certificate.path=${gcmCertificate.resolve().canonicalPath}",
+//                "-Dgcm.mock.certificate.password=${gcmCertificateKey.resolve().canonicalPath}",
+//                "-Dgcm.mock.server.port=${gcmPushPort.resolve()}"
+        ]
 
         if (ipVersion.resolve() == "IPv6") {
             javaOpts << "-Djava.net.preferIPv4Stack=false"
@@ -269,15 +275,32 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
                 return response.statusCode == 200
             }
         })
+
         println 'The unifiedpush-test-extension-server.war was successfully deployed.'
 
-        println 'Activating GCM and APNS proxy'
+        println 'Activating GCM proxy'
 
-        RestAssured.given()
-                .baseUri(baseUri)
-                .get('/proxy/activate')
-                .then().statusCode(200)
-        println 'Proxy activated'
+        gcmProxyExecution = Spacelift.task("proxy").parameter('gcmProxy')
+                .parameters("--gcmCertificate", gcmCertificate.resolve().getAbsolutePath())
+                .parameters("--gcmCertificateKey", gcmCertificateKey.resolve().getAbsolutePath())
+                .parameters("--gcmMockServerPort", gcmPushPort.resolve().toString())
+                .execute()
+
+        println 'GCM proxy activated'
+
+        println 'Activating APNS proxy'
+
+        apnsProxyExecution = Spacelift.task("proxy").parameter('apnsProxy')
+                .parameters("--apnsMockGatewayHost", bindAddress.resolve())
+                .parameters("--apnsMockGatewayPort", apnsPushPort.resolve().toString())
+                .parameters("--apnsMockFeedbackHost", bindAddress.resolve())
+                .parameters("--apnsMockFeedbackPort", apnsFeedbackPort.resolve().toString())
+                .parameters("--apnsKeystore", apnsKeystore.resolve().canonicalPath)
+                .parameters("--apnsKeystorePassword", apnsKeystorePassword.resolve())
+                .parameters("--apnsKeystoreType", apnsKeystoreType.resolve())
+                .execute()
+
+        println 'APNS proxy activated'
     }
 
     void runTestExecution(String protocol) {
@@ -302,6 +325,19 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
     }
 
     void shutdownContainer() {
+
+        if (apnsProxyExecution) {
+            println "Terminating APNS proxy execution"
+            apnsProxyExecution.terminate()
+        }
+
+        if (gcmProxyExecution) {
+            println "Terminating GCM proxy execution"
+            gcmProxyExecution.terminate()
+        }
+
+        println "Terminating container"
+
         Spacelift.task(jbossManager, JBossStopper).execute().await()
     }
 
