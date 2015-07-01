@@ -8,10 +8,15 @@ buildscript {
             name 'jboss-staging-repository-group'
             url 'https://repository.jboss.org/nexus/content/groups/staging'
         }
+        maven {
+            name 'gradle-plugins'
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:0.5.0.RELEASE"
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
+        classpath "eu.appsatori:gradle-fatjar-plugin:0.3"
     }
 }
 
@@ -209,7 +214,7 @@ project('tools') {
         }
 
         project('impl') {
-            apply plugin: 'application'
+            apply plugin: "eu.appsatori.fatjar"
 
             repositories {
                 mavenCentral()
@@ -228,7 +233,13 @@ project('tools') {
                 compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'
             }
 
-            mainClassName = 'org.jboss.aerogear.proxy.ProxyCLI'
+            fatJar {
+                manifest {
+                    attributes 'Main-Class': 'org.jboss.aerogear.proxy.ProxyCLI'
+                }
+
+                archiveName 'proxy.jar'
+            }
         }
     }
 
