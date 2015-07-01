@@ -125,6 +125,15 @@ spacelift {
                     windows: ['gradlew.bat', '--stacktrace']
             ])
         }
+        java {
+            command ([
+                    linux: "java",
+                    windows: "java.exe",
+                    mac: "java",
+                    solaris: "java"
+            ])
+        }
+
     }
 
     profiles {
@@ -218,31 +227,22 @@ spacelift {
             product 'proxy'
             version 'unused'
             isInstalled {
-                new File(project.rootDir, "tools/proxy/impl/build/distributions/impl/bin/impl").exists()
+                new File(project.rootDir, "tools/proxy/impl/build/libs/proxy.jar").exists()
             }
             postActions {
                 project.tasks.create('compileProxy', GradleBuild) {
                     buildFile = '../build.gradle'
                     tasks = [
-                            ':tools:proxy:impl:assemble'
+                            ':tools:proxy:impl:fatJar'
                     ]
                     startParameter.systemPropertiesArgs.put('spacelift.disable', 'true')
                 }.execute()
-
-                File proxyZip = new File(project.rootDir, "tools/proxy/impl/build/distributions/impl.zip")
-
-                println "unzipping"
-
-                Spacelift.task(proxyZip, UnzipTool)
-                        .toDir(proxyZip.parentFile)
-                        .execute().await()
-
-                println "after unzipping"
             }
             tools {
                 proxy {
                     command {
-                        new CommandBuilder(new File(project.rootDir, "tools/proxy/impl/build/distributions/impl/bin/impl").absolutePath)
+                        new CommandBuilder(java.getCommand().resolve())
+                                .parameters("-jar", new File(project.rootDir, "tools/proxy/impl/build/libs/proxy.jar").absolutePath)
                     }
                 }
             }
