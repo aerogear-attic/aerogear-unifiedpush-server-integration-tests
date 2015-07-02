@@ -126,9 +126,6 @@ public class ApnsServerSimulator {
         // https://github.com/netty/netty/issues/1952
         //
         // Funnily that appeared as somebody ported this library to use netty.
-        //
-        //
-        //
         ByteBuffer bb = ByteBuffer.allocate(6);
         bb.put((byte) 8);
         bb.put(status);
@@ -139,7 +136,6 @@ public class ApnsServerSimulator {
     }
 
     protected void onNotification(final ApnsNotification notification, final InputOutputSocket inputOutputSocket) throws IOException {
-        System.out.println(notification.toString());
         ApnsNotificationRegister.addNotification(notification);
     }
 
@@ -253,7 +249,7 @@ public class ApnsServerSimulator {
             byte priority = get(map, ApnsInputStream.Item.ID_PRIORITY).getByte();
 
             final ApnsNotification notification = new ApnsNotification(2, identifier, expiry,
-                Encoders.encodeHex(deviceToken), Encoders.encodeHex(payload), priority);
+                Encoders.encodeHex(deviceToken).toLowerCase(), Encoders.encodeHex(payload), priority);
 
             logger.info(String.format("Read framed notification %s", notification));
 
@@ -277,7 +273,10 @@ public class ApnsServerSimulator {
             int expiry = inputStream.readInt();
             final byte[] deviceToken = inputStream.readBlob();
             final byte[] payload = inputStream.readBlob();
-            final ApnsNotification notification = new ApnsNotification(1, identifier, expiry, Encoders.encodeHex(deviceToken), Encoders.encodeHex(payload));
+
+            logger.info(new String(payload));
+
+            final ApnsNotification notification = new ApnsNotification(1, identifier, expiry, Encoders.encodeHex(deviceToken).toLowerCase(), new String(payload));
             logger.info(String.format("Read enhanced notification %s", notification));
 
             resolveBadToken(deviceToken);
@@ -290,7 +289,7 @@ public class ApnsServerSimulator {
 
             final byte[] deviceToken = inputStream.readBlob();
             final byte[] payload = inputStream.readBlob();
-            final ApnsNotification notification = new ApnsNotification(0, Encoders.encodeHex(deviceToken), Encoders.encodeHex(payload));
+            final ApnsNotification notification = new ApnsNotification(0, Encoders.encodeHex(deviceToken).toLowerCase(), Encoders.encodeHex(payload));
             logger.info(String.format("Read legacy notification %s", notification));
 
             resolveBadToken(deviceToken);

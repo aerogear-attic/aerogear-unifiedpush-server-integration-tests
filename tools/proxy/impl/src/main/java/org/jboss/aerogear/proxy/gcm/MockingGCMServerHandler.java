@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
@@ -34,6 +35,8 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class MockingGCMServerHandler extends SimpleChannelInboundHandler<Object> {
+
+    private static final Logger logger = Logger.getLogger(MockingGCMServerHandler.class.getName());
 
     private HttpRequest request;
 
@@ -79,13 +82,13 @@ public class MockingGCMServerHandler extends SimpleChannelInboundHandler<Object>
                     try {
                         GCMNotification notification = mapper.readValue(requestContentBuffer.toString(), GCMNotification.class);
 
-                        System.out.println(notification.toString());
+                        logger.info("PROXY RECEIVED NOTIFICATION " + notification.toString());
                         GCMNotificationRegister.addNotification(notification);
 
                         requestContentBuffer.delete(0, requestContentBuffer.length());
 
                         try {
-                            buf.append(mapper.writeValueAsString(this.createResponse(notification.getRegistrationIds())));
+                            buf.append(mapper.writeValueAsString(this.createResponse(notification.getDeviceTokens())));
                         } catch (JsonProcessingException e) {
                             e.printStackTrace();
                         }

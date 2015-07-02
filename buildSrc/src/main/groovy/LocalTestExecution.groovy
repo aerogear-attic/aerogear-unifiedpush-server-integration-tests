@@ -75,6 +75,10 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
 
     DeferredValue<File> gcmCertificateKey = DeferredValue.of(File.class)
 
+    DeferredValue<Integer> gcmNotificationEndpointPort = DeferredValue.of(Integer.class).from(17000)
+
+    DeferredValue<Integer> apnsNotificationEndpointPort = DeferredValue.of(Integer.class).from(17001)
+
     DeferredValue<Integer> httpProxyPort = DeferredValue.of(Integer.class).from(16000)
 
     DeferredValue<String> testModule = DeferredValue.of(String.class)
@@ -284,6 +288,7 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
                 .parameters("--gcmCertificate", gcmCertificate.resolve().getAbsolutePath())
                 .parameters("--gcmCertificateKey", gcmCertificateKey.resolve().getAbsolutePath())
                 .parameters("--gcmMockServerPort", gcmPushPort.resolve().toString())
+                .parameters("--notificationEndpointPort", gcmNotificationEndpointPort.resolve().toString())
                 .execute()
 
         println 'GCM proxy activated'
@@ -298,6 +303,7 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
                 .parameters("--apnsKeystore", apnsKeystore.resolve().canonicalPath)
                 .parameters("--apnsKeystorePassword", apnsKeystorePassword.resolve())
                 .parameters("--apnsKeystoreType", apnsKeystoreType.resolve())
+                .parameters("--notificationEndpointPort", apnsNotificationEndpointPort.resolve().toString())
                 .execute()
 
         println 'APNS proxy activated'
@@ -318,7 +324,9 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
                     keystorePass: keystorePassword.resolve(),
                     truststore: truststore.resolve().canonicalPath,
                     truststorePass: truststorePassword.resolve(),
-                    ignoreTestFailures: 'true'
+                    ignoreTestFailures: 'true',
+                    apnsNotificationEndpointPort: apnsNotificationEndpointPort.resolve().toString(),
+                    gcmNotificationEndpointPort: gcmNotificationEndpointPort.resolve().toString()
             ])
             startParameter.systemPropertiesArgs.put('spacelift.disable', 'true')
         }.execute()

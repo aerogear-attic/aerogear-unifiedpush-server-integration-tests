@@ -18,16 +18,20 @@ package org.jboss.aerogear.unifiedpush.test;
 
 import com.jayway.awaitility.Duration;
 
+import org.hamcrest.CoreMatchers;
 import org.jboss.aerogear.arquillian.junit.ArquillianRule;
 import org.jboss.aerogear.arquillian.junit.ArquillianRules;
+import org.jboss.aerogear.proxy.endpoint.model.NotificationRegisterResponse;
 import org.jboss.aerogear.test.api.application.PushApplicationWorker;
 import org.jboss.aerogear.test.api.extension.CleanupRequest;
 import org.jboss.aerogear.test.api.extension.JavaSenderTestRequest;
+import org.jboss.aerogear.test.api.extension.NotificationRegisterResponseRequest;
 import org.jboss.aerogear.test.api.extension.SenderStatisticsRequest;
 import org.jboss.aerogear.test.api.installation.android.AndroidInstallationWorker;
 import org.jboss.aerogear.test.api.variant.android.AndroidVariantWorker;
 import org.jboss.aerogear.unifiedpush.api.AndroidVariant;
 import org.jboss.aerogear.unifiedpush.api.PushApplication;
+import org.jboss.aerogear.unifiedpush.test.util.CheckingExpectedException;
 import org.jboss.aerogear.unifiedpush.test.util.Deployments;
 import org.jboss.aerogear.unifiedpush.test.util.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.test.util.TestUtils;
@@ -37,6 +41,8 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,6 +50,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(ArquillianRules.class)
+@Ignore
 public class JavaSenderKeyStoreSharingTest {
 
     @ArquillianRule
@@ -60,6 +67,20 @@ public class JavaSenderKeyStoreSharingTest {
             ups.with(AndroidInstallationWorker.worker(), variant).generate().persist();
 
             return this;
+        }
+    };
+
+    @Rule
+    public CheckingExpectedException exception = new CheckingExpectedException() {
+
+        @Override
+        protected void afterExceptionAssert() {
+            NotificationRegisterResponseRequest.request().clear();
+
+            NotificationRegisterResponse afterClearResponse = NotificationRegisterResponseRequest.request().get();
+
+            assertThat(afterClearResponse.getGcmNotifications().size(), CoreMatchers.is(0));
+            assertThat(afterClearResponse.getApnsNotifications().size(), CoreMatchers.is(0));
         }
     };
 
@@ -103,15 +124,13 @@ public class JavaSenderKeyStoreSharingTest {
     @Test
     public void javaSenderSharesKeystoreWithPushApplicationOnSameJvm() throws InterruptedException {
         String appId = getPushApp().getPushApplicationID();
-        // send message
-        String response = ups.with(JavaSenderTestRequest.request())
-                .sendTestMessage(getPushApp(), ups.unifiedPushUrl, "Hello world!");
+
+        String response = ups.with(JavaSenderTestRequest.request()).sendTestMessage(getPushApp(), ups.unifiedPushUrl, "Hello world!");
 
         assertThat(response, is("Message sent!"));
 
         // check that the message was sent - just one message was sent
-        ups.with(SenderStatisticsRequest.request())
-                .awaitGetAndClear(1, Duration.FIVE_SECONDS);
+        ups.with(SenderStatisticsRequest.request()).awaitGetAndClear(1, Duration.FIVE_SECONDS);
     }
 
 }

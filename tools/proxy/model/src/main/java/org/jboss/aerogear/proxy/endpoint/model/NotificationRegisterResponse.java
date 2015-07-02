@@ -1,5 +1,6 @@
 package org.jboss.aerogear.proxy.endpoint.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -10,9 +11,9 @@ import com.google.gson.Gson;
  */
 public class NotificationRegisterResponse {
 
-    private List<ApnsNotification> apnsNotifications;
+    private List<ApnsNotification> apnsNotifications = new ArrayList<ApnsNotification>();
 
-    private List<GCMNotification> gcmNotifications;
+    private List<GCMNotification> gcmNotifications = new ArrayList<GCMNotification>();
 
     public List<ApnsNotification> getApnsNotifications() {
         return apnsNotifications;

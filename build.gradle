@@ -281,6 +281,7 @@ project('tools') {
             dependencies {
                 compile project(':tools:test-extension:common')
                 compile project(':tools:aerogear-ups-rest-api')
+                compile project(':tools:proxy:model')
                 compile 'io.airlift:airline:0.7'
                 compile 'org.arquillian.spacelift:arquillian-spacelift:1.0.0.Alpha7'
                 compile 'commons-io:commons-io:2.4'

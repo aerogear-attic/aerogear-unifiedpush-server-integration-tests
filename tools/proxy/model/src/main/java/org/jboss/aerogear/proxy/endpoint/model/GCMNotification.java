@@ -49,7 +49,7 @@ public class GCMNotification {
         this.timeToLive = timeToLive;
     }
 
-    public List<String> getRegistrationIds() {
+    public List<String> getDeviceTokens() {
         return registrationIds;
     }
 

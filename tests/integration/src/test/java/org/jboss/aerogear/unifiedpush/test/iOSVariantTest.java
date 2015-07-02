@@ -30,7 +30,6 @@ import org.jboss.aerogear.unifiedpush.api.iOSVariant;
 import org.jboss.aerogear.unifiedpush.test.util.Deployments;
 import org.jboss.aerogear.unifiedpush.test.util.UnifiedPushServer;
 import org.jboss.aerogear.unifiedpush.test.util.CheckingExpectedException;
-import org.jboss.aerogear.unifiedpush.test.util.Constants;
 import org.jboss.aerogear.unifiedpush.test.util.ContentTypes;
 import org.jboss.aerogear.unifiedpush.test.util.TestUtils;
 import org.jboss.arquillian.container.test.api.Deployment;
