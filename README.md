@@ -4,6 +4,22 @@ This project contains the integration tests and functional tests for the [Aeroge
 
 ## Running the tests
 
+### Requirements
+
+The only requirement is that you have a running mysql instance with a `unifiedpush` and `keycloak` databases. The exact way to setup the database is described in [UnifiedPush Server User Guide](https://aerogear.org/docs/unifiedpush/ups_userguide/index/).
+
+You can use docker to run unifiedpush server database:
+
+`docker run --name unifiedpush -p 3306:3306 -e MYSQL_ROOT_PASSWORD=supersecret -d mysql`
+
+Note, on Mac OS X, you'll need to use `boot2docker ip` to get address of the database, for instance
+
+`mysql -e 'create database unifiedpush default character set = "UTF8" default collate = "utf8_general_ci";'  -h$(boot2docker ip) -P3306 -uroot -psupersecret`
+
+Then, you should follow steps from the guide to setup mysql database.
+
+### Execution
+
 We switched to gradle for running our test suite. To run the test suite now, you just run the following from your commandline:
 
 `./gradlew :spacelift:test -Pprofile={selected profile}`
@@ -14,7 +30,7 @@ The easiest way to get the tests running is the following command:
 
 `./gradlew --stacktrace :spacelift:test -Pwildfly8UpsFromSource -Pdatasource=mysql -PrunMigrator=false`
 
-The only requirement is that you have a running mysql instance with a `unifiedpush` and `keycloak` databases. The exact way to setup the database is described in the UnifiedPush Server help.
+In case you've used docker, you need to pass ` -PdbJdbc_url='jdbc:mysql://$(boot2docker ip):3306/unifiedpush?useUnicode=true&characterEncoding=UTF-8'` to the tests as well.
 
 To learn more go to [https://github.com/arquillian/arquillian-spacelift-gradle-plugin](https://github.com/arquillian/arquillian-spacelift-gradle-plugin).
 
