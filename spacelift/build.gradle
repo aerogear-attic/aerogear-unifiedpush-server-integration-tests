@@ -619,9 +619,13 @@ spacelift {
                 final agpushMigratorJarCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-migrator:${project.unifiedPushModelVersion}"
 
                 ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
-                        .withRemoteRepo(MavenRemoteRepositories
-                        .createRemoteRepository('remote_ups', project.unifiedPushModelRepository, 'default'))
                         .withMavenCentralRepo(false)
+
+                if(project.unifiedPushModelRepository) {
+                    resolver.withRemoteRepo(
+                        MavenRemoteRepositories.createRemoteRepository('remote_ups', project.unifiedPushModelRepository, 'default')
+                    )
+                }
 
                 // copy files to directory where files to be deployed are stored
                 Files.copy(
