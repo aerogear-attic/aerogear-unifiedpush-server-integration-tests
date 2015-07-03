@@ -60,8 +60,6 @@ ext {
     defaultProtocols = ['http']
     defaultBrowser = 'firefox'
 
-    defaultExternalMavenParameters = "excludedGroups=category.AdminUI,category.Performance"
-
     // Hello World quickstart related
     defaultGoogleProjectNumber = ''
     defaultGoogleKey = ''
@@ -834,6 +832,7 @@ spacelift {
                         .ignoreTestFailures()
                         .goals('clean', 'test')
 
+                // FIXME
                 for (prop in project.externalMavenParameters.split()) {
                     maven.property(prop)
                 }
@@ -861,7 +860,6 @@ spacelift {
             gcmCertificateKey { project.unifiedpush.gcmKey }
 
             testModule { ':tests:integration' }
-            externalGradleParameters { project.externalMavenParameters }
             protocols { project.protocols }
         }
 

@@ -80,8 +80,6 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
 
     DeferredValue<String> testModule = DeferredValue.of(String.class)
 
-    DeferredValue<String> externalGradleParameters = DeferredValue.of(String.class)
-
     DeferredValue<List<String>> protocols = DeferredValue.of(List.class).from(['http'])
 
     LocalTestExecution(String testName, Object parent) {
@@ -125,7 +123,6 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
         gcmCertificateKey = other.@gcmCertificateKey.copy()
         httpProxyPort = other.@httpProxyPort.copy()
         testModule = other.@testModule.copy()
-        externalGradleParameters = other.@externalGradleParameters.copy()
         protocols = other.@protocols.copy()
     }
 
@@ -287,17 +284,7 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
         def port = protocol == 'https' ? 8443 : 8080
         def baseUri = "${protocol}://${localDomain.resolve()}:$port"
 
-        println "Using external maven parameters: ${externalGradleParameters.resolve()}"
         println "Using base uri: $baseUri"
-
-        /*def testProject = project.project(testModule.resolve())
-
-        testProject.ext.containerUri = baseUri
-        testProject.ext.keystore = keystore.resolve().canonicalPath
-        testProject.ext.keystorePass = keystorePassword.resolve()
-        testProject.ext.truststore = truststore.resolve().canonicalPath
-        testProject.ext.truststorePass = truststorePassword.resolve()
-        testProject.ext.ignoreTestFailures=true*/
 
         project.tasks.create("runTestsForTestModule", GradleBuild) {
             tasks = ["${testModule.resolve()}:clean".toString(), "${testModule.resolve()}:test".toString()]
@@ -312,27 +299,6 @@ class LocalTestExecution extends BaseContainerizableObject<LocalTestExecution> i
             ])
             startParameter.systemPropertiesArgs.put('spacelift.disable', 'true')
         }.execute()
-
-/*
-        // run tests
-        def integrationTests = Spacelift.task('gradlew')
-                .parameter(cleanTask.resolve())
-                .parameter(testTask.resolve())
-                .parameter("-PcontainerUri=$baseUri")
-        // we need to propage keystore/truststore setup so test can confirm
-        // authenticity of locally runing server
-                .parameter("-Pkeystore=${keystore.resolve().canonicalPath}")
-                .parameter("-PkeystorePass=${keystorePassword.resolve()}")
-                .parameter("-Ptruststore=${truststore.resolve().canonicalPath}")
-                .parameter("-PtruststorePass=${truststorePassword.resolve()}")
-                .parameter("-PignoreTestFailures=true")
-*/
-
-        //externalGradleParameters.resolve().split().each {
-          //  integrationTests.parameter("-P$it")
-        //}
-
-        //integrationTests.execute().await()
     }
 
     void shutdownContainer() {
