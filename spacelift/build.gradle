@@ -94,7 +94,7 @@ ext {
             binariesDir: new File(project.rootDir, 'spacelift/upsBin'),
             datasource : project.hasProperty('datasource') ? project.datasource : null,
             db         : [
-                    jdbc_url: project.hasProperty('dbJdbc_url') ? project.dbJbdc_url : 'jdbc:mysql://localhost:3306/unifiedpush?useUnicode=true&characterEncoding=UTF-8',
+                    jdbc_url: project.hasProperty('dbJdbc_url') ? project.dbJdbc_url : 'jdbc:mysql://localhost:3306/unifiedpush?useUnicode=true&characterEncoding=UTF-8',
                     username: project.hasProperty('dbUsername') ? project.dbUsername : 'unifiedpush',
                     password: project.hasProperty('dbPassword') ? project.dbPassword : 'unifiedpush',
                     driver  : project.hasProperty('dbDriver') ? project.dbDriver : 'com.mysql.jdbc.Driver'
