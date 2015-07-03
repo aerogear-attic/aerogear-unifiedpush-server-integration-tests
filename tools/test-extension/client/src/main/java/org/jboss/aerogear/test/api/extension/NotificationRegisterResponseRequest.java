@@ -63,8 +63,6 @@ public class NotificationRegisterResponseRequest {
 
         NotificationRegisterResponse gcmNotificationRegisterResponse = new Gson().fromJson(gcmProxyResponse.getBody().asString(), NotificationRegisterResponse.class);
 
-        logger.info("GOT FROM GCM PROXY AS GET RESPONSE:" + gcmNotificationRegisterResponse.toString());
-
         // apns request
 
         Response apnsProxyResponse = RestAssured.given()
@@ -76,8 +74,6 @@ public class NotificationRegisterResponseRequest {
         UnexpectedResponseException.verifyResponse(apnsProxyResponse, HttpStatus.SC_OK);
 
         NotificationRegisterResponse apnsNotificationRegisterResponse = new Gson().fromJson(apnsProxyResponse.getBody().asString(), NotificationRegisterResponse.class);
-
-        logger.info("GOT FROM APNS PROXY AS GET RESPONSE:" + apnsNotificationRegisterResponse.toString());
 
         return NotificationRegisterResponseHelper.merge(gcmNotificationRegisterResponse, apnsNotificationRegisterResponse);
     }
@@ -91,16 +87,12 @@ public class NotificationRegisterResponseRequest {
             .header(Utilities.Headers.acceptJson())
             .get("/clear");
 
-        logger.info("CLEARING FOR GCM");
-
         // clearing APNS
         Response apnsProxyResponse = RestAssured.given()
             .baseUri("http://127.0.0.1:" + apnsNotificationEndpointPort)
             .contentType(Utilities.ContentTypes.json())
             .header(Utilities.Headers.acceptJson())
             .get("/clear");
-
-        logger.info("CLEARING FOR APNS");
 
         UnexpectedResponseException.verifyResponse(gcmProxyResponse, HttpStatus.SC_OK);
         UnexpectedResponseException.verifyResponse(apnsProxyResponse, HttpStatus.SC_OK);
@@ -115,14 +107,9 @@ public class NotificationRegisterResponseRequest {
                 @Override
                 public Boolean call() throws Exception {
 
-                    //SenderStatistics statistics = get();
-                    //found.set(statistics.deviceTokens != null ? statistics.deviceTokens.size() : 0);
-
                     NotificationRegisterResponse response = get();
 
                     int foundDevices = NotificationRegisterResponseHelper.getDeviceTokens(response).size();
-
-                    logger.info("setting into AtomicInteger found: " + foundDevices);
 
                     found.set(foundDevices);
 
@@ -143,9 +130,6 @@ public class NotificationRegisterResponseRequest {
     }
 
     public NotificationRegisterResponse awaitGetAndClear(int expectedTokenCount, Duration timeout) {
-
-        logger.info("expected token count " + expectedTokenCount);
-
         await(expectedTokenCount, timeout);
 
         return getAndClear();
