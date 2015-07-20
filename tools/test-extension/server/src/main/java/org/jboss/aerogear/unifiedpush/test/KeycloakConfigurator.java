@@ -79,11 +79,10 @@ public class KeycloakConfigurator {
                 LOGGER.log(Level.INFO, "Editing user: {0}", user.getUsername());
                 result.getFoundUsers().add(user.getUsername());
                 for (UserRequiredActionEntity userRequiredAction : user.getRequiredActions()) {
-                    LOGGER.log(Level.INFO, "Removing required action: {0}", userRequiredAction.getAction().name());
+                    LOGGER.log(Level.INFO, "Removing required action: {0}", userRequiredAction.getAction());
                     String current = result.getRemovedRequiredActions().get(user.getUsername());
                     result.getRemovedRequiredActions().put(user.getUsername(),
-                        (current == null || current.equals("null") ? "" : current + ", ") + userRequiredAction.getAction
-                            ().name() + ", ");
+                        (current == null || current.equals("null") ? "" : current + ", ") + userRequiredAction.getAction() + ", ");
                     entityManager.remove(userRequiredAction);
                 }
                 user.getRequiredActions().clear();

@@ -48,8 +48,8 @@ ext {
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.1.0-beta.2'
-    defaultUnifiedPushTestExtensionVersion = '1.1.0-beta.2-SNAPSHOT'
+    defaultUnifiedPushModelVersion = '1.1.0-beta.3'
+    defaultUnifiedPushTestExtensionVersion = '1.1.0-beta.3-SNAPSHOT'
     defaultIpVersion = 'IPv4'
 
 
@@ -252,7 +252,7 @@ spacelift {
         unifiedPushServerModel {
             product 'aerogear'
             version { project.unifiedPushModelVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.2.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.3.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
@@ -310,7 +310,7 @@ spacelift {
 
         unifiedPushJavaClient {
             product 'aerogear'
-            version '1.1.0-beta.2-SNAPSHOT'
+            version '1.1.0-beta.3-SNAPSHOT'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-java-client/archive/master.zip'
             home 'aerogear-unifiedpush-java-client'
             fileName 'aerogear-unifiedpush-java-client.zip'
@@ -537,9 +537,9 @@ spacelift {
 
         upsFromSource {
             product 'aerogear'
-            version '1.1.0-beta.2'
+            version '1.1.0-beta.3'
             isInstalled false
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.2.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.3.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
             postActions {
@@ -582,7 +582,7 @@ spacelift {
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.1.0-beta.2'
+            version '1.1.0-beta.3'
             isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
@@ -633,7 +633,7 @@ spacelift {
          */
         upsProvided {
             product 'aerogear'
-            version '1.1.0-beta.2'
+            version '1.1.0-beta.3'
             preconditions {
                 if (!project.unifiedPushServerWar) {
                     throw new IllegalStateException("You must specify path to ag-push.war via unifiedPushServerWar property")
