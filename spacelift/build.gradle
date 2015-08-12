@@ -48,8 +48,8 @@ ext {
     defaultOpenShiftRecreate = 'true'
 
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.1.0-beta.3'
-    defaultUnifiedPushTestExtensionVersion = '1.1.0-beta.3-SNAPSHOT'
+    defaultUnifiedPushModelVersion = '1.1.0.Final'
+    defaultUnifiedPushTestExtensionVersion = '1.1.0.Final'
     defaultIpVersion = 'IPv4'
 
 
@@ -310,7 +310,7 @@ spacelift {
 
         unifiedPushJavaClient {
             product 'aerogear'
-            version '1.1.0-beta.3-SNAPSHOT'
+            version '1.1.0-beta.1'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-java-client/archive/master.zip'
             home 'aerogear-unifiedpush-java-client'
             fileName 'aerogear-unifiedpush-java-client.zip'
@@ -582,7 +582,7 @@ spacelift {
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.1.0-beta.3'
+            version '1.1.0.Final'
             isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
