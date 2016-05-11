@@ -36,43 +36,19 @@ import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositorie
 apply plugin: 'org.arquillian.spacelift'
 
 ext {
-    defaultOpenShiftAppName = 'upsintegrationtests'
-    defaultOpenShiftAppNameAdminUI = 'upsadminui'
-    defaultOpenShiftAppNameQuickstarts = 'quickstarts'
-    defaultOpenShiftNamespace = 'mobileqa'
-    defaultOpenShiftGearSize = 'medium'
-    defaultOpenShiftUsername = ''
-    defaultOpenShiftPassword = ''
-    defaultOpenShiftAppDirectory = 'unified-push'
-    defaultOpenShiftCartridge = 'https://raw.githubusercontent.com/jboss-mobile/jboss-unified-push-openshift-cartridge/master/metadata/manifest.yml'
-    defaultOpenShiftRecreate = 'true'
-
     defaultUnifiedPushModelRepository = null
-    defaultUnifiedPushModelVersion = '1.1.0.Final'
+    defaultUnifiedPushModelVersion = '1.1.3.Final'
     defaultUnifiedPushTestExtensionVersion = '1.1.0.Final'
     defaultIpVersion = 'IPv4'
 
 
     defaultUnifiedPushMavenRepository = 'https://repository.jboss.org/nexus/content/groups/staging'
 
-    defaultEap6Version = '6.3.3'
+    defaultEap6Version = '6.4.4'
     defaultEap6RemoteUrl = ''
 
     defaultProtocols = ['http']
     defaultBrowser = 'firefox'
-
-    // Hello World quickstart related
-    defaultGoogleProjectNumber = ''
-    defaultGoogleKey = ''
-    defaultQuickstartPushApplicationId = ''
-    defaultQuickstartPushApplicationMasterSecret = ''
-
-    // Shoot&Share quickstart related
-    defaultShootAndShareGoogleClientId = ''
-    defaultShootAndShareFacebookClientId = ''
-    defaultShootAndShareFacebookClientSecret = ''
-    defaultFacebookEmail = ''
-    defaultFacebookPassword = ''
 
     // FIXME these object are used to persist states in between installations as we don't have better model
     // container related configuration
@@ -140,21 +116,14 @@ spacelift {
 
         // dynamically create profiles for combination of container type and ups source
         // containers
-        ['wildfly8', 'eap6', 'any', 'openshift'].each { String container ->
+        ['wildfly8', 'eap6', 'any'].each { String container ->
             // ups installations
-            ['upsProvided', 'upsFromSource', 'upsFromMavenRepository', 'upsFromCart'].each { String ups ->
+            ['upsProvided', 'upsFromSource', 'upsFromMavenRepository'].each { String ups ->
 
                 def profileName = "${container}${ups.capitalize()}"
 
-                // openshift is valid only from cart
-                if ((container == 'openshift' && ups != 'upsFromCart') || (container != 'openshift' && ups == 'upsFromCart')) {
-                    return true;
-                }
                 // order installations, container must be installed prior ups and aerogearTestingTools as latest
-                def _installations = ['keystore', 'maven']
-                if (container != 'openshift') {
-                    _installations << "${container}Container"
-                }
+                def _installations = ['keystore', 'maven', "${container}Container"]
 
                 // add datasource installation
                 switch (project.unifiedpush.datasource) {
@@ -169,7 +138,7 @@ spacelift {
                 }
 
                 _installations += ['proxy', 'unifiedPushServerModel', 'unifiedPushJavaClient', 'aerogearTestingTools', ups]
-                def _tests = container != 'openshift' ? ['localIntegrationTests'] : ['openshiftIntegrationTests']
+                def _tests = ['localIntegrationTests']
 
                 // dynamically create profile with name e.g. wildfly8UpsProvided
                 create(profileName, [:], DeferredValue.of(Void.class).ownedBy(this).from {
@@ -187,11 +156,6 @@ spacelift {
         shootAndShareCordovaQuickstart {
             enabledInstallations 'maven', 'shootAndShareAndroidSdk', 'gradle112', 'shootAndShareCordovaQuickstart'
             tests 'shootAndShareCordovaQuickstart'
-        }
-
-        adminUIOpenshift {
-            enabledInstallations 'keystore', 'maven', 'unifiedPushServerModel', 'aerogearTestingTools', 'unifiedPushServerAdminUI', 'arquillianDesktopVideoRecorder'
-            tests 'openshiftAdminUITests'
         }
     }
 
@@ -252,7 +216,7 @@ spacelift {
         unifiedPushServerModel {
             product 'aerogear'
             version { project.unifiedPushModelVersion }
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.3.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.3.Final.zip'
             home 'aerogear-unifiedpush-server-pre-release'
             extractMapper { toDir(home).cutdirs() }
             // trigger installation only if model is not already in the repository
@@ -310,7 +274,7 @@ spacelift {
 
         unifiedPushJavaClient {
             product 'aerogear'
-            version '1.1.0-beta.1'
+            version '1.1.0.Final'
             remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-java-client/archive/master.zip'
             home 'aerogear-unifiedpush-java-client'
             fileName 'aerogear-unifiedpush-java-client.zip'
@@ -504,42 +468,11 @@ spacelift {
             }
         }
 
-        unifiedPushServerOpenshiftWithoutProxy(from: UPSOpenShiftInstallation) {
-            openShiftUsername { project.openShiftUsername }
-            openShiftPassword { project.openShiftPassword }
-            openShiftRepository { File.createTempDir() }
-            openShiftCartridges { [project.openShiftCartridge] }
-            openShiftAppDirectory { project.openShiftAppDirectory }
-            openShiftGearSize { project.openShiftGearSize }
-            openShiftNamespace { project.openShiftNamespace }
-
-            unifiedPushTestExtensionVersion { project.unifiedPushTestExtensionVersion }
-            aerogearGcmMockCertificate {
-                new File(aerogearTestingTools.home, 'test-extension/sslcert/gcm_mock.crt')
-            }
-            aerogearGcmMockKey { new File(aerogearTestingTools.home, 'test-extension/sslcert/gcm_mock.key') }
-            isInstalled {
-                project.openShiftRecreate == 'false'
-            }
-        }
-
-        upsFromCart(inherits: unifiedPushServerOpenshiftWithoutProxy) {
-            turnProxyOn { true }
-        }
-
-        unifiedPushServerQuickstarts(inherits: unifiedPushServerOpenshiftWithoutProxy) {
-            openShiftAppName { project.openShiftAppNameQuickstarts }
-        }
-
-        unifiedPushServerAdminUI(inherits: unifiedPushServerOpenshiftWithoutProxy) {
-            openShiftAppName { project.openShiftAppNameAdminUI }
-        }
-
         upsFromSource {
             product 'aerogear'
-            version '1.1.0-beta.3'
+            version '1.1.3.Final'
             isInstalled false
-            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.0-beta.3.zip'
+            remoteUrl 'https://github.com/aerogear/aerogear-unifiedpush-server/archive/1.1.3.Final.zip'
             home 'aerogear-unifiedpush-server'
             extractMapper { toDir(home).cutdirs() }
             postActions {
@@ -582,7 +515,7 @@ spacelift {
 
         upsFromMavenRepository {
             product 'aerogear'
-            version '1.1.0.Final'
+            version '1.1.3.Final'
             isInstalled { false }
             postActions {
                 final authServerCanonicalCoordinate = "org.jboss.aerogear.unifiedpush:unifiedpush-auth-server:war:${version}"
@@ -633,7 +566,7 @@ spacelift {
          */
         upsProvided {
             product 'aerogear'
-            version '1.1.0-beta.3'
+            version '1.1.3.Final'
             preconditions {
                 if (!project.unifiedPushServerWar) {
                     throw new IllegalStateException("You must specify path to ag-push.war via unifiedPushServerWar property")
@@ -690,136 +623,6 @@ spacelift {
             }
         }
 
-        /* installations related to Cordova Quickstarts testing */
-        androidSdk(from: AndroidSdkInstallation) {
-            product 'androidSdk'
-            version '23'
-            updateImages { false }
-            createAvds { false }
-            androidTargets([[name: 'android-19']])
-        }
-
-        shootAndShareAndroidSdk(inherits: androidSdk) {
-            buildTools { ["19.0.0"] } // this version is specifically needed when building Shoot&Share quickstart
-        }
-
-        helloWorldCordovaQuickstart {
-            product 'aerogear'
-            version '1.0.1'
-            home "aerogear-push-helloworld-${version}"
-            remoteUrl "https://github.com/jboss-mobile/unified-push-helloworld/archive/${version}.zip"
-            isInstalled { false }
-            extractMapper {
-                toDir(home).cutdirs()
-            }
-            postActions {
-
-                // I almost always forget these ...
-                if (!project.googleProjectNumber || project.googleProjectNumber.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified googleProjectNumber!")
-                }
-
-                if (!project.googleKey || project.googleKey.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified googlekey!")
-                }
-
-                def authUrl = "https://${project.openShiftAppNameQuickstarts}-${project.openShiftNamespace}.rhcloud.com/auth"
-                def pushUrl = "https://${project.openShiftAppNameQuickstarts}-${project.openShiftNamespace}.rhcloud.com/ag-push"
-                def cordovaDir = "${home}/cordova"
-                def pushConfigFile = new File("${cordovaDir}/www/push-config.json")
-
-                Session session = LoginRequest.request()
-                        .username("admin")
-                        .password("123")
-                        .setAuthServerUrl(new URL(authUrl))
-                        .setUnifiedPushServerUrl(new URL(pushUrl))
-                        .login()
-
-                PushApplication pushApplication = PushApplicationWorker.worker()
-                        .createContext(session, null)
-                        .generate()
-                        .persist()
-                        .detachEntity()
-
-                project.quickstartPushApplicationId = pushApplication.getPushApplicationID()
-                project.quickstartPushApplicationMasterSecret = pushApplication.getMasterSecret()
-
-                AndroidVariant variant = AndroidVariantWorker.worker()
-                        .createContext(session, pushApplication)
-                        .generate()
-                        .projectNumber(project.googleProjectNumber)
-                        .googleKey(project.googleKey)
-                        .persist()
-                        .detachEntity()
-
-                def jsonConfig = JsonOutput.toJson(
-                        [
-                                pushServerURL: pushUrl,
-                                android      :
-                                        [
-                                                senderID     : project.googleProjectNumber,
-                                                variantID    : variant.getVariantID(),
-                                                variantSecret: variant.getSecret()
-                                        ]
-                        ]
-                )
-
-                pushConfigFile.text = jsonConfig
-
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('platform add android').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters("plugin add org.jboss.aerogear.cordova.push").execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('build android').execute().await()
-            }
-        }
-
-        shootAndShareCordovaQuickstart {
-            product 'aerogear'
-            version '1.0.0'
-            home "aerogear-shootandshare-${version}"
-            remoteUrl "https://github.com/aerogear/aerogear-cordova-cookbook/archive/master.zip"
-            isInstalled { false }
-            extractMapper { toDir(home).cutdirs() }
-            postActions {
-                // I almost always forget these ...
-                if (!project.shootAndShareGoogleClientId || project.shootAndShareGoogleClientId.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified shootAndShareGoogleClientId!")
-                }
-
-                if (!project.shootAndShareFacebookClientId || project.shootAndShareFacebookClientId.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified shootAndShareFacebookClientId!")
-                }
-
-                if (!project.shootAndShareFacebookClientSecret || project.shootAndShareFacebookClientSecret.length() == 0) {
-                    throw new IllegalStateException("Be sure you have specified shootAndShareFacebookClientSecret!")
-                }
-
-                def cordovaDir = "${home}/Shoot"
-
-                new ShootAndShareQuickstartHelper().patchAppJs("${cordovaDir}/www/js/app.js",
-                        project.shootAndShareGoogleClientId,
-                        project.shootAndShareFacebookClientId,
-                        project.shootAndShareFacebookClientSecret,
-                        "http://localhost:8080/auth")
-
-                // mock camera
-                Files.copy(
-                        new File("${project.rootDir.absolutePath}/quickstartTests/aerogear-shootandshare-cordova/patches/controllers.js"),
-                        new File(cordovaDir, "www/js/controllers.js"))
-
-                new ShootAndShareQuickstartHelper().patchControllerJs("${cordovaDir}/www/js/controllers.js", "http://localhost:8080/shoot/rest/photos")
-
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('platform add android@3.6.4').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.camera').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.file').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.apache.cordova.file-transfer').execute().await()
-                Spacelift.task(CordovaExecutor).setDir(cordovaDir).setParameters('plugin add org.jboss.aerogear.cordova.oauth2').execute().await()
-
-                new ShootAndShareQuickstartHelper().patchBuildGradle("${cordovaDir}/platforms/android/build.gradle")
-
-                Spacelift.task('gradle112').workingDirectory("${cordovaDir}/platforms/android").parameter("clean").parameter("build").execute().await()
-            }
-        }
-
         // we need to build desktop video recorder from sources as this component cannot be deployed to Maven Central
         // due to license constraints
         arquillianDesktopVideoRecorder {
@@ -844,38 +647,6 @@ spacelift {
     /* TESTS */
 
     tests {
-        openshiftIntegrationTests {
-            execute {
-                def baseUri = "https://${project.openShiftAppName}-${project.openShiftNamespace}.rhcloud.com:443";
-
-                Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .property("http.ignore=true")
-                        .property("containerUri=$baseUri")
-                        .property("keystore.ignore=true")
-                        .property('excludedGroups=category.AdminUI,category.Performance,category.SimplePush')
-                        .goals('clean', 'test').execute().await()
-            }
-        }
-        openshiftAdminUITests {
-            execute {
-                def baseUri = "https://${project.openShiftAppNameAdminUI}-${project.openShiftNamespace}.rhcloud.com:443";
-
-                def maven = Spacelift.task(MavenExecutor).pom("pom.xml")
-                        .profiles("recorder")
-                        .property("containerUri=${baseUri}")
-                        .property("javax.net.ssl.trustStore=${keystore.truststore.canonicalPath}")
-                        .property("javax.net.ssl.trustStorePassword=${keystore.truststorePass}")
-                        .ignoreTestFailures()
-                        .goals('clean', 'test')
-
-                // FIXME
-                for (prop in project.externalMavenParameters.split()) {
-                    maven.property(prop)
-                }
-
-                maven.execute().await()
-            }
-        }
         localIntegrationTests(from: LocalTestExecution) {
 
             database { project.unifiedpush.db }
@@ -901,77 +672,6 @@ spacelift {
 
         localAdminUITests(from: localIntegrationTests) {
             testModule { ':tests:admin-ui' }
-        }
-
-        /* Quickstarts related tests */
-
-        helloWorldCordovaQuickstart {
-
-            beforeSuite {
-
-                Spacelift.task([
-                        'target'         : "Google Inc.:Google APIs (x86 System Image):19",
-                        'abi'            : "default/x86",
-                        'emulatorOptions': "-no-skin -no-audio -no-window -nocache -no-snapshot-save -no-snapstorage"
-                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).container('android').execute().await()
-
-                Spacelift.task([
-                        'androidHome'         : "${androidSdk.home}",
-                        'androidSdkHome'      : "${project.spacelift.workspace.absolutePath}",
-                        'androidSdkRoot'      : "${androidSdk.home}",
-                        'androidTools'        : "${androidSdk.home}/tools",
-                        'androidPlatformTools': "${androidSdk.home}/platform-tools"
-                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-push-helloworld-cordova/")).extension('droidium-platform').execute().await()
-
-            }
-
-            execute {
-
-                Spacelift.task(MavenExecutor)
-                        .pom("${project.rootDir.absolutePath}/quickstartTests/aerogear-push-helloworld-cordova/pom.xml")
-                        .property("selendroid.test.app=${helloWorldCordovaQuickstart.home}/cordova/platforms/android/ant-build/MainActivity-debug.apk")
-                        .property("arquillian.debug=true")
-                        .property("pushApplicationId=${project.quickstartPushApplicationId}")
-                        .property("pushApplicationSecret=${project.quickstartPushApplicationMasterSecret}")
-                        .property("pushUrl=https://${project.openShiftAppNameQuickstarts}-${project.openShiftNamespace}.rhcloud.com/ag-push")
-                        .goal('clean')
-                        .goal('test')
-                        .execute().await()
-
-            }
-        }
-
-        shootAndShareCordovaQuickstart {
-            beforeSuite {
-
-                Spacelift.task([
-                        'target'         : "Google Inc.:Google APIs (x86 System Image):19",
-                        'abi'            : "default/x86",
-                        'emulatorOptions': "-no-skin -no-audio -no-window -nocache -no-snapshot-save -no-snapstorage"
-                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).container('android').execute().await()
-
-                Spacelift.task([
-                        'androidHome'         : "${androidSdk.home}",
-                        'androidSdkHome'      : "${project.spacelift.workspace.absolutePath}",
-                        'androidSdkRoot'      : "${androidSdk.home}",
-                        'androidTools'        : "${androidSdk.home}/tools",
-                        'androidPlatformTools': "${androidSdk.home}/platform-tools"
-                ], ArquillianXmlUpdater).dir(new File(project.rootDir, "quickstartTests/aerogear-shootandshare-cordova/")).extension('droidium-platform').execute().await()
-            }
-
-            execute {
-
-                Spacelift.task(MavenExecutor)
-                        .pom("${project.rootDir.absolutePath}/quickstartTests/aerogear-shootandshare-cordova/pom.xml")
-                        .property("selendroid.test.app=${shootAndShareCordovaQuickstart.home}/Shoot/platforms/android/build/apk/android-debug-unaligned.apk")
-                        .property("arquillian.debug=true")
-                        .property("facebookEmail=${project.facebookEmail}")
-                        .property("facebookPassword=${project.facebookPassword}")
-                        .goal('clean')
-                        .goal('test')
-                        .execute().await()
-
-            }
         }
     }
 }
