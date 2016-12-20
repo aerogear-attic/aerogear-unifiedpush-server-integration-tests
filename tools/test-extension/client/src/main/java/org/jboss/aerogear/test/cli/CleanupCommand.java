@@ -14,7 +14,7 @@ public class CleanupCommand extends AbstractCommand {
     @Override
     public void run() {
         Response response = RestAssured.given().
-                baseUri(getUnifiedpushTestExtensionUri()).
+                baseUri(uri).
                 get("/cleanup/applications");
 
         log.info(response.prettyPrint());

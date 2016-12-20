@@ -52,6 +52,8 @@ public class DataGeneratorConfig implements Serializable {
     @Size(min = 1, max = 255)
     private String developer = "admin";
 
+    private String alias;
+
     private String googleKey = UUID.randomUUID().toString();
 
     private String projectNumber = UUID.randomUUID().toString();
@@ -190,6 +192,14 @@ public class DataGeneratorConfig implements Serializable {
 
     public void setCleanupDatabase(boolean cleanupDatabase) {
         this.cleanupDatabase = cleanupDatabase;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public String getAlias() {
+        return alias;
     }
 
 }

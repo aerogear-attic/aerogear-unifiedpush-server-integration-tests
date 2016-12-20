@@ -48,7 +48,7 @@ public class DataGeneratorCommand extends AbstractCommand {
 
     @Option(name = "--variant-type",
             title = "variant-type",
-            description = "Type of variant which will be created, possible values: 'ANDROID', 'IOS', 'SIMPLE_PUSH', 'CHROME_PACKAGED_APP'.")
+            description = "Type of variant which will be created, possible values: 'ANDROID', 'IOS', 'SIMPLE_PUSH'.")
     private VariantType variantType;
 
     @Option(name = "--variant-distribution",
@@ -81,6 +81,11 @@ public class DataGeneratorCommand extends AbstractCommand {
             description = "Path to iOS certificate. If set, --cert-pass is required and iOS variant is created.")
     private String certificatePath;
 
+    @Option(name = "--alias",
+            title = "Application alias",
+            description = "Optional alias to be used for all installation registrations")
+    private String alias;
+
     @Option(name = "--cert-pass",
             title = "certificate-passphrase",
             description = "Certificate passphrase.")
@@ -99,7 +104,7 @@ public class DataGeneratorCommand extends AbstractCommand {
     @Override
     public void run() {
         Response response = RestAssured.given().
-                baseUri(getUnifiedpushTestExtensionUri()).
+                baseUri(uri).
                 body(getDataGeneratorConfig()).
                 header(Utilities.Headers.acceptJson()).
                 contentType(Utilities.ContentTypes.json()).
@@ -162,6 +167,9 @@ public class DataGeneratorCommand extends AbstractCommand {
         }
         if (cleanupDatabase != null) {
             config.setCleanupDatabase(cleanupDatabase);
+        }
+        if (alias != null) {
+            config.setAlias(alias);
         }
         return config;
     }
