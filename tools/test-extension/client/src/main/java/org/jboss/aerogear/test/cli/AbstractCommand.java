@@ -4,27 +4,9 @@ import io.airlift.airline.Option;
 
 public abstract class AbstractCommand implements Runnable {
 
-    @Option(name = {"-a", "--app-name"},
-            title = "app-name",
-            description = "Name of the application on OpenShift")
-    public String appName;
-
-    @Option(name = {"-n", "--namespace"},
-            title = "namespace",
-            description = "Namespace on OpenShift, default value: mobileqa")
-    public String namespace = "mobileqa";
-
-    @Option(name = {"--uri"},
+    @Option(name = {"-u", "--uri"},
             title = "uri",
-            description = "Direct way how to specify URI of UPS extension server") 
-    public String uri;
-
-    protected final String getUnifiedpushTestExtensionUri() {
-
-        if(uri != null && uri != "") {
-            return uri;
-        }
-        return "https://" + appName + "-" + namespace + ".rhcloud.com/unifiedpush-test-extension-server";
-    }
+            description = "URI of the test extension war, such as http://localhost:8080/server")
+    public String uri = "http://localhost:8080/server";
 
 }

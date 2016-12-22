@@ -104,16 +104,23 @@ public class DataGeneratorEndpoint {
         LOGGER.info("Cleaning of database");
 
         try {
+
             Connection c = ds.getConnection();
             Statement stmt = c.createStatement();
-            stmt.executeUpdate("delete from Installation_Category");
-            stmt.executeUpdate("delete from Category");
-            stmt.executeUpdate("delete from Installation");
-            stmt.executeUpdate("delete from SimplePushVariant");
-            stmt.executeUpdate("delete from iOSVariant");
-            stmt.executeUpdate("delete from AndroidVariant");
-            stmt.executeUpdate("delete from Variant");
-            stmt.executeUpdate("delete from PushApplication");
+            stmt.executeUpdate("delete from installation_category");
+            stmt.executeUpdate("delete from category");
+            stmt.executeUpdate("delete from installation");
+            stmt.executeUpdate("delete from simple_push_variant");
+            stmt.executeUpdate("delete from adm_variant");
+            stmt.executeUpdate("delete from ios_variant");
+            stmt.executeUpdate("delete from android_variant");
+            stmt.executeUpdate("delete from windows_wns_variant");
+            stmt.executeUpdate("delete from windows_mpns_variant");
+            stmt.executeUpdate("delete from variant_metric_info");
+            stmt.executeUpdate("delete from variant");
+            stmt.executeUpdate("delete from push_message_info");
+            stmt.executeUpdate("delete from push_application");
+
             stmt.close();
             c.close();
         } catch (SQLException e) {
@@ -134,7 +141,7 @@ public class DataGeneratorEndpoint {
             ctx.getApplications().add(application);
         }
 
-        executeBatch("insert into PushApplication(id, name, description, pushApplicationID, masterSecret, developer) " +
+        executeBatch("insert into push_application(id, name, description, api_key, master_secret, developer) " +
                 "values(?, ?, ?, ?, ?, ?)", new PrepareInsertApplicationStmt(), ctx.getApplications());
 
         ctx.getResponse().put("applicationsCount", ctx.getApplications().size());
@@ -177,13 +184,13 @@ public class DataGeneratorEndpoint {
             }
         }
 
-        executeBatch("insert into Variant(id, name, description, developer, secret, variantid, variants_id, " +
+        executeBatch("insert into variant(id, name, description, developer, secret, api_key, push_application_id, " +
                 "variant_type, type) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertVariantStmt(), variants);
-        executeBatch("insert into AndroidVariant(id, projectnumber, googlekey) values(?, ?, ?)", new
+        executeBatch("insert into android_variant(id, project_number, google_key) values(?, ?, ?)", new
                 PrepareInsertAndroidVariantStmt(), variants);
-        executeBatch("insert into iOSVariant(id, certificate, passphrase, production) values(?, ?, ?, ?)", new
+        executeBatch("insert into ios_variant(id, certificate, passphrase, production) values(?, ?, ?, ?)", new
                 PrepareInsertIosVariantStmt(), variants);
-        executeBatch("insert into SimplePushVariant(id) values(?)", new PrepareInsertSimplePushVariantStmt(), variants);
+        executeBatch("insert into simple_push_variant(id) values(?)", new PrepareInsertSimplePushVariantStmt(), variants);
 
         ctx.getResponse().put("variantsCount", variants.size());
     }
@@ -199,7 +206,7 @@ public class DataGeneratorEndpoint {
 
             for (int i = 0; i < count; i++) {
                 Installation installation = new Installation();
-                installation.setAlias(installation.getId());
+                installation.setAlias(ctx.getConfig().getAlias() != null ? ctx.getConfig().getAlias() : installation.getId());
                 installation.setVariant(variant);
                 ctx.getInstallations().add(installation);
 
@@ -208,13 +215,13 @@ public class DataGeneratorEndpoint {
                         installation.setDeviceToken(RandomStringUtils.randomAlphanumeric(100));
                         installation.setDeviceType("AndroidPhone");
                         installation.setOperatingSystem("ANDROID");
-                        installation.setOsVersion("4.2.2");
+                        installation.setOsVersion("6.0");
                         break;
                     case IOS:
                         installation.setDeviceToken(installation.getId().replaceAll("-", ""));
                         installation.setDeviceType("IOSPhone");
                         installation.setOperatingSystem("IOS");
-                        installation.setOsVersion("6.0");
+                        installation.setOsVersion("9.0");
                         break;
                     case SIMPLE_PUSH:
                         installation.setDeviceToken(String.format("http://localhost:8081/endpoint/%s", installation
@@ -229,8 +236,8 @@ public class DataGeneratorEndpoint {
             }
         }
 
-        executeBatch("insert into Installation(id, alias, deviceToken, deviceType, operatingSystem, osVersion, " +
-                "platform, variantid, enabled) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertInstallationStmt
+        executeBatch("insert into installation(id, alias, device_token, device_type, operating_system, os_version, " +
+                "platform, variant_id, enabled) values(?, ?, ?, ?, ?, ?, ?, ?, ?)", new PrepareInsertInstallationStmt
                 (), ctx.getInstallations());
 
         ctx.getResponse().put("installationsCount", ctx.getInstallations().size());
@@ -250,7 +257,7 @@ public class DataGeneratorEndpoint {
             ctx.getCategories().add(category);
         }
 
-        executeBatch("insert into Category(id, name) values(?, ?)", new PrepareInsertCategoryStmt(), ctx
+        executeBatch("insert into category(id, name) values(?, ?)", new PrepareInsertCategoryStmt(), ctx
                 .getCategories());
 
         ctx.getResponse().put("categoriesCount", ctx.getCategories().size());
@@ -274,14 +281,14 @@ public class DataGeneratorEndpoint {
             }
 
             if (instalationCategoryPairs.size() > 10000) {
-                executeBatch("insert into Installation_Category(installation_id, categories_id) values(?, ?)", new
+                executeBatch("insert into installation_category(installation_id, categories_id) values(?, ?)", new
                         PrepareInsertInstallationCategoryStmt(), instalationCategoryPairs);
                 instalationCategoryPairs.clear();
             }
         }
 
         if (instalationCategoryPairs.size() > 0) {
-            executeBatch("insert into Installation_Category(installation_id, categories_id) values(?, ?)", new
+            executeBatch("insert into installation_category(installation_id, categories_id) values(?, ?)", new
                     PrepareInsertInstallationCategoryStmt(), instalationCategoryPairs);
             instalationCategoryPairs.clear();
         }

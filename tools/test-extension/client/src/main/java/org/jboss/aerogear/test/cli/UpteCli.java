@@ -11,7 +11,6 @@ public class UpteCli {
         CliBuilder<Runnable> builder = Cli.<Runnable>builder("upte")
                 .withDefaultCommand(Help.class)
                 .withCommands(Help.class,
-                        AppCreateCommand.class,
                         DataGeneratorCommand.class,
                         CleanupCommand.class);
 
